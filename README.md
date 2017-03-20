@@ -1,10 +1,6 @@
-# Docker Symfony (PHP7-FPM - NGINX - MySQL - ELK)
+# Docker for testing Mautic setups (PHP7-FPM - NGINX - MySQL - ELK)
 
-[![Build Status](https://travis-ci.org/maxpou/docker-symfony.svg?branch=master)](https://travis-ci.org/maxpou/docker-symfony)
-
-![](doc/schema.png)
-
-Docker-symfony gives you everything you need for developing Symfony application. This complete stack run with docker and [docker-compose (1.7 or higher)](https://docs.docker.com/compose/).
+Docker-symfony gives you everything you need for developing Symfony application. This complete stack run with docker and [docker-compose (1.7 or higher)](https://docs.docker.com/compose/). Forked from [maxpou/docker-symfony](https://github.com/maxpou/docker-symfony) and tweaked for Mautic.
 
 ## Installation
 
@@ -34,29 +30,7 @@ Docker-symfony gives you everything you need for developing Symfony application.
 
     **Note:** For **OS X**, please take a look [here](https://docs.docker.com/docker-for-mac/networking/) and for **Windows** read [this](https://docs.docker.com/docker-for-windows/#/step-4-explore-the-application-and-run-examples) (4th step).
 
-4. Prepare Symfony app
-    1. Update app/config/parameters.yml
-
-        ```yml
-        # path/to/your/symfony-project/app/config/parameters.yml
-        parameters:
-            database_host: db
-        ```
-
-    2. Composer install & create database
-
-        ```bash
-        $ docker-compose exec php bash
-        $ composer install
-        # Symfony2
-        $ sf doctrine:database:create
-        $ sf doctrine:schema:update --force
-        $ sf doctrine:fixtures:load --no-interaction
-        # Symfony3
-        $ sf3 doctrine:database:create
-        $ sf3 doctrine:schema:update --force
-        $ sf3 doctrine:fixtures:load --no-interaction
-        ```
+4. Extract the required version of Mautic at the Top level directory and point it to `SYMFONY_APP_PATH` in .env file.
 
 5. Enjoy :-)
 
@@ -143,8 +117,8 @@ Run `docker-compose up -d` instead.
 Xdebug is configured out of the box!
 Just config your IDE to connect port  `9001` and id key `PHPSTORM`
 
-## Contributing
+## TODO
 
-First of all, **thank you** for contributing ♥  
-If you find any typo/misconfiguration/... please send me a PR or open an issue. You can also ping me on [twitter](https://twitter.com/_maxpou).  
-Also, while creating your Pull Request on GitHub, please write a description which gives the context and/or explains why you are creating it.
+1. Add MailHog service.
+2. PHPMyAdmin
+3. HTTPS Portal
