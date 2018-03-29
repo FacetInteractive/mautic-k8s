@@ -19,8 +19,19 @@ services:
     nginx:
         build: nginx
         ports:
-            - 80:80
+            - 8080:80
         volumes_from:
             - php
         volumes:
             - ./logs/nginx/:/var/log/nginx
+
+    pma:
+      image: phpmyadmin/phpmyadmin
+      environment:
+        PMA_HOST: db
+        PMA_USER: mautic
+        PMA_PASSWORD: mautic
+        PHP_UPLOAD_MAX_FILESIZE: 1G
+        PHP_MAX_INPUT_VARS: 1G
+      ports:
+        - "8081:80"
