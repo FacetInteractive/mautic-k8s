@@ -1,0 +1,38 @@
+version: '2'
+
+services:
+    db:
+        image: mysql
+        volumes:
+          - ./db-init:/docker-entrypoint-initdb.d
+          - ./db-data:/var/lib/mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    php:
+        build: php7-fpm
+        ports:
+            - 9000:9000
+        volumes:
+            - ./mautic:/var/www/symfony
+    nginx:
+        build: nginx
+        ports:
+            - 8080:80
+        volumes_from:
+            - php
+        volumes:
+            - ./logs/nginx/:/var/log/nginx
+
+    pma:
+      image: phpmyadmin/phpmyadmin
+      environment:
+        PMA_HOST: db
+        PMA_USER: mautic
+        PMA_PASSWORD: mautic
+        PHP_UPLOAD_MAX_FILESIZE: 1G
+        PHP_MAX_INPUT_VARS: 1G
+      ports:
+        - "8081:80"

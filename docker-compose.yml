@@ -4,35 +4,43 @@ services:
     db:
         image: mysql
         volumes:
-          - ./db-init:/docker-entrypoint-initdb.d
-          - ./db-data:/var/lib/mysql
+          - /mautic-db-init:/docker-entrypoint-initdb.d
+          - /mautic-db-data:/var/lib/mysql
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
             MYSQL_DATABASE: ${MYSQL_DATABASE}
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        networks:
+          - mautic
+        labels:
+          - traefik.enable=false
+
     php:
         build: php7-fpm
-        ports:
-            - 9000:9000
         volumes:
             - ./mautic:/var/www/symfony
+        networks:
+          - mautic
+        labels:
+          - traefik.enable=false
+
     nginx:
         build: nginx
-        ports:
-            - 8080:80
         volumes_from:
             - php
         volumes:
             - ./logs/nginx/:/var/log/nginx
+    labels:
+      - traefik.backend=mautic
+      - traefik.frontend.rule=Host:mautic.lakshminp.com
+      - traefik.docker.network=mautic
+    networks:
+      - mautic
+      - proxy
 
-    pma:
-      image: phpmyadmin/phpmyadmin
-      environment:
-        PMA_HOST: db
-        PMA_USER: mautic
-        PMA_PASSWORD: mautic
-        PHP_UPLOAD_MAX_FILESIZE: 1G
-        PHP_MAX_INPUT_VARS: 1G
-      ports:
-        - "8081:80"
+networks:
+  proxy:
+    external: true
+  mautic:
+    external: false
