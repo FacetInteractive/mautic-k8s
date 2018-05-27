@@ -31,13 +31,13 @@ services:
             - php
         volumes:
             - ./logs/nginx/:/var/log/nginx
-    labels:
-      - traefik.backend=mautic
-      - traefik.frontend.rule=Host:mautic.lakshminp.com
-      - traefik.docker.network=mautic
-    networks:
-      - mautic
-      - proxy
+        labels:
+          - traefik.backend=mautic
+          - traefik.frontend.rule=Host:mautic.lakshminp.com
+          - traefik.docker.network=mautic
+        networks:
+          - mautic
+          - proxy
 
 networks:
   proxy:
