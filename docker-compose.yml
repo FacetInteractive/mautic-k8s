@@ -4,7 +4,8 @@ services:
     db:
         image: mysql
         volumes:
-            - "./.data/db:/var/lib/mysql"
+          - ./db-init:/docker-entrypoint-initdb.d
+          - ./db-data:/var/lib/mysql
         environment:
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
             MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -15,7 +16,7 @@ services:
         ports:
             - 9000:9000
         volumes:
-            - ./mautic-2.7.1:/var/www/symfony
+            - ./mautic:/var/www/symfony
     nginx:
         build: nginx
         ports:
