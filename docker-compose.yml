@@ -39,9 +39,26 @@ services:
             - ./logs/nginx/:/var/log/nginx
         labels:
           - traefik.backend=mautic
-          - traefik.frontend.rule=Host:mautic.lakshminp.com
+          - traefik.frontend.rule=Host:mautic.druplug.com
           - traefik.docker.network=proxy
         networks:
+          - mautic
+          - proxy
+
+    pma:
+      image: phpmyadmin/phpmyadmin
+      environment:
+        PMA_HOST: db
+        PMA_USER: ${MYSQL_USER}
+        PMA_PASSWORD: ${MYSQL_PASSWORD}
+        PHP_UPLOAD_MAX_FILESIZE: 1G
+        PHP_MAX_INPUT_VARS: 1G
+      labels:
+          - traefik.backend=pma
+          - traefik.port=80
+          - traefik.frontend.rule=Host:pma-mautic.druplug.com
+          - traefik.docker.network=proxy
+      networks:
           - mautic
           - proxy
 
