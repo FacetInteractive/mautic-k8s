@@ -2,7 +2,7 @@ version: '2'
 
 services:
     db:
-        image: mysql
+        image: mysql:5.7
         volumes:
           - /mautic-db-init:/docker-entrypoint-initdb.d
           - /mautic-db-data:/var/lib/mysql
@@ -20,6 +20,12 @@ services:
         build: php7-fpm
         volumes:
             - ./mautic:/var/www/symfony
+        environment:
+            DB_HOST: db
+            DB_USER: ${MYSQL_USER}
+            DB_PASSWORD: ${MYSQL_PASSWORD}
+            DB_NAME: ${MYSQL_DATABASE}
+            DB_PORT: 3306
         networks:
           - mautic
         labels:
@@ -34,7 +40,7 @@ services:
         labels:
           - traefik.backend=mautic
           - traefik.frontend.rule=Host:mautic.lakshminp.com
-          - traefik.docker.network=mautic
+          - traefik.docker.network=proxy
         networks:
           - mautic
           - proxy
