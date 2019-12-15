@@ -1,5 +1,6 @@
 *~
 db-data
 db-init
-logs
-
+.env
+mautic/app/cache/prod
+mautic/app/config/local.php
