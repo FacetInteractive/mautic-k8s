@@ -234,11 +234,11 @@ class DashboardModel extends FormModel
      * @param Widget $widget
      * @param array  $filter
      */
-    public function populateWidgetContent(Widget &$widget, $filter = [])
+    public function populateWidgetContent(Widget $widget, $filter = [])
     {
         $cacheDir = $this->coreParametersHelper->getParameter('cached_data_dir', $this->pathsHelper->getSystemPath('cache', true));
 
-        if ($widget->getCacheTimeout() == null || $widget->getCacheTimeout() == -1) {
+        if ($widget->getCacheTimeout() === null || $widget->getCacheTimeout() === -1) {
             $widget->setCacheTimeout($this->coreParametersHelper->getParameter('cached_data_timeout'));
         }
 
@@ -262,7 +262,6 @@ class DashboardModel extends FormModel
 
         $event = new WidgetDetailEvent($this->translator);
         $event->setWidget($widget);
-
         $event->setCacheDir($cacheDir, $this->userHelper->getUser()->getId());
         $event->setSecurity($this->security);
         $this->dispatcher->dispatch(DashboardEvents::DASHBOARD_ON_MODULE_DETAIL_GENERATE, $event);
@@ -328,12 +327,13 @@ class DashboardModel extends FormModel
      */
     public function getDefaultFilter()
     {
-        $lastMonth = new \DateTime();
-        $lastMonth->sub(new \DateInterval('P30D'));
+        $dateRangeDefault = $this->coreParametersHelper->getParameter('default_daterange_filter', '-1 month');
+        $dateRangeStart   = new \DateTime();
+        $dateRangeStart->modify($dateRangeDefault);
 
         $today    = new \DateTime();
-        $dateFrom = new \DateTime($this->session->get('mautic.dashboard.date.from', $lastMonth->format('Y-m-d 00:00:00')));
-        $dateTo   = new \DateTime($this->session->get('mautic.dashboard.date.to', $today->format('Y-m-d H:i:s')));
+        $dateFrom = new \DateTime($this->session->get('mautic.daterange.form.from', $dateRangeStart->format('Y-m-d 00:00:00')));
+        $dateTo   = new \DateTime($this->session->get('mautic.daterange.form.to', $today->format('Y-m-d 23:59:59')));
 
         return [
             'dateFrom' => $dateFrom,

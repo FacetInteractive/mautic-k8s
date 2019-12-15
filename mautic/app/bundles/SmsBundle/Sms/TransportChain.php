@@ -10,6 +10,7 @@
 
 namespace Mautic\SmsBundle\Sms;
 
+use Mautic\LeadBundle\Entity\Lead;
 use Mautic\PluginBundle\Helper\IntegrationHelper;
 use Mautic\SmsBundle\Api\AbstractSmsApi;
 use Monolog\Logger;
@@ -79,6 +80,11 @@ class TransportChain
     {
         $enabled = $this->getEnabledTransports();
 
+        // If there no primary transport selected and there is just one available we will use it as primary
+        if (count($enabled) === 1) {
+            return array_shift($enabled);
+        }
+
         if (!array_key_exists($this->primaryTransport, $enabled)) {
             throw new \Exception('Primary SMS transport is not enabled. '.$this->primaryTransport);
         }
@@ -87,19 +93,16 @@ class TransportChain
     }
 
     /**
-     * @param $number
-     * @param $content
+     * @param Lead   $lead
+     * @param string $content
      *
      * @return mixed
      *
      * @throws \Exception
      */
-    public function sendSms($number, $content)
+    public function sendSms(Lead $lead, $content)
     {
-        $this->logger->addInfo('Sending an SMS message using '
-                            .$this->transports[$this->primaryTransport]['integrationAlias'].' to '
-                            .(is_array($number) ? join(',', $number) : $number));
-        $response = $this->getPrimaryTransport()->sendSms($number, $content);
+        $response = $this->getPrimaryTransport()->sendSms($lead, $content);
 
         return $response;
     }
@@ -122,7 +125,7 @@ class TransportChain
     public function getEnabledTransports()
     {
         $enabled = [];
-        foreach ($this->transports as $alias=>$transport) {
+        foreach ($this->transports as $alias => $transport) {
             if (!isset($transport['published'])) {
                 $integration = $this->integrationHelper->getIntegrationObject($transport['integrationAlias']);
                 if (!$integration) {

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container
+    xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
+>
+    <services>
+        <service id="form.resolved_type_factory" class="Ivory\OrderedForm\OrderedResolvedFormTypeFactory">
+            <argument type="service" id="ivory_ordered_form.form_orderer" />
+        </service>
+
+        <service
+            id="ivory_ordered_form.form_orderer"
+            class="Ivory\OrderedForm\Orderer\FormOrderer"
+            public="false"
+        />
+
+        <service id="ivory_ordered_form.form_extension" class="Ivory\OrderedForm\Extension\OrderedFormExtension">
+            <tag name="form.type_extension" extended-type="Symfony\Component\Form\Extension\Core\Type\FormType" />
+        </service>
+
+        <service id="ivory_ordered_form.button_extension" class="Ivory\OrderedForm\Extension\OrderedButtonExtension">
+            <tag name="form.type_extension" extended-type="Symfony\Component\Form\Extension\Core\Type\ButtonType" />
+        </service>
+    </services>
+</container>
