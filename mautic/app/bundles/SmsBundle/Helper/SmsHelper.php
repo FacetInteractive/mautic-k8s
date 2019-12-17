@@ -47,11 +47,6 @@ class SmsHelper
     protected $integrationHelper;
 
     /**
-     * @var bool
-     */
-    private $disableTrackableUrls;
-
-    /**
      * SmsHelper constructor.
      *
      * @param EntityManager     $em
@@ -62,15 +57,14 @@ class SmsHelper
      */
     public function __construct(EntityManager $em, LeadModel $leadModel, PhoneNumberHelper $phoneNumberHelper, SmsModel $smsModel, IntegrationHelper $integrationHelper)
     {
-        $this->em                   = $em;
-        $this->leadModel            = $leadModel;
-        $this->phoneNumberHelper    = $phoneNumberHelper;
-        $this->smsModel             = $smsModel;
-        $this->integrationHelper    = $integrationHelper;
-        $integration                = $integrationHelper->getIntegrationObject('Twilio');
-        $settings                   = $integration->getIntegrationSettings()->getFeatureSettings();
-        $this->smsFrequencyNumber   = $settings['frequency_number'];
-        $this->disableTrackableUrls = !empty($settings['disable_trackable_urls']) ? true : false;
+        $this->em                 = $em;
+        $this->leadModel          = $leadModel;
+        $this->phoneNumberHelper  = $phoneNumberHelper;
+        $this->smsModel           = $smsModel;
+        $this->integrationHelper  = $integrationHelper;
+        $integration              = $integrationHelper->getIntegrationObject('Twilio');
+        $settings                 = $integration->getIntegrationSettings()->getFeatureSettings();
+        $this->smsFrequencyNumber = $settings['frequency_number'];
     }
 
     public function unsubscribe($number)
@@ -110,13 +104,5 @@ class SmsHelper
         }
 
         return $this->leadModel->addDncForLead($lead, 'sms', null, DoNotContact::UNSUBSCRIBED);
-    }
-
-    /**
-     * @return bool
-     */
-    public function getDisableTrackableUrls()
-    {
-        return $this->disableTrackableUrls;
     }
 }

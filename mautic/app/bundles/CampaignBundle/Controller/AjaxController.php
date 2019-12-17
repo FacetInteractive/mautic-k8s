@@ -130,7 +130,7 @@ class AjaxController extends CommonAjaxController
                                     ]
                                 );
 
-                if ($log && ($log->getTriggerDate() > new \DateTime())) {
+                if ($log && !$log->getDateTriggered()) {
                     return $log;
                 }
             }

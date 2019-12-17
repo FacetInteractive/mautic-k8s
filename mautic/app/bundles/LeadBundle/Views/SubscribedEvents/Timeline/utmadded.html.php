@@ -8,9 +8,6 @@
  *
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
-
-use Mautic\CoreBundle\Helper\InputHelper;
-
 $utmTags = $event['extra']['utmtags'];
 ?>
 
@@ -41,9 +38,6 @@ $utmTags = $event['extra']['utmtags'];
 $counter = 1;
 if (!empty($utmTags['query'])) {
     foreach ($utmTags['query'] as $k => $v) {
-        // remove tags
-        $v = InputHelper::clean($v);
-
         if (in_array($v, ['', null, []])) {
             continue;
         }

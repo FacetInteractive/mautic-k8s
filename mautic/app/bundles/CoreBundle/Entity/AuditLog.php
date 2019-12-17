@@ -79,8 +79,7 @@ class AuditLog
         $builder->setTable('audit_log')
             ->setCustomRepositoryClass('Mautic\CoreBundle\Entity\AuditLogRepository')
             ->addIndex(['object', 'object_id'], 'object_search')
-            ->addIndex(['bundle', 'object', 'action', 'object_id'], 'timeline_search')
-            ->addIndex(['date_added'], 'date_added_index');
+            ->addIndex(['bundle', 'object', 'action', 'object_id'], 'timeline_search');
 
         $builder->addId();
 
@@ -229,11 +228,11 @@ class AuditLog
     /**
      * Set details.
      *
-     * @param array $details
+     * @param string $details
      *
      * @return AuditLog
      */
-    public function setDetails(array $details)
+    public function setDetails($details)
     {
         $this->details = $details;
 
@@ -243,7 +242,7 @@ class AuditLog
     /**
      * Get details.
      *
-     * @return array
+     * @return string
      */
     public function getDetails()
     {

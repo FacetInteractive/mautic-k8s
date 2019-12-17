@@ -57,46 +57,32 @@ class UserMapper implements UsernameMapperInterface
      */
     private function getValueFromAssertion(Assertion $assertion, User $user)
     {
-        $attributes = [];
         foreach ($this->attributes as $key => $attributeName) {
             if (self::NAME_ID == $attributeName) {
                 // Check for a populated username; default to email if empty
                 if (!$user->getUsername()) {
                     if ($email = $user->getEmail()) {
-                        $attributes['email'] = $assertion->getSubject()->getNameID()->getValue();
+                        $user->setUsername($email);
                     } elseif (
                         $assertion->getSubject() &&
                         $assertion->getSubject()->getNameID() &&
                         $assertion->getSubject()->getNameID()->getValue() &&
                         $assertion->getSubject()->getNameID()->getFormat() != SamlConstants::NAME_ID_FORMAT_TRANSIENT
                     ) {
-                        $attributes['username'] = $assertion->getSubject()->getNameID()->getValue();
+                        $user->setUsername($assertion->getSubject()->getNameID()->getValue());
                     }
                 }
             } else {
                 foreach ($assertion->getAllAttributeStatements() as $attributeStatement) {
                     $attribute = $attributeStatement->getFirstAttributeByName($attributeName);
                     if ($attribute && $attribute->getFirstAttributeValue()) {
-                        $attributes[$key] = $attribute->getFirstAttributeValue();
+                        $setter = 'set'.ucfirst($key);
+                        $user->$setter($attribute->getFirstAttributeValue());
                     }
                 }
             }
         }
 
-        // use email as the user by default
-        if (isset($attributes['email'])) {
-            $user->setEmail($attributes['email']);
-            $user->setUsername($attributes['email']);
-        } elseif (isset($attributes['username'])) {
-            $user->setUsername($attributes['username']);
-        }
-
-        if (isset($attributes['firstname'])) {
-            $user->setFirstname($attributes['firstname']);
-        }
-
-        if (isset($attributes['lastname'])) {
-            $user->setLastName($attributes['lastname']);
-        }
+        return null;
     }
 }

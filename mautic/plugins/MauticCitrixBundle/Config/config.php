@@ -60,16 +60,6 @@ return [
                     'mautic.citrix.model.citrix',
                 ],
             ],
-            'mautic.citrix.stats.subscriber' => [
-                'class'     => \MauticPlugin\MauticCitrixBundle\EventListener\StatsSubscriber::class,
-                'arguments' => [
-                    'doctrine.orm.entity_manager',
-                ],
-            ],
-            'mautic.citrix.integration.request' => [
-                'class'     => \MauticPlugin\MauticCitrixBundle\EventListener\IntegrationRequestSubscriber::class,
-                'arguments' => [],
-            ],
         ],
         'forms' => [
             'mautic.form.type.fieldslist.citrixlist' => [
@@ -105,28 +95,6 @@ return [
                 'arguments' => [
                     'mautic.lead.model.lead',
                     'mautic.campaign.model.event',
-                ],
-            ],
-        ],
-        'integrations' => [
-            'mautic.integration.gotoassist' => [
-                'class'     => \MauticPlugin\MauticCitrixBundle\Integration\GotoassistIntegration::class,
-                'arguments' => [
-                ],
-            ],
-            'mautic.integration.gotomeeting' => [
-                'class'     => \MauticPlugin\MauticCitrixBundle\Integration\GotomeetingIntegration::class,
-                'arguments' => [
-                ],
-            ],
-            'mautic.integration.gototraining' => [
-                'class'     => \MauticPlugin\MauticCitrixBundle\Integration\GototrainingIntegration::class,
-                'arguments' => [
-                ],
-            ],
-            'mautic.integration.gotowebinar' => [
-                'class'     => \MauticPlugin\MauticCitrixBundle\Integration\GotowebinarIntegration::class,
-                'arguments' => [
                 ],
             ],
         ],

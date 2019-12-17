@@ -72,19 +72,12 @@ return [
                 'class' => 'Mautic\PluginBundle\EventListener\PointSubscriber',
             ],
             'mautic.plugin.formbundle.subscriber' => [
-                'class'       => 'Mautic\PluginBundle\EventListener\FormSubscriber',
-                'methodCalls' => [
-                    'setIntegrationHelper' => [
-                        'mautic.helper.integration',
-                    ],
-                ],
+                'class' => 'Mautic\PluginBundle\EventListener\FormSubscriber',
             ],
             'mautic.plugin.campaignbundle.subscriber' => [
-                'class'       => 'Mautic\PluginBundle\EventListener\CampaignSubscriber',
-                'methodCalls' => [
-                    'setIntegrationHelper' => [
-                        'mautic.helper.integration',
-                    ],
+                'class'     => 'Mautic\PluginBundle\EventListener\CampaignSubscriber',
+                'arguments' => [
+                    'mautic.helper.integration',
                 ],
             ],
             'mautic.plugin.leadbundle.subscriber' => [
@@ -92,9 +85,6 @@ return [
                 'arguments' => [
                     'mautic.plugin.model.plugin',
                 ],
-            ],
-            'mautic.plugin.integration.subscriber' => [
-                'class' => 'Mautic\PluginBundle\EventListener\IntegrationSubscriber',
             ],
         ],
         'forms' => [
@@ -107,19 +97,18 @@ return [
                 'arguments' => [
                     'session',
                     'mautic.helper.core_parameters',
+                    'translator',
                     'monolog.logger.mautic',
                 ],
                 'alias' => 'integration_featuresettings',
             ],
             'mautic.form.type.integration.fields' => [
-                'class'     => 'Mautic\PluginBundle\Form\Type\FieldsType',
-                'alias'     => 'integration_fields',
-                'arguments' => 'translator',
+                'class' => 'Mautic\PluginBundle\Form\Type\FieldsType',
+                'alias' => 'integration_fields',
             ],
             'mautic.form.type.integration.company.fields' => [
-                'class'     => 'Mautic\PluginBundle\Form\Type\CompanyFieldsType',
-                'alias'     => 'integration_company_fields',
-                'arguments' => 'translator',
+                'class' => 'Mautic\PluginBundle\Form\Type\CompanyFieldsType',
+                'alias' => 'integration_company_fields',
             ],
             'mautic.form.type.integration.keys' => [
                 'class' => 'Mautic\PluginBundle\Form\Type\KeysType',
@@ -141,32 +130,8 @@ return [
         ],
         'other' => [
             'mautic.helper.integration' => [
-                'class'     => \Mautic\PluginBundle\Helper\IntegrationHelper::class,
-                'arguments' => [
-                    'kernel',
-                    'doctrine.orm.entity_manager',
-                    'mautic.helper.paths',
-                    'mautic.helper.bundle',
-                    'mautic.helper.core_parameters',
-                    'mautic.helper.templating',
-                    'mautic.plugin.model.plugin',
-                ],
-            ],
-            'mautic.plugin.helper.reload' => [
-                'class'     => \Mautic\PluginBundle\Helper\ReloadHelper::class,
-                'arguments' => [
-                    'mautic.factory',
-                ],
-            ],
-        ],
-        'facades' => [
-            'mautic.plugin.facade.reload' => [
-                'class'     => \Mautic\PluginBundle\Facade\ReloadFacade::class,
-                'arguments' => [
-                    'mautic.plugin.model.plugin',
-                    'mautic.plugin.helper.reload',
-                    'translator',
-                ],
+                'class'     => 'Mautic\PluginBundle\Helper\IntegrationHelper',
+                'arguments' => 'mautic.factory',
             ],
         ],
         'models' => [
@@ -174,12 +139,7 @@ return [
                 'class'     => 'Mautic\PluginBundle\Model\PluginModel',
                 'arguments' => [
                     'mautic.lead.model.field',
-                    'mautic.helper.core_parameters',
                 ],
-            ],
-
-            'mautic.plugin.model.integration_entity' => [
-                'class' => Mautic\PluginBundle\Model\IntegrationEntityModel::class,
             ],
         ],
     ],

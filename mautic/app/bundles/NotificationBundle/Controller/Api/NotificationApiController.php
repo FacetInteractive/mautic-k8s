@@ -45,10 +45,11 @@ class NotificationApiController extends CommonApiController
             /** @var \Mautic\LeadBundle\Model\LeadModel $leadModel */
             $leadModel = $this->getModel('lead');
 
-            if ($currentLead = $leadModel->getCurrentLead()) {
-                $currentLead->addPushIDEntry($osid);
-                $leadModel->saveEntity($currentLead);
-            }
+            $currentLead = $leadModel->getCurrentLead();
+
+            $currentLead->addPushIDEntry($osid);
+
+            $leadModel->saveEntity($currentLead);
 
             return new JsonResponse(['success' => true, 'osid' => $osid], 200, ['Access-Control-Allow-Origin' => '*']);
         }

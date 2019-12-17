@@ -11,67 +11,26 @@
 
 namespace Mautic\EmailBundle\Swiftmailer\Transport;
 
-use Mautic\EmailBundle\Model\TransportCallback;
+use Joomla\Http\Http;
+use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\LeadBundle\Entity\DoNotContact;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Translation\TranslatorInterface;
 
 /**
  * Class ElasticEmailTransport.
  */
-class ElasticemailTransport extends \Swift_SmtpTransport implements CallbackTransportInterface
+class ElasticemailTransport extends \Swift_SmtpTransport implements InterfaceCallbackTransport
 {
-    /**
-     * @var TranslatorInterface
-     */
-    private $translator;
+    private $httpClient;
 
     /**
-     * @var LoggerInterface
+     * {@inheritdoc}
      */
-    private $logger;
-
-    /**
-     * @var TransportCallback
-     */
-    private $transportCallback;
-
-    /**
-     * ElasticemailTransport constructor.
-     *
-     * @param TranslatorInterface $translator
-     * @param LoggerInterface     $logger
-     * @param TransportCallback   $transportCallback
-     */
-    public function __construct(TranslatorInterface $translator, LoggerInterface $logger, TransportCallback $transportCallback)
+    public function __construct($host = 'localhost', $port = 25, $security = null)
     {
-        $this->translator        = $translator;
-        $this->logger            = $logger;
-        $this->transportCallback = $transportCallback;
-
         parent::__construct('smtp.elasticemail.com', 2525, null);
 
         $this->setAuthMode('login');
-    }
-
-    /**
-     * @param \Swift_Mime_Message $message
-     * @param null                $failedRecipients
-     *
-     * @return int|void
-     *
-     * @throws \Exception
-     */
-    public function send(\Swift_Mime_Message $message, &$failedRecipients = null)
-    {
-        // IsTransactional header for all non bulk messages
-        // https://elasticemail.com/support/guides/unsubscribe/
-        if ($message->getHeaders()->get('Precedence') != 'Bulk') {
-            $message->getHeaders()->addTextHeader('IsTransactional', 'True');
-        }
-
-        parent::send($message, $failedRecipients);
     }
 
     /**
@@ -87,23 +46,31 @@ class ElasticemailTransport extends \Swift_SmtpTransport implements CallbackTran
     /**
      * Handle bounces & complaints from ElasticEmail.
      *
-     * @param Request $request
+     * @param Request       $request
+     * @param MauticFactory $factory
+     *
+     * @return mixed
      */
-    public function processCallbackRequest(Request $request)
+    public function handleCallbackResponse(Request $request, MauticFactory $factory)
     {
-        $this->logger->debug('Receiving webhook from ElasticEmail');
+        $translator = $factory->getTranslator();
+        $logger     = $factory->getLogger();
+        $logger->debug('Receiving webhook from ElasticEmail');
 
+        $rows     = [];
         $email    = rawurldecode($request->get('to'));
         $status   = rawurldecode($request->get('status'));
         $category = rawurldecode($request->get('category'));
         // https://elasticemail.com/support/delivery/http-web-notification
-        if (in_array($status, ['AbuseReport', 'Unsubscribed']) || 'Spam' === $category) {
-            $this->transportCallback->addFailureByAddress($email, $status, DoNotContact::UNSUBSCRIBED);
-        } elseif (in_array($category, ['NotDelivered', 'NoMailbox', 'AccountProblem', 'DNSProblem', 'Unknown'])) {
+        if (in_array($status, ['AbuseReport', 'Unsubscribed'])) {
+            $rows[DoNotContact::UNSUBSCRIBED]['emails'][$email] = $status;
+        } elseif (in_array($category, ['NotDelivered', 'NoMailbox', 'AccountProblem', 'DNSProblem', 'Unknown', 'Spam'])) {
             // just hard bounces https://elasticemail.com/support/user-interface/activity/bounced-category-filters
-            $this->transportCallback->addFailureByAddress($email, $category);
+            $rows[DoNotContact::BOUNCED]['emails'][$email] = $category;
         } elseif ($status == 'Error') {
-            $this->transportCallback->addFailureByAddress($email, $this->translator->trans('mautic.email.complaint.reason.unknown'));
+            $rows[DoNotContact::BOUNCED]['emails'][$email] = $translator->trans('mautic.email.complaint.reason.unknown');
         }
+
+        return $rows;
     }
 }

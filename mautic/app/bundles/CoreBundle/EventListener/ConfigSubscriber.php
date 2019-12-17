@@ -57,14 +57,11 @@ class ConfigSubscriber extends CommonSubscriber
 
     public function onConfigGenerate(ConfigBuilderEvent $event)
     {
-        $coreParams = $event->getParametersFromConfig('MauticCoreBundle');
-        unset($coreParams['theme']);
-        unset($coreParams['theme_import_allowed_extensions']);
         $event->addForm([
             'bundle'     => 'CoreBundle',
             'formAlias'  => 'coreconfig',
             'formTheme'  => 'MauticCoreBundle:FormTheme\Config',
-            'parameters' => $coreParams,
+            'parameters' => $event->getParametersFromConfig('MauticCoreBundle'),
         ]);
     }
 

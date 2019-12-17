@@ -23,31 +23,30 @@ class WebhookRepository extends CommonRepository
      *
      * @param array $args
      *
-     * @return \Doctrine\ORM\Tools\Pagination\Paginator
+     * @return Paginator
      */
-    public function getEntities(array $args = [])
+    public function getEntities($args = [])
     {
         return parent::getEntities($args);
     }
 
-    /**
-     * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
-     * @param                                                              $filter
-     *
+    /***
+     * @param QueryBuilder $q
+     * @param              $filter
      * @return array
      */
-    protected function addCatchAllWhereClause($q, $filter)
+    protected function addCatchAllWhereClause(&$q, $filter)
     {
         return $this->addStandardCatchAllWhereClause($q, $filter, ['e.name']);
     }
 
     /**
-     * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
-     * @param                                                              $filter
+     * @param QueryBuilder $q
+     * @param              $filter
      *
      * @return array
      */
-    protected function addSearchCommandWhereClause($q, $filter)
+    protected function addSearchCommandWhereClause(&$q, $filter)
     {
         return $this->addStandardSearchCommandWhereClause($q, $filter);
     }

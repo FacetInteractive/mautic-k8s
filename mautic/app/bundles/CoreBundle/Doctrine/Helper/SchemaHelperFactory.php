@@ -13,29 +13,13 @@ namespace Mautic\CoreBundle\Doctrine\Helper;
 
 /**
  * Class SchemaHelperFactory.
- *
- * @deprecated 2.13.0; to be removed in 3.0. Use the appropriate schema helper service instead.
  */
 class SchemaHelperFactory
 {
-    const TYPE_TABLE  = 'table';
-    const TYPE_INDEX  = 'index';
-    const TYPE_COLUMN = 'column';
-
     /**
-     * @var TableSchemaHelper
+     * @var array
      */
-    private $tableHelper;
-
-    /**
-     * @var ColumnSchemaHelper
-     */
-    private $columnHelper;
-
-    /**
-     * @var IndexSchemaHelper
-     */
-    private $indexHelper;
+    protected $helpers = [];
 
     /**
      * SchemaHelperFactory constructor.
@@ -46,67 +30,29 @@ class SchemaHelperFactory
      */
     public function __construct(TableSchemaHelper $tableSchemaHelper, IndexSchemaHelper $indexSchemaHelper, ColumnSchemaHelper $columnSchemaHelper)
     {
-        $this->tableHelper  = $tableSchemaHelper;
-        $this->indexHelper  = $indexSchemaHelper;
-        $this->columnHelper = $columnSchemaHelper;
+        $this->helpers['table']  = $tableSchemaHelper;
+        $this->helpers['index']  = $indexSchemaHelper;
+        $this->helpers['column'] = $columnSchemaHelper;
     }
 
     /**
-     * @param      $type
+     * Get a schema helper.
+     *
+     * @param $type
      * @param null $name
      *
-     * @return ColumnSchemaHelper|IndexSchemaHelper|TableSchemaHelper
+     * @return mixed
      */
     public function getSchemaHelper($type, $name = null)
     {
-        switch ($type) {
-            case self::TYPE_COLUMN:
-                $helper = $this->columnHelper;
-                break;
-            case self::TYPE_INDEX:
-                $helper = $this->indexHelper;
-                break;
-            case self::TYPE_TABLE:
-                $helper = $this->tableHelper;
-                break;
-            default:
-                throw new \InvalidArgumentException(sprintf('The requested helper (%s) is not a valid schema helper.', $type));
+        if (!array_key_exists($type, $this->helpers)) {
+            throw new \InvalidArgumentException(sprintf('The requested helper (%s) is not a valid schema helper.', $type));
         }
 
-        if ($name && method_exists($helper, 'setName')) {
-            $helper->setName($name);
+        if ($name && method_exists($this->helpers[$type], 'setName')) {
+            $this->helpers[$type]->setName($name);
         }
 
-        return $helper;
-    }
-
-    /**
-     * @param null $name
-     *
-     * @return ColumnSchemaHelper
-     */
-    public function getColumnHelper($name = null)
-    {
-        return $this->getSchemaHelper(self::TYPE_COLUMN, $name);
-    }
-
-    /**
-     * @param null $name
-     *
-     * @return IndexSchemaHelper
-     */
-    public function getIndexHelper($name = null)
-    {
-        return $this->getSchemaHelper(self::TYPE_INDEX, $name);
-    }
-
-    /**
-     * @param null $name
-     *
-     * @return TableSchemaHelper
-     */
-    public function getTableHelper($name = null)
-    {
-        return $this->getSchemaHelper(self::TYPE_TABLE, $name);
+        return $this->helpers[$type];
     }
 }

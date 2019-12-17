@@ -2,6 +2,7 @@
     /**
      * @author Gasper Kozak
      * @copyright 2007-2011
+
      **/
 
     /**
@@ -25,6 +26,7 @@
          */
         public function execute($image, $amount, $radius, $threshold)
         {
+
             // Attempt to calibrate the parameters to Photoshop:
             if ($amount > 500) {
                 $amount = 500;

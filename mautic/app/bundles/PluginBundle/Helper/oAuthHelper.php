@@ -35,7 +35,7 @@ class oAuthHelper
 
     private $request;
 
-    public function __construct(AbstractIntegration $integration, Request $request = null, $settings = [])
+    public function __construct(AbstractIntegration $integration, Request $request, $settings = [])
     {
         $clientId                = $integration->getClientIdKey();
         $clientSecret            = $integration->getClientSecretKey();
@@ -62,7 +62,7 @@ class oAuthHelper
         //Get standard OAuth headers
         $headers = $this->getOauthHeaders();
 
-        if (!empty($this->settings['include_verifier']) && $this->request && $this->request->query->has('oauth_verifier')) {
+        if (!empty($this->settings['include_verifier']) && $this->request->query->has('oauth_verifier')) {
             $headers['oauth_verifier'] = $this->request->query->get('oauth_verifier');
         }
 
@@ -73,9 +73,7 @@ class oAuthHelper
 
         if (!empty($this->settings['double_encode_basestring_parameters'])) {
             // Parameters must be encoded before going through buildBaseString
-            array_walk($parameters, function (&$val, $key, $oauth) {
-                $val = $oauth->encode($val);
-            }, $this);
+            array_walk($parameters, create_function('&$val, $key, $oauth', '$val = $oauth->encode($val);'), $this);
         }
 
         $signature = array_merge($headers, $parameters);

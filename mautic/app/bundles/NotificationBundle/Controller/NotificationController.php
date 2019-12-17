@@ -52,10 +52,6 @@ class NotificationController extends FormController
             return $this->accessDenied();
         }
 
-        if ($this->request->getMethod() == 'POST') {
-            $this->setListFilters();
-        }
-
         $session = $this->get('session');
 
         //set limits

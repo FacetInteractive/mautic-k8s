@@ -11,56 +11,52 @@
 
 namespace Mautic\CoreBundle\Form\Type;
 
-use Mautic\CoreBundle\Helper\ThemeHelper;
+use Mautic\CoreBundle\Factory\MauticFactory;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\OptionsResolver\Options;
-use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 /**
  * Class ThemeListType.
  */
 class ThemeListType extends AbstractType
 {
-    /**
-     * @var ThemeHelper
-     */
-    private $themeHelper;
+    private $factory;
 
     /**
-     * ThemeListType constructor.
-     *
-     * @param ThemeHelper $helper
+     * @param MauticFactory $factory
      */
-    public function __construct(ThemeHelper $helper)
+    public function __construct(MauticFactory $factory)
     {
-        $this->themeHelper = $helper;
+        $this->factory = $factory;
     }
 
     /**
-     * @param OptionsResolver $resolver
+     * @param OptionsResolverInterface $resolver
      */
-    public function configureOptions(OptionsResolver $resolver)
+    public function setDefaultOptions(OptionsResolverInterface $resolver)
     {
-        $resolver->setDefaults(
-            [
-                'choices'     => function (Options $options) {
-                    $themes                     = $this->themeHelper->getInstalledThemes($options['feature']);
-                    $themes['mautic_code_mode'] = 'Code Mode';
+        $factory = $this->factory;
+        $resolver->setDefaults([
+            'choices' => function (Options $options) use ($factory) {
+                $themes = $factory->getInstalledThemes($options['feature']);
+                $themes['mautic_code_mode'] = 'Code Mode';
 
-                    return $themes;
-                },
-                'expanded'    => false,
-                'multiple'    => false,
-                'label'       => 'mautic.core.form.theme',
-                'label_attr'  => ['class' => 'control-label'],
-                'empty_value' => false,
-                'required'    => false,
-                'attr'        => [
-                    'class' => 'form-control',
-                ],
-                'feature'     => 'all',
-            ]
-        );
+                return $themes;
+            },
+            'expanded'    => false,
+            'multiple'    => false,
+            'label'       => 'mautic.core.form.theme',
+            'label_attr'  => ['class' => 'control-label'],
+            'empty_value' => false,
+            'required'    => false,
+            'attr'        => [
+                'class' => 'form-control',
+            ],
+            'feature' => 'all',
+        ]);
+
+        $resolver->setOptional(['feature']);
     }
 
     /**

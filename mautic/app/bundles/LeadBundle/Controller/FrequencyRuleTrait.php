@@ -34,23 +34,22 @@ trait FrequencyRuleTrait
     protected $isPublicView = false;
 
     /**
-     * @param       $lead
-     * @param array $viewParameters
-     * @param null  $data
-     * @param bool  $isPublic
-     * @param null  $action
-     * @param bool  $isPreferenceCenter
+     * @param      $lead
+     * @param      $viewParameters
+     * @param null $data
+     * @param bool $isPublic
+     * @param null $action
      *
      * @return bool|Form
      */
-    protected function getFrequencyRuleForm($lead, &$viewParameters = [], &$data = null, $isPublic = false, $action = null, $isPreferenceCenter = false)
+    protected function getFrequencyRuleForm($lead, &$viewParameters = [], &$data = null, $isPublic = false, $action = null)
     {
         /** @var LeadModel $model */
         $model = $this->getModel('lead');
 
         $leadChannels = $model->getContactChannels($lead);
         $allChannels  = $model->getPreferenceChannels();
-        $leadLists    = $model->getLists($lead, true, true, $isPublic, $isPreferenceCenter);
+        $leadLists    = $model->getLists($lead, true, true, $isPublic);
 
         $viewParameters = array_merge(
             $viewParameters,
@@ -61,38 +60,36 @@ trait FrequencyRuleTrait
             ]
         );
 
-        //find the email
-        $currentChannelId = null;
-        if (!empty($viewParameters['idHash'])) {
-            $emailModel = $this->getModel('email');
-            if ($stat = $emailModel->getEmailStatus($viewParameters['idHash'])) {
-                if ($email = $stat->getEmail()) {
-                    $currentChannelId = $email->getId();
-                }
-            }
+        if (null == $data) {
+            $data = $this->getFrequencyRuleFormData($lead, $allChannels, $leadChannels, $isPublic);
         }
 
-        if (null == $data) {
-            $data = $this->getFrequencyRuleFormData($lead, $allChannels, $leadChannels, $isPublic, null, $isPreferenceCenter);
-        }
         /** @var Form $form */
         $form = $this->get('form.factory')->create(
             'lead_contact_frequency_rules',
             $data,
             [
-                'action'                   => $action,
-                'channels'                 => $allChannels,
-                'public_view'              => $isPublic,
-                'preference_center_only'   => $isPreferenceCenter,
-                'allow_extra_fields'       => true,
-        ]
+                'action'             => $action,
+                'channels'           => $allChannels,
+                'public_view'        => $isPublic,
+                'allow_extra_fields' => true,
+            ]
         );
 
         $method = $this->request->getMethod();
         if ('GET' !== $method) {
-            if (!$this->isFormCancelled($form)) {
-                if ($this->isFormValid($form, $data)) {
-                    $this->persistFrequencyRuleFormData($lead, $form->getData(), $allChannels, $leadChannels, $currentChannelId);
+            $isCancelled = method_exists($this, 'isFormCancelled') ? $this->isFormCancelled($form) : false;
+            if (!$isCancelled) {
+                if (method_exists($this, 'isFormValid')) {
+                    $valid = $this->isFormValid($form);
+                } else {
+                    $form->submit($data, 'PATCH' !== $method);
+                    $valid = $form->isValid();
+                }
+
+                if ($valid) {
+                    $data = $form->getData();
+                    $this->persistFrequencyRuleFormData($lead, $data, $allChannels, $leadChannels);
 
                     return true;
                 }
@@ -111,7 +108,7 @@ trait FrequencyRuleTrait
      *
      * @return array
      */
-    protected function getFrequencyRuleFormData(Lead $lead, array $allChannels = null, $leadChannels = null, $isPublic = false, $frequencyRules = null, $isPreferenceCenter = false)
+    protected function getFrequencyRuleFormData(Lead $lead, array $allChannels = null, $leadChannels = null, $isPublic = false, $frequencyRules = null)
     {
         $data = [];
 
@@ -131,19 +128,19 @@ trait FrequencyRuleTrait
 
         foreach ($allChannels as $channel) {
             if (isset($frequencyRules[$channel])) {
-                $frequencyRule                                       = $frequencyRules[$channel];
-                $data['lead_channels']['frequency_number_'.$channel] = $frequencyRule['frequency_number'];
-                $data['lead_channels']['frequency_time_'.$channel]   = $frequencyRule['frequency_time'];
+                $frequencyRule                      = $frequencyRules[$channel];
+                $data['frequency_number_'.$channel] = $frequencyRule['frequency_number'];
+                $data['frequency_time_'.$channel]   = $frequencyRule['frequency_time'];
                 if ($frequencyRule['pause_from_date']) {
-                    $data['lead_channels']['contact_pause_start_date_'.$channel] = new \DateTime($frequencyRule['pause_from_date']);
+                    $data['contact_pause_start_date_'.$channel] = new \DateTime($frequencyRule['pause_from_date']);
                 }
 
                 if ($frequencyRule['pause_to_date']) {
-                    $data['lead_channels']['contact_pause_end_date_'.$channel] = new \DateTime($frequencyRule['pause_to_date']);
+                    $data['contact_pause_end_date_'.$channel] = new \DateTime($frequencyRule['pause_to_date']);
                 }
 
                 if (!empty($frequencyRule['preferred_channel'])) {
-                    $data['lead_channels']['preferred_channel'] = $channel;
+                    $data['preferred_channel'] = $channel;
                 }
             }
         }
@@ -153,14 +150,14 @@ trait FrequencyRuleTrait
             : $model->getLeadCategories(
                 $lead
             );
-        $this->leadLists    = $model->getLists($lead, false, false, $isPublic, $isPreferenceCenter);
+        $this->leadLists    = $model->getLists($lead, false, false, $isPublic);
         $data['lead_lists'] = [];
         foreach ($this->leadLists as $leadList) {
             $data['lead_lists'][] = $leadList->getId();
         }
 
-        $data['lead_channels']['subscribed_channels'] = $leadChannels;
-        $this->isPublicView                           = $isPublic;
+        $data['subscribed_channels'] = $leadChannels;
+        $this->isPublicView          = $isPublic;
 
         return $data;
     }
@@ -170,33 +167,29 @@ trait FrequencyRuleTrait
      * @param array $formData
      * @param array $allChannels
      * @param       $leadChannels
-     * @param int   $currentChannelId
      */
-    protected function persistFrequencyRuleFormData(Lead $lead, array $formData, array $allChannels, $leadChannels, $currentChannelId = null)
+    protected function persistFrequencyRuleFormData(Lead $lead, array $formData, array $allChannels, $leadChannels)
     {
-        /** @var LeadModel $leadModel */
-        $leadModel = $this->getModel('lead.lead');
+        /** @var LeadModel $model */
+        $model = $this->getModel('lead');
 
-        /** @var \Mautic\LeadBundle\Model\DoNotContact $dncModel */
-        $dncModel = $this->getModel('lead.dnc');
-
-        // iF subscribed_channels are enabled in form, then touch DNC
-        if (isset($this->request->request->get('lead_contact_frequency_rules')['lead_channels'])) {
-            foreach ($formData['lead_channels']['subscribed_channels'] as $contactChannel) {
-                if (!isset($leadChannels[$contactChannel])) {
-                    $dncModel->removeDncForContact($lead->getId(), $contactChannel);
-                }
-            }
-            $dncChannels = array_diff($allChannels, $formData['lead_channels']['subscribed_channels']);
-            if (!empty($dncChannels)) {
-                foreach ($dncChannels as $channel) {
-                    if ($currentChannelId) {
-                        $channel = [$channel => $currentChannelId];
-                    }
-                    $dncModel->addDncForContact($lead->getId(), $channel, ($this->isPublicView) ? DoNotContact::UNSUBSCRIBED : DoNotContact::MANUAL, 'user');
+        foreach ($formData['subscribed_channels'] as $contactChannel) {
+            if (!isset($leadChannels[$contactChannel])) {
+                $contactable = $model->isContactable($lead, $contactChannel);
+                if ($contactable !== DoNotContact::UNSUBSCRIBED) {
+                    // Only resubscribe if the contact did not opt out themselves
+                    $model->removeDncForLead($lead, $contactChannel);
                 }
             }
         }
-        $leadModel->setFrequencyRules($lead, $formData, $this->leadLists);
+
+        $dncChannels = array_diff($allChannels, $formData['subscribed_channels']);
+        if (!empty($dncChannels)) {
+            foreach ($dncChannels as $channel) {
+                $model->addDncForLead($lead, $channel, 'user', ($this->isPublicView) ? DoNotContact::UNSUBSCRIBED : DoNotContact::MANUAL);
+            }
+        }
+
+        $model->setFrequencyRules($lead, $formData, $this->leadLists);
     }
 }

@@ -138,8 +138,8 @@ class DashboardSubscriber extends MainDashboardSubscriber
 
                 $event->setTemplateData([
                     'headItems' => [
-                        'mautic.form.result.thead.referrer',
-                        'mautic.form.graph.line.submissions',
+                        $event->getTranslator()->trans('mautic.form.result.thead.referrer'),
+                        $event->getTranslator()->trans('mautic.form.graph.line.submissions'),
                     ],
                     'bodyItems' => $items,
                     'raw'       => $referrers,
@@ -191,8 +191,8 @@ class DashboardSubscriber extends MainDashboardSubscriber
 
                 $event->setTemplateData([
                     'headItems' => [
-                        'mautic.form.lead',
-                        'mautic.form.graph.line.submissions',
+                        $event->getTranslator()->trans('mautic.form.lead'),
+                        $event->getTranslator()->trans('mautic.form.graph.line.submissions'),
                     ],
                     'bodyItems' => $items,
                     'raw'       => $submitters,
@@ -234,7 +234,7 @@ class DashboardSubscriber extends MainDashboardSubscriber
 
                 $event->setTemplateData([
                     'headItems' => [
-                        'mautic.dashboard.label.title',
+                        $event->getTranslator()->trans('mautic.dashboard.label.title'),
                     ],
                     'bodyItems' => $items,
                     'raw'       => $forms,

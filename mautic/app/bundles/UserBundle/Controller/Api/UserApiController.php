@@ -32,7 +32,7 @@ class UserApiController extends CommonApiController
         $this->entityNameOne    = 'user';
         $this->entityNameMulti  = 'users';
         $this->serializerGroups = ['userDetails', 'roleList', 'publishDetails'];
-        $this->dataInputMasks   = ['signature' => 'html'];
+
         parent::initialize($event);
     }
 
@@ -133,7 +133,7 @@ class UserApiController extends CommonApiController
         return $this->processForm($entity, $parameters, $method);
     }
 
-    protected function preSaveEntity(&$entity, $form, $parameters, $action = 'edit')
+    public function preSaveEntity(&$entity, $form, $parameters, $action = 'edit')
     {
         switch ($action) {
             case 'new':

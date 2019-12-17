@@ -11,9 +11,7 @@
 
 namespace Mautic\FormBundle\Controller\Api;
 
-use FOS\RestBundle\Util\Codes;
 use Mautic\ApiBundle\Controller\CommonApiController;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 
 /**
@@ -96,7 +94,15 @@ class FormApiController extends CommonApiController
             return $this->badRequest('The actions attribute must be array.');
         }
 
-        $this->model->deleteActions($entity, $actionsToDelete);
+        $currentActions = $entity->getActions();
+
+        foreach ($currentActions as $currentAction) {
+            if (in_array($currentAction->getId(), $actionsToDelete)) {
+                $entity->removeAction($currentAction);
+            }
+        }
+
+        $this->model->saveEntity($entity);
 
         $view = $this->view([$this->entityNameOne => $entity]);
 
@@ -112,13 +118,10 @@ class FormApiController extends CommonApiController
         $fieldModel  = $this->getModel('form.field');
         $actionModel = $this->getModel('form.action');
         $isNew       = false;
-        $alias       = $entity->getAlias();
 
-        if (empty($alias)) {
-            // Set clean alias to prevent SQL errors
-            $alias = $this->model->cleanAlias($entity->getName(), '', 10);
-            $entity->setAlias($alias);
-        }
+        // Set clean alias to prevent SQL errors
+        $alias = $this->model->cleanAlias($entity->getName(), '', 10);
+        $entity->setAlias($alias);
 
         // Set timestamps
         $this->model->setTimestamps($entity, true, false);
@@ -151,33 +154,9 @@ class FormApiController extends CommonApiController
                     $requestFieldIds[] = $fieldParams['id'];
                 }
 
-                if (is_null($fieldEntity)) {
-                    $msg = $this->translator->trans(
-                        'mautic.core.error.entity.not.found',
-                        [
-                            '%entity%' => $this->translator->trans('mautic.form.field'),
-                            '%id%'     => $fieldParams['id'],
-                        ],
-                        'flashes'
-                    );
-
-                    return $this->returnError($msg, Codes::HTTP_NOT_FOUND);
-                }
-
                 $fieldEntityArray           = $fieldEntity->convertToArray();
                 $fieldEntityArray['formId'] = $formId;
-
-                if (!empty($fieldParams['alias'])) {
-                    $fieldParams['alias'] = $fieldModel->cleanAlias($fieldParams['alias'], '', 25);
-
-                    if (!in_array($fieldParams['alias'], $aliases)) {
-                        $fieldEntityArray['alias'] = $fieldParams['alias'];
-                    }
-                }
-
-                if (empty($fieldEntityArray['alias'])) {
-                    $fieldEntityArray['alias'] = $fieldParams['alias'] = $fieldModel->generateAlias($fieldEntityArray['label'], $aliases);
-                }
+                $fieldEntityArray['alias']  = $fieldParams['alias']  = $fieldModel->generateAlias($fieldEntityArray['label'], $aliases);
 
                 $fieldForm = $this->createFieldEntityForm($fieldEntityArray);
                 $fieldForm->submit($fieldParams, 'PATCH' !== $method);
@@ -240,16 +219,10 @@ class FormApiController extends CommonApiController
 
         // Remove actions which weren't in the PUT request
         if (!$isNew && $method === 'PUT') {
-            $actionsToDelete = [];
-
             foreach ($currentActions as $currentAction) {
                 if (!in_array($currentAction->getId(), $requestActionIds)) {
-                    $actionsToDelete[] = $currentAction->getId();
+                    $entity->removeAction($currentAction);
                 }
-            }
-
-            if ($actionsToDelete) {
-                $this->model->deleteActions($entity, $actionsToDelete);
             }
         }
     }
@@ -259,7 +232,7 @@ class FormApiController extends CommonApiController
      *
      * @param $entity
      *
-     * @return FormInterface
+     * @return Form
      */
     protected function createActionEntityForm($entity)
     {
@@ -279,7 +252,7 @@ class FormApiController extends CommonApiController
      *
      * @param $entity
      *
-     * @return FormInterface
+     * @return Form
      */
     protected function createFieldEntityForm($entity)
     {

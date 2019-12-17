@@ -112,9 +112,7 @@ class TwitterIntegration extends SocialIntegration
 
         if (empty($settings['authorize_session']) && $authType != 'access_token') {
             // Twitter requires oauth_token_secret to be part of composite key
-            if (isset($this->keys['oauth_token_secret'])) {
-                $settings['token_secret'] = $this->keys['oauth_token_secret'];
-            }
+            $settings['token_secret'] = $this->keys['oauth_token_secret'];
 
             //Twitter also requires double encoding of parameters in building base string
             $settings['double_encode_basestring_parameters'] = true;

@@ -43,7 +43,7 @@ class WidgetDetailEvent extends CommonEvent
     public function __construct(TranslatorInterface $translator)
     {
         $this->translator = $translator;
-        $this->startTime  = microtime(true);
+        $this->startTime  = microtime();
     }
 
     /**
@@ -124,7 +124,7 @@ class WidgetDetailEvent extends CommonEvent
     /**
      * Returns the widget entity.
      *
-     * @return Widget $widget
+     * @param Widget $widget
      */
     public function getWidget()
     {
@@ -161,14 +161,12 @@ class WidgetDetailEvent extends CommonEvent
     {
         $this->templateData = $templateData;
         $this->widget->setTemplateData($templateData);
-        $this->widget->setLoadTime(abs(microtime(true) - $this->startTime));
+        $this->widget->setLoadTime(abs(microtime() - $this->startTime));
 
         // Store the template data to the cache
         if (!$skipCache && $this->cacheDir && $this->widget->getCacheTimeout() > 0) {
             $cache = new CacheStorageHelper($this->cacheDir, $this->uniqueCacheDir);
-            // must pass a DateTime object or a int of seconds to expire as 3rd attribute to set().
-            $expireTime = $this->widget->getCacheTimeout() * 60;
-            $cache->set($this->getUniqueWidgetId(), $templateData, (int) $expireTime);
+            $cache->set($this->getUniqueWidgetId(), $templateData);
         }
     }
 
@@ -256,7 +254,7 @@ class WidgetDetailEvent extends CommonEvent
     /**
      * Get the Translator object.
      *
-     * @return TranslatorInterface
+     * @return Translator $translator
      */
     public function getTranslator()
     {

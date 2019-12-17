@@ -56,11 +56,6 @@ class LeadList extends FormEntity
     private $isGlobal = true;
 
     /**
-     * @var bool
-     */
-    private $isPreferenceCenter = false;
-
-    /**
      * @var ArrayCollection
      */
     private $leads;
@@ -91,10 +86,6 @@ class LeadList extends FormEntity
 
         $builder->createField('isGlobal', 'boolean')
             ->columnName('is_global')
-            ->build();
-
-        $builder->createField('isPreferenceCenter', 'boolean')
-            ->columnName('is_preference_center')
             ->build();
 
         $builder->createOneToMany('leads', 'ListLead')
@@ -139,7 +130,6 @@ class LeadList extends FormEntity
                 [
                     'filters',
                     'isGlobal',
-                    'isPreferenceCenter',
                 ]
             )
             ->build();
@@ -298,35 +288,5 @@ class LeadList extends FormEntity
     public function getLeads()
     {
         return $this->leads;
-    }
-
-    /**
-     * Clone entity with empty contact list.
-     */
-    public function __clone()
-    {
-        parent::__clone();
-
-        $this->id    = null;
-        $this->leads = new ArrayCollection();
-        $this->setIsPublished(false);
-        $this->setAlias('');
-    }
-
-    /**
-     * @return bool
-     */
-    public function getIsPreferenceCenter()
-    {
-        return $this->isPreferenceCenter;
-    }
-
-    /**
-     * @param bool $isPreferenceCenter
-     */
-    public function setIsPreferenceCenter($isPreferenceCenter)
-    {
-        $this->isChanged('isPreferenceCenter', $isPreferenceCenter);
-        $this->isPreferenceCenter = $isPreferenceCenter;
     }
 }

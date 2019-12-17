@@ -13,27 +13,18 @@ namespace Mautic\WebhookBundle\Event;
 
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\Process\Exception\InvalidArgumentException;
-use Symfony\Component\Translation\TranslatorInterface;
 
 /**
  * Class WebhookBuilderEvent.
  */
 class WebhookBuilderEvent extends Event
 {
-    /**
-     * @var array
-     */
     private $events = [];
 
     /**
-     * @var TranslatorInterface
+     * @param \Symfony\Bundle\FrameworkBundle\Translation\Translator $translator
      */
-    private $translator;
-
-    /**
-     * @param TranslatorInterface $translator
-     */
-    public function __construct(TranslatorInterface $translator)
+    public function __construct($translator)
     {
         $this->translator = $translator;
     }

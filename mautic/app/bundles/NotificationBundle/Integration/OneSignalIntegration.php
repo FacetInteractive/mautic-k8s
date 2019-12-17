@@ -48,15 +48,6 @@ class OneSignalIntegration extends AbstractIntegration
             'mobile',
             'landing_page_enabled',
             'welcome_notification_enabled',
-            'tracking_page_enabled',
-        ];
-    }
-
-    public function getSupportedFeatureTooltips()
-    {
-        return [
-            'landing_page_enabled'  => 'mautic.integration.form.features.landing_page_enabled.tooltip',
-            'tracking_page_enabled' => 'mautic.integration.form.features.tracking_page_enabled.tooltip',
         ];
     }
 
@@ -85,7 +76,6 @@ class OneSignalIntegration extends AbstractIntegration
             'requires_authorization' => false,
         ];
     }
-
     /**
      * {@inheritdoc}
      *

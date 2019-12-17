@@ -11,8 +11,6 @@
 
 namespace Mautic\ReportBundle\Model;
 
-use Doctrine\DBAL\Connections\MasterSlaveConnection;
-use Doctrine\DBAL\Query\QueryBuilder;
 use Mautic\ChannelBundle\Helper\ChannelListHelper;
 use Mautic\CoreBundle\Helper\Chart\ChartQuery;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
@@ -20,20 +18,18 @@ use Mautic\CoreBundle\Helper\DateTimeHelper;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\CoreBundle\Helper\TemplatingHelper;
 use Mautic\CoreBundle\Model\FormModel;
+use Mautic\CoreBundle\Templating\Helper\FormatterHelper;
 use Mautic\LeadBundle\Model\FieldModel;
 use Mautic\ReportBundle\Builder\MauticReportBuilder;
-use Mautic\ReportBundle\Crate\ReportDataResult;
 use Mautic\ReportBundle\Entity\Report;
 use Mautic\ReportBundle\Event\ReportBuilderEvent;
 use Mautic\ReportBundle\Event\ReportDataEvent;
 use Mautic\ReportBundle\Event\ReportEvent;
 use Mautic\ReportBundle\Event\ReportGraphEvent;
-use Mautic\ReportBundle\Event\ReportQueryEvent;
 use Mautic\ReportBundle\Generator\ReportGenerator;
 use Mautic\ReportBundle\Helper\ReportHelper;
 use Mautic\ReportBundle\ReportEvents;
 use Symfony\Component\EventDispatcher\Event;
-use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -50,6 +46,11 @@ class ReportModel extends FormModel
      * @var mixed
      */
     protected $defaultPageLimit;
+
+    /**
+     * @var FormatterHelper
+     */
+    protected $formatterHelper;
 
     /**
      * @var TemplatingHelper
@@ -77,42 +78,27 @@ class ReportModel extends FormModel
     protected $reportHelper;
 
     /**
-     * @var CsvExporter
-     */
-    private $csvExporter;
-
-    /**
-     * @var ExcelExporter
-     */
-    private $excelExporter;
-
-    /**
      * ReportModel constructor.
      *
      * @param CoreParametersHelper $coreParametersHelper
+     * @param FormatterHelper      $formatterHelper
      * @param TemplatingHelper     $templatingHelper
      * @param ChannelListHelper    $channelListHelper
-     * @param FieldModel           $fieldModel
-     * @param ReportHelper         $reportHelper
-     * @param CsvExporter          $csvExporter
-     * @param ExcelExporter        $excelExporter
      */
     public function __construct(
         CoreParametersHelper $coreParametersHelper,
+        FormatterHelper $formatterHelper,
         TemplatingHelper $templatingHelper,
         ChannelListHelper $channelListHelper,
         FieldModel $fieldModel,
-        ReportHelper $reportHelper,
-        CsvExporter $csvExporter,
-        ExcelExporter $excelExporter
+        ReportHelper $reportHelper
     ) {
         $this->defaultPageLimit  = $coreParametersHelper->getParameter('default_pagelimit');
+        $this->formatterHelper   = $formatterHelper;
         $this->templatingHelper  = $templatingHelper;
         $this->channelListHelper = $channelListHelper;
         $this->fieldModel        = $fieldModel;
         $this->reportHelper      = $reportHelper;
-        $this->csvExporter       = $csvExporter;
-        $this->excelExporter     = $excelExporter;
     }
 
     /**
@@ -130,7 +116,7 @@ class ReportModel extends FormModel
      */
     public function getRepository()
     {
-        return $this->em->getRepository(Report::class);
+        return $this->em->getRepository('MauticReportBundle:Report');
     }
 
     /**
@@ -152,20 +138,16 @@ class ReportModel extends FormModel
             throw new MethodNotAllowedHttpException(['Report']);
         }
 
-        if (!empty($action)) {
-            $options['action'] = $action;
-        }
-
-        $options = array_merge($options, [
-            'read_only'  => false,
-            'table_list' => $this->getTableData(),
-        ]);
+        $params              = (!empty($action)) ? ['action' => $action] : [];
+        $params['read_only'] = false;
 
         // Fire the REPORT_ON_BUILD event off to get the table/column data
 
+        $params['table_list'] = $this->getTableData();
+
         $reportGenerator = new ReportGenerator($this->dispatcher, $this->em->getConnection(), $entity, $this->channelListHelper, $formFactory);
 
-        return $reportGenerator->getForm($entity, $options);
+        return $reportGenerator->getForm($entity, $params);
     }
 
     /**
@@ -175,7 +157,7 @@ class ReportModel extends FormModel
      */
     public function getEntity($id = null)
     {
-        if (null === $id) {
+        if ($id === null) {
             return new Report();
         }
 
@@ -242,7 +224,7 @@ class ReportModel extends FormModel
                 $data[$context]['graphs'] = &$data['all']['graphs'][$context];
             } else {
                 //build them
-                $eventContext = ('all' == $context) ? '' : $context;
+                $eventContext = ($context == 'all') ? '' : $context;
 
                 $event = new ReportBuilderEvent($this->translator, $this->channelListHelper, $eventContext, $this->fieldModel->getPublishedFieldArrays(), $this->reportHelper);
                 $this->dispatcher->dispatch(ReportEvents::REPORT_ON_BUILD, $event);
@@ -250,7 +232,7 @@ class ReportModel extends FormModel
                 $tables = $event->getTables();
                 $graphs = $event->getGraphs();
 
-                if ('all' == $context) {
+                if ($context == 'all') {
                     $data[$context]['tables'] = $tables;
                     $data[$context]['graphs'] = $graphs;
                 } else {
@@ -283,41 +265,7 @@ class ReportModel extends FormModel
     {
         $data = $this->buildAvailableReports($context);
 
-        $data = (!isset($data['tables'])) ? [] : $data['tables'];
-
-        if (array_key_exists('columns', $data)) {
-            $data['columns'] = $this->preventSameAliases($data['columns']);
-        }
-
-        return $data;
-    }
-
-    /**
-     * Prevent same aliases using numeric suffixes for each alias.
-     *
-     * @param array $columns
-     *
-     * @return array
-     */
-    private function preventSameAliases(array $columns)
-    {
-        $existingAliases = [];
-
-        foreach ($columns as $key => $column) {
-            $alias = $column['alias'];
-
-            // Count suffixes
-            if (!array_key_exists($alias, $existingAliases)) {
-                $existingAliases[$alias] = 1;
-            } else {
-                ++$existingAliases[$alias];
-            }
-
-            // Add numeric suffix
-            $columns[$key]['alias'] = $alias.$existingAliases[$alias];
-        }
-
-        return $columns;
+        return (!isset($data['tables'])) ? [] : $data['tables'];
     }
 
     /**
@@ -347,7 +295,7 @@ class ReportModel extends FormModel
         $return->definitions = [];
 
         foreach ($columns as $column => $data) {
-            if ($isGroupBy && ('unsubscribed' == $column || 'unsubscribed_ratio' == $column || 'unique_ratio' == $column)) {
+            if ($isGroupBy && ($column == 'unsubscribed' || $column == 'unsubscribed_ratio' || $column == 'unique_ratio')) {
                 continue;
             }
             if (isset($data['label'])) {
@@ -384,7 +332,7 @@ class ReportModel extends FormModel
         foreach ($filters as $filter => $data) {
             if (isset($data['label'])) {
                 $return->definitions[$filter] = $data;
-                $return->choices[$filter]     = $data['label'];
+                $return->choices [$filter]    = $data['label'];
                 $return->choiceHtml .= "<option value=\"$filter\">{$data['label']}</option>\n";
 
                 $return->operatorChoices[$filter] = $this->getOperatorOptions($data);
@@ -427,45 +375,44 @@ class ReportModel extends FormModel
     /**
      * Export report.
      *
-     * @param string $format
-     * @param Report $report
-     * @param array  $reportData
-     * @param null   $handle
-     * @param int    $page
+     * @param $format
+     * @param $report
+     * @param $reportData
      *
      * @return StreamedResponse|Response
      *
      * @throws \Exception
      */
-    public function exportResults($format, Report $report, array $reportData, $handle = null, $page = null)
+    public function exportResults($format, $report, $reportData, $handle = null, $page = null)
     {
-        $date = (new DateTimeHelper())->toLocalString();
-        $name = str_replace(' ', '_', $date).'_'.InputHelper::alphanum($report->getName(), false, '-');
+        $formatter = $this->formatterHelper;
+        $date      = (new DateTimeHelper())->toLocalString();
+        $name      = str_replace(' ', '_', $date).'_'.InputHelper::alphanum($report->getName(), false, '-');
 
         switch ($format) {
             case 'csv':
                 //build the data rows
-                $reportDataResult = new ReportDataResult($reportData);
+                if (is_null($handle)) {
+                    $response = new StreamedResponse(
+                        function () use ($reportData, $formatter) {
+                            $handle = fopen('php://output', 'r+');
+                            $this->exportCSV($formatter, $reportData, $handle, 0);
+                            fclose($handle);
+                        }
+                    );
+                    $response->headers->set('Content-Type', 'application/force-download');
+                    $response->headers->set('Content-Type', 'application/octet-stream');
+                    $response->headers->set('Content-Disposition', 'attachment; filename="'.$name.'.csv"');
+                    $response->headers->set('Expires', 0);
+                    $response->headers->set('Cache-Control', 'must-revalidate');
+                    $response->headers->set('Pragma', 'public');
 
-                if (!is_null($handle)) {
-                    $this->csvExporter->export($reportDataResult, $handle, $page);
+                    return $response;
+                } else {
+                    $this->exportCSV($formatter, $reportData, $handle, $page);
 
                     return;
                 }
-
-                $response = new StreamedResponse(
-                    function () use ($reportDataResult) {
-                        $handle = fopen('php://output', 'r+');
-                        $this->csvExporter->export($reportDataResult, $handle);
-                        fclose($handle);
-                    }
-                );
-
-                $fileName = $name.'.csv';
-                ExportResponse::setResponseHeaders($response, $fileName);
-
-                return $response;
-
             case 'html':
                 $content = $this->templatingHelper->getTemplating()->renderResponse(
                     'MauticReportBundle:Report:export.html.php',
@@ -483,20 +430,54 @@ class ReportModel extends FormModel
                 return new Response($content);
 
             case 'xlsx':
-                if (!class_exists('PHPExcel')) {
-                    throw new \Exception('PHPExcel is required to export to Excel spreadsheets');
+                if (class_exists('PHPExcel')) {
+                    $response = new StreamedResponse(
+                        function () use ($formatter, $reportData, $report, $name) {
+                            $objPHPExcel = new \PHPExcel();
+                            $objPHPExcel->getProperties()->setTitle($name);
+
+                            $objPHPExcel->createSheet();
+                            $header = [];
+
+                            //build the data rows
+                            foreach ($reportData['data'] as $count => $data) {
+                                $row = [];
+                                foreach ($data as $k => $v) {
+                                    if ($count === 0) {
+                                        //set the header
+                                        $header[] = $k;
+                                    }
+                                    $row[] = $formatter->_($v, $reportData['columns'][$reportData['dataColumns'][$k]]['type'], true);
+                                }
+
+                                if ($count === 0) {
+                                    //write the column names row
+                                    $objPHPExcel->getActiveSheet()->fromArray($header, null, 'A1');
+                                }
+                                //write the row
+                                $rowCount = $count + 2;
+                                $objPHPExcel->getActiveSheet()->fromArray($row, null, "A{$rowCount}");
+                                //free memory
+                                unset($row, $reportData['data'][$count]);
+                            }
+
+                            $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+                            $objWriter->setPreCalculateFormulas(false);
+
+                            $objWriter->save('php://output');
+                        }
+                    );
+
+                    $response->headers->set('Content-Type', 'application/force-download');
+                    $response->headers->set('Content-Type', 'application/octet-stream');
+                    $response->headers->set('Content-Disposition', 'attachment; filename="'.$name.'.xlsx"');
+                    $response->headers->set('Expires', 0);
+                    $response->headers->set('Cache-Control', 'must-revalidate');
+                    $response->headers->set('Pragma', 'public');
+
+                    return $response;
                 }
-
-                $response = new StreamedResponse(
-                    function () use ($reportData, $name) {
-                        $this->excelExporter->export($reportData, $name);
-                    }
-                );
-
-                $fileName = $name.'.xlsx';
-                ExportResponse::setResponseHeaders($response, $fileName);
-
-                return $response;
+                throw new \Exception('PHPExcel is required to export to Excel spreadsheets');
 
             default:
                 return new Response();
@@ -506,13 +487,13 @@ class ReportModel extends FormModel
     /**
      * Get report data for view rendering.
      *
-     * @param Report               $entity
-     * @param FormFactoryInterface $formFactory
-     * @param array                $options
+     * @param       $entity
+     * @param       $formFactory
+     * @param array $options
      *
      * @return array
      */
-    public function getReportData(Report $entity, FormFactoryInterface $formFactory = null, array $options = [])
+    public function getReportData($entity, $formFactory = null, $options = [])
     {
         // Clone dateFrom/dateTo because they handled separately in charts
         $chartDateFrom = isset($options['dateFrom']) ? clone $options['dateFrom'] : (new \DateTime('-30 days'));
@@ -545,25 +526,23 @@ class ReportModel extends FormModel
         }
 
         $paginate        = !empty($options['paginate']);
-        $reportPage      = isset($options['reportPage']) ? $options['reportPage'] : 1;
+        $reportPage      = (isset($options['reportPage'])) ? $options['reportPage'] : 1;
         $data            = $graphs            = [];
-        $reportGenerator = new ReportGenerator($this->dispatcher, $this->getConnection(), $entity, $this->channelListHelper, $formFactory);
+        $reportGenerator = new ReportGenerator($this->dispatcher, $this->em->getConnection(), $entity, $this->channelListHelper, $formFactory);
 
         $selectedColumns = $entity->getColumns();
         $totalResults    = $limit    = 0;
 
         // Prepare the query builder
-        $tableDetails      = $this->getTableData($entity->getSource());
-        $dataColumns       = $dataAggregatorColumns = [];
+        $tableDetails = $this->getTableData($entity->getSource());
+
         $aggregatorColumns = ($aggregators = $entity->getAggregators()) ? $aggregators : [];
 
         foreach ($aggregatorColumns as $aggregatorColumn) {
             $selectedColumns[] = $aggregatorColumn['column'];
-            // add aggregator columns to dataColumns also
-            $dataColumns[$aggregatorColumn['function'].' '.$aggregatorColumn['column']]           = $aggregatorColumn['column'];
-            $dataAggregatorColumns[$aggregatorColumn['function'].' '.$aggregatorColumn['column']] = $aggregatorColumn['column'];
         }
         // Build a reference for column to data column (without table prefix)
+        $dataColumns = [];
         foreach ($tableDetails['columns'] as $dbColumn => &$columnData) {
             $dataColumns[$columnData['alias']] = $dbColumn;
         }
@@ -580,7 +559,7 @@ class ReportModel extends FormModel
             'dynamicFilters' => (isset($options['dynamicFilters'])) ? $options['dynamicFilters'] : [],
         ];
 
-        /** @var QueryBuilder $query */
+        /** @var \Doctrine\DBAL\Query\QueryBuilder $query */
         $query                 = $reportGenerator->getQuery($dataOptions);
         $options['translator'] = $this->translator;
 
@@ -630,36 +609,36 @@ class ReportModel extends FormModel
             }
         }
 
-        $query->add('orderBy', $order);
-
-        // Allow plugin to manipulate the query
-        $event = new ReportQueryEvent($entity, $query, $totalResults, $dataOptions);
-        $this->dispatcher->dispatch(ReportEvents::REPORT_QUERY_PRE_EXECUTE, $event);
-        $query = $event->getQuery();
-
         if (empty($options['ignoreTableData']) && !empty($selectedColumns)) {
-            if ($paginate) {
+            if ($paginate && !$entity->getGroupBy()) {
                 // Build the options array to pass into the query
                 $limit = $this->session->get('mautic.report.'.$entity->getId().'.limit', $this->defaultPageLimit);
                 if (!empty($options['limit'])) {
                     $limit      = $options['limit'];
                     $reportPage = $options['page'];
                 }
-                $start = (1 === $reportPage) ? 0 : (($reportPage - 1) * $limit);
+                $start = ($reportPage === 1) ? 0 : (($reportPage - 1) * $limit);
                 if ($start < 0) {
                     $start = 0;
                 }
 
-                if (empty($options['totalResults'])) {
-                    $options['totalResults'] = $totalResults = $this->getTotalCount($query, $debugData);
-                } else {
-                    $totalResults = $options['totalResults'];
-                }
+                // Must make two queries here, one to get count and one to select data
+                $select = $parts['select'];
 
+                // Get the count
+                $query->select('COUNT(*) as count');
+
+                $result       = $query->execute()->fetchAll();
+                $totalResults = (!empty($result[0]['count'])) ? $result[0]['count'] : 0;
+
+                // Set the limit and get the results
                 if ($limit > 0) {
                     $query->setFirstResult($start)
                         ->setMaxResults($limit);
                 }
+
+                $query->select($select);
+                $query->add('orderBy', $order);
             }
 
             $queryTime = microtime(true);
@@ -674,7 +653,7 @@ class ReportModel extends FormModel
                 $queryTime .= 'ms';
             }
 
-            if (!$paginate) {
+            if (!$paginate || $entity->getGroupBy()) {
                 $totalResults = count($data);
             }
 
@@ -695,25 +674,17 @@ class ReportModel extends FormModel
             $debugData['query_time'] = (isset($queryTime)) ? $queryTime : 'N/A';
         }
 
-        foreach ($data as $keys => $lead) {
-            foreach ($lead as $key => $field) {
-                $data[$keys][$key] = html_entity_decode($field, ENT_QUOTES);
-            }
-        }
-
         return [
-            'totalResults'      => $totalResults,
-            'data'              => $data,
-            'dataColumns'       => $dataColumns,
-            'graphs'            => $graphs,
-            'contentTemplate'   => $contentTemplate,
-            'columns'           => $tableDetails['columns'],
-            'limit'             => ($paginate) ? $limit : 0,
-            'page'              => ($paginate) ? $reportPage : 1,
-            'dateFrom'          => $dataOptions['dateFrom'],
-            'dateTo'            => $dataOptions['dateTo'],
-            'debug'             => $debugData,
-            'aggregatorColumns' => $dataAggregatorColumns,
+            'totalResults'    => $totalResults,
+            'data'            => $data,
+            'dataColumns'     => $dataColumns,
+            'graphs'          => $graphs,
+            'contentTemplate' => $contentTemplate,
+            'columns'         => $tableDetails['columns'],
+            'limit'           => ($paginate) ? $limit : 0,
+            'dateFrom'        => $dataOptions['dateFrom'],
+            'dateTo'          => $dataOptions['dateTo'],
+            'debug'           => $debugData,
         ];
     }
 
@@ -756,36 +727,24 @@ class ReportModel extends FormModel
         return $options;
     }
 
-    /**
-     * @param QueryBuilder $qb
-     * @param array        $debugData
-     *
-     * @return int
-     */
-    private function getTotalCount(QueryBuilder $qb, array &$debugData)
+    private function exportCSV($formatter, $reportData, $handle, $page)
     {
-        $countQb = clone $qb;
-        $countQb->resetQueryParts();
+        foreach ($reportData['data'] as $count => $data) {
+            $row = [];
+            foreach ($data as $k => $v) {
+                if ($count == 0) {
+                    //set the header
+                    $header[] = $k;
+                }
 
-        $countQb->select('count(*)')
-            ->from('('.$qb->getSQL().')', 'c');
+                $row[] = $formatter->_($v, $reportData['columns'][$reportData['dataColumns'][$k]]['type'], true);
+            }
 
-        if (MAUTIC_ENV == 'dev') {
-            $debugData['count_query'] = $countQb->getSQL();
+            if ($page === 1 && $count === 0) {
+                fputcsv($handle, $header);
+            }
+            fputcsv($handle, $row);
+            unset($row, $reportData['data'][$count]);
         }
-
-        return (int) $countQb->execute()->fetchColumn();
-    }
-
-    /**
-     * @return \Doctrine\DBAL\Connection
-     */
-    private function getConnection()
-    {
-        if ($this->em->getConnection() instanceof MasterSlaveConnection) {
-            $this->em->getConnection()->connect('slave');
-        }
-
-        return $this->em->getConnection();
     }
 }

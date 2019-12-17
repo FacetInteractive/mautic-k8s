@@ -102,16 +102,12 @@ if ($tmpl == 'index') {
                                 'MauticCoreBundle:Helper:publishstatus_icon.html.php',
                                 ['item' => $item, 'model' => 'point']
                             ); ?>
-                            <?php if ($permissions['point:points:edit']): ?>
-                                <a href="<?php echo $view['router']->path(
-                                    'mautic_point_action',
-                                    ['objectAction' => 'edit', 'objectId' => $item->getId()]
-                                ); ?>" data-toggle="ajax">
-                                    <?php echo $item->getName(); ?>
-                                </a>
-                            <?php else: ?>
+                            <a href="<?php echo $view['router']->path(
+                                'mautic_point_action',
+                                ['objectAction' => 'edit', 'objectId' => $item->getId()]
+                            ); ?>" data-toggle="ajax">
                                 <?php echo $item->getName(); ?>
-                            <?php endif; ?>
+                            </a>
                         </div>
                         <?php if ($description = $item->getDescription()): ?>
                             <div class="text-muted mt-4">

@@ -77,10 +77,6 @@ class LeadFieldData extends AbstractFixture implements OrderedFixtureInterface, 
                 $entity->setIsListable(!empty($field['listable']));
                 $entity->setIsShortVisible(!empty($field['short']));
 
-                if (isset($field['default'])) {
-                    $entity->setDefaultValue($field['default']);
-                }
-
                 $manager->persist($entity);
                 $manager->flush();
 
@@ -92,7 +88,7 @@ class LeadFieldData extends AbstractFixture implements OrderedFixtureInterface, 
                     // Schema already has this custom field; likely defined as a property in the entity class itself
                 }
 
-                $indexesToAdd[$object][$alias] = $field;
+                $indexesToAdd[$object][] = $alias;
 
                 $this->addReference('leadfield-'.$alias, $entity);
                 ++$order;
@@ -110,8 +106,8 @@ class LeadFieldData extends AbstractFixture implements OrderedFixtureInterface, 
                 $indexHelper = $this->container->get('mautic.schema.helper.factory')->getSchemaHelper('index', 'leads');
             }
 
-            foreach ($indexes as $name => $field) {
-                $type = (isset($field['type'])) ? $field['type'] : 'text';
+            foreach ($indexes as $name) {
+                $type = (isset($fields[$name]['type'])) ? $fields[$name]['type'] : 'text';
                 if ('textarea' != $type) {
                     $indexHelper->addIndex([$name], $name.'_search');
                 }
@@ -119,8 +115,6 @@ class LeadFieldData extends AbstractFixture implements OrderedFixtureInterface, 
             if ($object == 'lead') {
                 // Add an attribution index
                 $indexHelper->addIndex(['attribution', 'attribution_date'], 'contact_attribution');
-                //Add date added and country index
-                $indexHelper->addIndex(['date_added', 'country'], 'date_added_country_index');
             } else {
                 $indexHelper->addIndex(['companyname', 'companyemail'], 'company_filter');
                 $indexHelper->addIndex(['companyname', 'companycity', 'companycountry', 'companystate'], 'company_match');

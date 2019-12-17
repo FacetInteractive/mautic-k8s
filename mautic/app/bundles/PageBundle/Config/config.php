@@ -95,7 +95,6 @@ return [
                     'templating.helper.assets',
                     'mautic.helper.ip_lookup',
                     'mautic.core.model.auditlog',
-                    'mautic.page.model.page',
                 ],
             ],
             'mautic.pagebuilder.subscriber' => [
@@ -114,20 +113,16 @@ return [
                 'arguments' => [
                     'mautic.point.model.point',
                 ],
+
             ],
             'mautic.page.reportbundle.subscriber' => [
-                'class'     => \Mautic\PageBundle\EventListener\ReportSubscriber::class,
-                'arguments' => [
-                    'mautic.lead.model.company_report_data',
-                ],
+                'class' => 'Mautic\PageBundle\EventListener\ReportSubscriber',
             ],
             'mautic.page.campaignbundle.subscriber' => [
                 'class'     => 'Mautic\PageBundle\EventListener\CampaignSubscriber',
                 'arguments' => [
                     'mautic.page.model.page',
                     'mautic.campaign.model.event',
-                    'mautic.lead.model.lead',
-                    'mautic.page.helper.tracking',
                 ],
             ],
             'mautic.page.leadbundle.subscriber' => [
@@ -172,7 +167,6 @@ return [
                 'class'     => 'Mautic\PageBundle\EventListener\BuildJsSubscriber',
                 'arguments' => [
                     'templating.helper.assets',
-                    'mautic.page.helper.tracking',
                 ],
             ],
             'mautic.page.maintenance.subscriber' => [
@@ -216,11 +210,6 @@ return [
                 'arguments' => 'mautic.factory',
                 'alias'     => 'page_list',
             ],
-            'mautic.form.type.preferencecenterlist' => [
-                'class'     => 'Mautic\PageBundle\Form\Type\PreferenceCenterListType',
-                'arguments' => 'mautic.factory',
-                'alias'     => 'preference_center_list',
-            ],
             'mautic.form.type.page_abtest_settings' => [
                 'class' => 'Mautic\PageBundle\Form\Type\AbTestPropertiesType',
                 'alias' => 'page_abtest_settings',
@@ -232,10 +221,6 @@ return [
             'mautic.form.type.pageconfig' => [
                 'class' => 'Mautic\PageBundle\Form\Type\ConfigType',
                 'alias' => 'pageconfig',
-            ],
-            'mautic.form.type.trackingconfig' => [
-                'class' => 'Mautic\PageBundle\Form\Type\ConfigTrackingPageType',
-                'alias' => 'trackingconfig',
             ],
             'mautic.form.type.slideshow_config' => [
                 'class' => 'Mautic\PageBundle\Form\Type\SlideshowGlobalConfigType',
@@ -254,17 +239,10 @@ return [
                 'class' => 'Mautic\PageBundle\Form\Type\DashboardHitsInTimeWidgetType',
                 'alias' => 'page_dashboard_hits_in_time_widget',
             ],
-            'mautic.page.tracking.pixel.send' => [
-                'class'     => 'Mautic\PageBundle\Form\Type\TrackingPixelSendType',
-                'alias'     => 'tracking_pixel_send_action',
-                'arguments' => [
-                    'mautic.page.helper.tracking',
-                ],
-            ],
         ],
         'models' => [
             'mautic.page.model.page' => [
-                'class'     => \Mautic\PageBundle\Model\PageModel::class,
+                'class'     => 'Mautic\PageBundle\Model\PageModel',
                 'arguments' => [
                     'mautic.helper.cookie',
                     'mautic.helper.ip_lookup',
@@ -272,13 +250,13 @@ return [
                     'mautic.lead.model.field',
                     'mautic.page.model.redirect',
                     'mautic.page.model.trackable',
-                    'mautic.queue.service',
-                    'mautic.lead.model.company',
-                    'mautic.tracker.device',
                 ],
                 'methodCalls' => [
                     'setCatInUrl' => [
                         '%mautic.cat_in_page_url%',
+                    ],
+                    'setTrackByFingerprint' => [
+                        '%mautic.track_by_fingerprint%',
                     ],
                 ],
             ],
@@ -289,10 +267,9 @@ return [
                 ],
             ],
             'mautic.page.model.trackable' => [
-                'class'     => \Mautic\PageBundle\Model\TrackableModel::class,
+                'class'     => 'Mautic\PageBundle\Model\TrackableModel',
                 'arguments' => [
                     'mautic.page.model.redirect',
-                    'mautic.lead.repository.field',
                 ],
             ],
             'mautic.page.model.video' => [
@@ -303,48 +280,22 @@ return [
                 ],
             ],
         ],
-        'repositories' => [
-            'mautic.page.repository.redirect' => [
-                'class'     => Doctrine\ORM\EntityRepository::class,
-                'factory'   => ['@doctrine.orm.entity_manager', 'getRepository'],
-                'arguments' => [
-                    \Mautic\PageBundle\Entity\Redirect::class,
-                ],
-            ],
-        ],
         'other' => [
             'mautic.page.helper.token' => [
                 'class'     => 'Mautic\PageBundle\Helper\TokenHelper',
                 'arguments' => 'mautic.page.model.page',
             ],
-            'mautic.page.helper.tracking' => [
-                'class'     => 'Mautic\PageBundle\Helper\TrackingHelper',
-                'arguments' => [
-                    'mautic.lead.model.lead',
-                    'session',
-                    'mautic.helper.core_parameters',
-                    'request_stack',
-                ],
-            ],
         ],
     ],
 
     'parameters' => [
-        'cat_in_page_url'       => false,
-        'google_analytics'      => false,
-        'track_contact_by_ip'   => false,
-        'track_by_fingerprint'  => false,
-        'track_by_tracking_url' => false,
-        'redirect_list_types'   => [
+        'cat_in_page_url'      => false,
+        'google_analytics'     => false,
+        'track_contact_by_ip'  => false,
+        'track_by_fingerprint' => false,
+        'redirect_list_types'  => [
             '301' => 'mautic.page.form.redirecttype.permanent',
             '302' => 'mautic.page.form.redirecttype.temporary',
         ],
-        'google_analytics_id'                   => null,
-        'google_analytics_trackingpage_enabled' => false,
-        'google_analytics_landingpage_enabled'  => false,
-        'google_analytics_anonymize_ip'         => false,
-        'facebook_pixel_id'                     => null,
-        'facebook_pixel_trackingpage_enabled'   => false,
-        'facebook_pixel_landingpage_enabled'    => false,
     ],
 ];

@@ -11,8 +11,7 @@
 
 namespace Mautic\WebhookBundle\Entity;
 
-use Doctrine\DBAL\Types\Type;
-use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping as ORM;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 
 /**
@@ -24,85 +23,76 @@ class Log
      * @var int
      */
     private $id;
-
     /**
      * @var Webhook
      */
     private $webhook;
-
     /**
      * @var string
      */
     private $statusCode;
-
     /**
      * @var \DateTime
      */
     private $dateAdded;
-
     /**
-     * @var float
+     * @param ORM\ClassMetadata $metadata
      */
-    private $runtime;
-
-    /**
-     * @var string
-     */
-    private $note;
-
-    /**
-     * @param ClassMetadata $metadata
-     */
-    public static function loadMetadata(ClassMetadata $metadata)
+    public static function loadMetadata(ORM\ClassMetadata $metadata)
     {
         $builder = new ClassMetadataBuilder($metadata);
         $builder->setTable('webhook_logs')
-            ->setCustomRepositoryClass(LogRepository::class)
-            ->addId();
-
+            ->setCustomRepositoryClass('Mautic\WebhookBundle\Entity\LogRepository');
+        // id columns
+        $builder->addId();
+        // M:1 for webhook
         $builder->createManyToOne('webhook', 'Webhook')
             ->inversedBy('logs')
             ->addJoinColumn('webhook_id', 'id', false, false, 'CASCADE')
             ->build();
-
-        $builder->createField('statusCode', Type::STRING)
+        // status code
+        $builder->createField('statusCode', 'string')
             ->columnName('status_code')
             ->length(50)
             ->build();
-
-        $builder->addNullableField('dateAdded', Type::DATETIME, 'date_added');
-        $builder->addNullableField('note', Type::STRING);
-        $builder->addNullableField('runtime', Type::FLOAT);
+        // date added
+        $builder->createField('dateAdded', 'datetime')
+            ->columnName('date_added')
+            ->nullable()
+            ->build();
     }
-
     /**
-     * @return int
+     * @return mixed
      */
     public function getId()
     {
         return $this->id;
     }
-
     /**
-     * @return Webhook
+     * @param mixed $id
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+    /**
+     * @return mixed
      */
     public function getWebhook()
     {
         return $this->webhook;
     }
-
     /**
-     * @param Webhook $webhook
-     *
-     * @return Log
+     * @param mixed $webhook
      */
-    public function setWebhook(Webhook $webhook)
+    public function setWebhook($webhook)
     {
         $this->webhook = $webhook;
 
         return $this;
     }
-
     /**
      * @return mixed
      */
@@ -110,11 +100,8 @@ class Log
     {
         return $this->statusCode;
     }
-
     /**
      * @param mixed $statusCode
-     *
-     * @return Log
      */
     public function setStatusCode($statusCode)
     {
@@ -122,65 +109,19 @@ class Log
 
         return $this;
     }
-
     /**
-     * @return \DateTime
+     * @return mixed
      */
     public function getDateAdded()
     {
         return $this->dateAdded;
     }
-
     /**
-     * @param DateTime $dateAdded
-     *
-     * @return Log
+     * @param mixed $dateAdded
      */
-    public function setDateAdded(\DateTime $dateAdded)
+    public function setDateAdded($dateAdded)
     {
         $this->dateAdded = $dateAdded;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getNote()
-    {
-        return $this->note;
-    }
-
-    /**
-     * Strips tags and keeps first 254 characters so it would fit in the varchar 255 limit.
-     *
-     * @param string $note
-     *
-     * @return Log
-     */
-    public function setNote($note)
-    {
-        $this->note = substr(strip_tags($note), 0, 254);
-
-        return $this;
-    }
-
-    /**
-     * @return float
-     */
-    public function getRuntime()
-    {
-        return $this->runtime;
-    }
-
-    /**
-     * @param float $runtime
-     *
-     * @return Log
-     */
-    public function setRuntime($runtime)
-    {
-        $this->runtime = round($runtime, 2);
 
         return $this;
     }

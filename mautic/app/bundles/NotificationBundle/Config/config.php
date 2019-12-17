@@ -21,9 +21,6 @@ return [
                     'mautic.notification.api',
                 ],
             ],
-            'mautic.notification.campaignbundle.condition_subscriber' => [
-                'class'     => 'Mautic\NotificationBundle\EventListener\CampaignConditionSubscriber',
-            ],
             'mautic.notification.pagebundle.subscriber' => [
                 'class'     => 'Mautic\NotificationBundle\EventListener\PageSubscriber',
                 'arguments' => [
@@ -35,7 +32,6 @@ return [
                 'class'     => 'Mautic\NotificationBundle\EventListener\BuildJsSubscriber',
                 'arguments' => [
                     'mautic.helper.notification',
-                    'mautic.helper.integration',
                 ],
             ],
             'mautic.notification.notificationbundle.subscriber' => [
@@ -73,7 +69,6 @@ return [
                 'class'     => \Mautic\NotificationBundle\EventListener\ReportSubscriber::class,
                 'arguments' => [
                     'doctrine.dbal.default_connection',
-                    'mautic.lead.model.company_report_data',
                 ],
             ],
         ],
@@ -148,11 +143,6 @@ return [
                 'arguments' => [
                     'mautic.page.model.trackable',
                 ],
-            ],
-        ],
-        'integrations' => [
-            'mautic.integration.onesignal' => [
-                'class' => \Mautic\NotificationBundle\Integration\OneSignalIntegration::class,
             ],
         ],
     ],

@@ -66,7 +66,7 @@ class MessageQueueSubscriber extends CommonSubscriber
 
         /** @var MessageQueue $message */
         foreach ($messages as $id => $message) {
-            if ($sms && $message->getLead() && $sms->isPublished()) {
+            if ($sms && $message->getLead()) {
                 $contact = $message->getLead();
                 $mobile  = $contact->getMobile();
                 $phone   = $contact->getPhone();

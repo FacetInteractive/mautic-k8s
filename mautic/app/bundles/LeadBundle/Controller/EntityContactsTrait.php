@@ -19,18 +19,17 @@ use Mautic\LeadBundle\Entity\LeadRepository;
 trait EntityContactsTrait
 {
     /**
-     * @param string|int  $entityId
-     * @param int         $page
-     * @param string      $permission
-     * @param string      $sessionVar
-     * @param string      $entityJoinTable    Table to join to obtain list of related contacts or a DBAL QueryBuilder object defining custom joins
-     * @param string|null $dncChannel         Channel for this entity to get do not contact records for
-     * @param string|null $entityIdColumnName If the entity ID in $joinTable is not "id", set the column name here
-     * @param array|null  $contactFilter      Array of additional filters for the getEntityContactsWithFields() function
-     * @param array|null  $additionalJoins    [ ['type' => 'join|leftJoin', 'from_alias' => '', 'table' => '', 'condition' => ''], ... ]
-     * @param string|null $contactColumnName  Column of the contact in the join table
-     * @param array|null  $routeParameters
-     * @param string|null $paginationTarget   DOM seletor for injecting new content when pagination is used
+     * @param        $entityId
+     * @param        $page
+     * @param        $permission
+     * @param        $sessionVar
+     * @param        $entityJoinTable    Table to join to obtain list of related contacts or a DBAL QueryBuilder object defining custom joins
+     * @param null   $dncChannel         Channel for this entity to get do not contact records for
+     * @param null   $entityIdColumnName If the entity ID in $joinTable is not "id", set the column name here
+     * @param array  $contactFilter      Array of additional filters for the getEntityContactsWithFields() function
+     * @param array  $additionalJoins    [ ['type' => 'join|leftJoin', 'from_alias' => '', 'table' => '', 'condition' => ''], ... ]
+     * @param string $contactColumnName  Column of the contact in the join table
+     * @param string $paginationTarget   DOM seletor for injecting new content when pagination is used
      *
      * @return mixed
      */
@@ -109,11 +108,10 @@ trait EntityContactsTrait
 
             return $this->postActionRedirect(
                 [
-                    'returnUrl'         => $returnUrl,
-                    'viewParameters'    => ['page' => $lastPage, 'objectId' => $entityId],
-                    'contentTemplate'   => 'MauticLeadBundle:Lead:grid.html.php',
-                    'forwardController' => false,
-                    'passthroughVars'   => [
+                    'returnUrl'       => $returnUrl,
+                    'viewParameters'  => ['page' => $lastPage, 'objectId' => $entityId],
+                    'contentTemplate' => 'MauticLeadBundle:Lead:grid.html.php',
+                    'passthroughVars' => [
                         'mauticContent' => $sessionVar.'Contacts',
                     ],
                 ]

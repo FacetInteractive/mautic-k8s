@@ -93,7 +93,6 @@ class DashboardSubscriber extends MainDashboardSubscriber
                         $params['dateFrom'],
                         $params['dateTo'],
                         $params['dateFormat'],
-                        [],
                         $canViewOthers
                     ),
                 ]);
@@ -116,7 +115,6 @@ class DashboardSubscriber extends MainDashboardSubscriber
                         $params['dateFrom'],
                         $params['dateTo'],
                         $params['dateFormat'],
-                        [],
                         $canViewOthers
                     ),
                 ]);

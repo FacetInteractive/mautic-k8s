@@ -80,7 +80,7 @@ if ($tmpl == 'index') {
                                 'MauticCoreBundle:Helper:publishstatus_icon.html.php',
                                 [
                                     'item'  => $item,
-                                    'model' => 'social.monitoring',
+                                    'model' => 'plugin.mauticSocial.monitoring',
                                 ]
                             ); ?>
                             <a href="<?php echo $view['router']->path(

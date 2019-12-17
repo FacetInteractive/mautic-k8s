@@ -12,7 +12,6 @@
 namespace Mautic\LeadBundle\EventListener;
 
 use Mautic\CoreBundle\EventListener\CommonSubscriber;
-use Mautic\LeadBundle\Event\ChannelSubscriptionChange;
 use Mautic\LeadBundle\Event\LeadEvent;
 use Mautic\LeadBundle\Event\PointsChangeEvent;
 use Mautic\LeadBundle\LeadEvents;
@@ -33,11 +32,10 @@ class WebhookSubscriber extends CommonSubscriber
     public static function getSubscribedEvents()
     {
         return [
-            WebhookEvents::WEBHOOK_ON_BUILD          => ['onWebhookBuild', 0],
-            LeadEvents::LEAD_POST_SAVE               => ['onLeadNewUpdate', 0],
-            LeadEvents::LEAD_POINTS_CHANGE           => ['onLeadPointChange', 0],
-            LeadEvents::LEAD_POST_DELETE             => ['onLeadDelete', 0],
-            LeadEvents::CHANNEL_SUBSCRIPTION_CHANGED => ['onChannelSubscriptionChange', 0],
+            WebhookEvents::WEBHOOK_ON_BUILD => ['onWebhookBuild', 0],
+            LeadEvents::LEAD_POST_SAVE      => ['onLeadNewUpdate', 0],
+            LeadEvents::LEAD_POINTS_CHANGE  => ['onLeadPointChange', 0],
+            LeadEvents::LEAD_POST_DELETE    => ['onLeadDelete', 0],
         ];
     }
 
@@ -49,49 +47,40 @@ class WebhookSubscriber extends CommonSubscriber
     public function onWebhookBuild(WebhookBuilderEvent $event)
     {
         // add checkbox to the webhook form for new leads
-        $event->addEvent(
-            LeadEvents::LEAD_POST_SAVE.'_new',
-            [
-                'label'       => 'mautic.lead.webhook.event.lead.new',
-                'description' => 'mautic.lead.webhook.event.lead.new_desc',
-            ]
-        );
+        $newLead = [
+            'label'       => 'mautic.lead.webhook.event.lead.new',
+            'description' => 'mautic.lead.webhook.event.lead.new_desc',
+        ];
+
+        // add it to the list
+        $event->addEvent(LeadEvents::LEAD_POST_SAVE.'_new', $newLead);
 
         // checkbox for lead updates
-        $event->addEvent(
-            LeadEvents::LEAD_POST_SAVE.'_update',
-            [
-                'label'       => 'mautic.lead.webhook.event.lead.update',
-                'description' => 'mautic.lead.webhook.event.lead.update_desc',
-            ]
-        );
+        $updatedLead = [
+            'label'       => 'mautic.lead.webhook.event.lead.update',
+            'description' => 'mautic.lead.webhook.event.lead.update_desc',
+        ];
+
+        // add it to the list
+        $event->addEvent(LeadEvents::LEAD_POST_SAVE.'_update', $updatedLead);
 
         // add a checkbox for points
-        $event->addEvent(
-            LeadEvents::LEAD_POINTS_CHANGE,
-            [
-                'label'       => 'mautic.lead.webhook.event.lead.points',
-                'description' => 'mautic.lead.webhook.event.lead.points_desc',
-            ]
-        );
+        $leadPoints = [
+            'label'       => 'mautic.lead.webhook.event.lead.points',
+            'description' => 'mautic.lead.webhook.event.lead.points_desc',
+        ];
+
+        // add the points
+        $event->addEvent(LeadEvents::LEAD_POINTS_CHANGE, $leadPoints);
 
         // lead deleted checkbox label & desc
-        $event->addEvent(
-            LeadEvents::LEAD_POST_DELETE,
-            [
-                'label'       => 'mautic.lead.webhook.event.lead.deleted',
-                'description' => 'mautic.lead.webhook.event.lead.deleted_desc',
-            ]
-        );
+        $leadDeleted = [
+            'label'       => 'mautic.lead.webhook.event.lead.deleted',
+            'description' => 'mautic.lead.webhook.event.lead.deleted_desc',
+        ];
 
-        // add a checkbox for do not contact changes
-        $event->addEvent(
-            LeadEvents::CHANNEL_SUBSCRIPTION_CHANGED,
-            [
-                'label'       => 'mautic.lead.webhook.event.lead.dnc',
-                'description' => 'mautic.lead.webhook.event.lead.dnc_desc',
-            ]
-        );
+        // add the deleted checkbox
+        $event->addEvent(LeadEvents::LEAD_POST_DELETE, $leadDeleted);
     }
 
     /**
@@ -99,16 +88,8 @@ class WebhookSubscriber extends CommonSubscriber
      */
     public function onLeadNewUpdate(LeadEvent $event)
     {
-        $lead = $event->getLead();
-        if ($lead->isAnonymous()) {
-            // Ignore this contact
-            return;
-        }
-
-        $changes = $lead->getChanges(true);
         $this->webhookModel->queueWebhooksByType(
-        // Consider this a new contact if it was just identified, otherwise consider it updated
-            !empty($changes['dateIdentified']) ? LeadEvents::LEAD_POST_SAVE.'_new' : LeadEvents::LEAD_POST_SAVE.'_update',
+            $event->isNew() ? LeadEvents::LEAD_POST_SAVE.'_new' : LeadEvents::LEAD_POST_SAVE.'_update',
             [
                 'lead'    => $event->getLead(),
                 'contact' => $event->getLead(),
@@ -118,7 +99,6 @@ class WebhookSubscriber extends CommonSubscriber
                 'userList',
                 'publishDetails',
                 'ipAddress',
-                'tagList',
             ]
         );
     }
@@ -143,7 +123,6 @@ class WebhookSubscriber extends CommonSubscriber
                 'userList',
                 'publishDetails',
                 'ipAddress',
-                'tagList',
             ]
         );
     }
@@ -166,29 +145,6 @@ class WebhookSubscriber extends CommonSubscriber
                 'userList',
                 'publishDetails',
                 'ipAddress',
-            ]
-        );
-    }
-
-    /**
-     * @param ChannelSubscriptionChange $event
-     */
-    public function onChannelSubscriptionChange(ChannelSubscriptionChange $event)
-    {
-        $this->webhookModel->queueWebhooksByType(
-            LeadEvents::CHANNEL_SUBSCRIPTION_CHANGED,
-            [
-                'contact'    => $event->getLead(),
-                'channel'    => $event->getChannel(),
-                'old_status' => $event->getOldStatusVerb(),
-                'new_status' => $event->getNewStatusVerb(),
-            ],
-            [
-                'leadDetails',
-                'userList',
-                'publishDetails',
-                'ipAddress',
-                'tagList',
             ]
         );
     }

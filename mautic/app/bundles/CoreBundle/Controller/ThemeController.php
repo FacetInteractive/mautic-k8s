@@ -59,24 +59,14 @@ class ThemeController extends FormController
                         $themeName = basename($fileName, '.zip');
 
                         if (!empty($fileData)) {
-                            $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-
-                            if ($extension === 'zip') {
-                                try {
-                                    $fileData->move($dir, $fileName);
-                                    $themeHelper->install($dir.'/'.$fileName);
-                                    $this->addFlash('mautic.core.theme.installed', ['%name%' => $themeName]);
-                                } catch (\Exception $e) {
-                                    $form->addError(
-                                        new FormError(
-                                            $this->translator->trans($e->getMessage(), [], 'validators')
-                                        )
-                                    );
-                                }
-                            } else {
+                            try {
+                                $fileData->move($dir, $fileName);
+                                $themeHelper->install($dir.'/'.$fileName);
+                                $this->addFlash('mautic.core.theme.installed', ['%name%' => $themeName]);
+                            } catch (\Exception $e) {
                                 $form->addError(
                                     new FormError(
-                                        $this->translator->trans('mautic.core.not.allowed.file.extension', ['%extension%' => $extension], 'validators')
+                                        $this->translator->trans($e->getMessage(), [], 'validators')
                                     )
                                 );
                             }
@@ -122,7 +112,7 @@ class ThemeController extends FormController
         $flashes     = [];
         $error       = false;
 
-        if (!$this->get('mautic.security')->isGranted('core:themes:view')) {
+        if (!$this->get('mautic.security')->isGranted('core:themes:edit')) {
             return $this->accessDenied();
         }
 

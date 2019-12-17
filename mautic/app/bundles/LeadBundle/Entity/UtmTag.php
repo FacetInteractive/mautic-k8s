@@ -11,7 +11,6 @@
 
 namespace Mautic\LeadBundle\Entity;
 
-use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\Mapping as ORM;
 use Mautic\ApiBundle\Serializer\Driver\ApiMetadataDriver;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
@@ -90,21 +89,34 @@ class UtmTag
     {
         $builder = new ClassMetadataBuilder($metadata);
 
-        $builder->setTable('lead_utmtags');
-        $builder->setCustomRepositoryClass(UtmTagRepository::class);
+        $builder->setTable('lead_utmtags')
+            ->setCustomRepositoryClass('Mautic\LeadBundle\Entity\UtmTagRepository');
+
         $builder->addId();
+
         $builder->addDateAdded();
+
         $builder->addLead(false, 'CASCADE', false, 'utmtags');
-        $builder->addNullableField('query', Type::TARRAY);
-        $builder->addNullableField('referer', Type::TEXT);
-        $builder->addNullableField('remoteHost', Type::STRING, 'remote_host');
-        $builder->addNullableField('url', Type::TEXT);
-        $builder->addNullableField('userAgent', Type::TEXT, 'user_agent');
-        $builder->addNullableField('utmCampaign', Type::STRING, 'utm_campaign');
-        $builder->addNullableField('utmContent', Type::STRING, 'utm_content');
-        $builder->addNullableField('utmMedium', Type::STRING, 'utm_medium');
-        $builder->addNullableField('utmSource', Type::STRING, 'utm_source');
-        $builder->addNullableField('utmTerm', Type::STRING, 'utm_term');
+
+        $builder->addNullableField('query', 'array');
+
+        $builder->addNullableField('referer', 'text');
+
+        $builder->addNullableField('remoteHost', 'string', 'remote_host');
+
+        $builder->addNullableField('url', 'string');
+
+        $builder->addNullableField('userAgent', 'text', 'user_agent');
+
+        $builder->addNullableField('utmCampaign', 'string', 'utm_campaign');
+
+        $builder->addNullableField('utmContent', 'string', 'utm_content');
+
+        $builder->addNullableField('utmMedium', 'string', 'utm_medium');
+
+        $builder->addNullableField('utmSource', 'string', 'utm_source');
+
+        $builder->addNullableField('utmTerm', 'string', 'utm_term');
     }
 
     /**
@@ -114,7 +126,7 @@ class UtmTag
      */
     public static function loadApiMetadata(ApiMetadataDriver $metadata)
     {
-        $metadata->setGroupPrefix('utmtags')
+        $metadata->setGroupPrefix('tmutmtag')
             ->addListProperties(
                 [
                     'id',
@@ -145,13 +157,13 @@ class UtmTag
     }
 
     /**
-     * Set date added.
+     * Set dateHit.
      *
      * @param \DateTime $dateHit
      *
-     * @return UtmTag
+     * @return Hit
      */
-    public function setDateAdded(\DateTime $date)
+    public function setDateAdded($date)
     {
         $this->dateAdded = $date;
 
@@ -159,7 +171,7 @@ class UtmTag
     }
 
     /**
-     * Get date added.
+     * Get dateHit.
      *
      * @return \DateTime
      */
@@ -179,7 +191,7 @@ class UtmTag
     /**
      * @param Lead $lead
      *
-     * @return UtmTag
+     * @return Hit
      */
     public function setLead(Lead $lead)
     {
@@ -199,7 +211,7 @@ class UtmTag
     /**
      * @param array $query
      *
-     * @return UtmTag
+     * @return Hit
      */
     public function setQuery($query)
     {
@@ -213,7 +225,7 @@ class UtmTag
      *
      * @param string $referer
      *
-     * @return UtmTag
+     * @return Action
      */
     public function setReferer($referer)
     {
@@ -237,7 +249,7 @@ class UtmTag
      *
      * @param string $remoteHost
      *
-     * @return UtmTag
+     * @return Hit
      */
     public function setRemoteHost($remoteHost)
     {
@@ -261,7 +273,7 @@ class UtmTag
      *
      * @param string $url
      *
-     * @return UtmTag
+     * @return Hit
      */
     public function setUrl($url)
     {
@@ -285,7 +297,7 @@ class UtmTag
      *
      * @param string $userAgent
      *
-     * @return UtmTag
+     * @return Hit
      */
     public function setUserAgent($userAgent)
     {
@@ -305,7 +317,7 @@ class UtmTag
     }
 
     /**
-     * @return string
+     * @return array
      */
     public function getUtmCampaign()
     {
@@ -313,9 +325,9 @@ class UtmTag
     }
 
     /**
-     * @param string $utmCampaign
+     * @param array $query
      *
-     * @return UtmTag
+     * @return Hit
      */
     public function setUtmCampaign($utmCampaign)
     {
@@ -325,7 +337,7 @@ class UtmTag
     }
 
     /**
-     * @return string
+     * @return array
      */
     public function getUtmContent()
     {
@@ -333,11 +345,11 @@ class UtmTag
     }
 
     /**
-     * @param string $utmContent
+     * @param array $query
      *
-     * @return UtmTag
+     * @return Hit
      */
-    public function setUtmContent($utmContent)
+    public function setUtmConent($utmContent)
     {
         $this->utmContent = $utmContent;
 
@@ -345,7 +357,7 @@ class UtmTag
     }
 
     /**
-     * @return string
+     * @return array
      */
     public function getUtmMedium()
     {
@@ -353,9 +365,9 @@ class UtmTag
     }
 
     /**
-     * @param string $utmMedium
+     * @param array $query
      *
-     * @return UtmTag
+     * @return Hit
      */
     public function setUtmMedium($utmMedium)
     {
@@ -365,7 +377,7 @@ class UtmTag
     }
 
     /**
-     * @return string
+     * @return array
      */
     public function getUtmSource()
     {
@@ -373,9 +385,9 @@ class UtmTag
     }
 
     /**
-     * @param string $utmSource
+     * @param array $query
      *
-     * @return UtmTag
+     * @return Hit
      */
     public function setUtmSource($utmSource)
     {
@@ -385,7 +397,7 @@ class UtmTag
     }
 
     /**
-     * @return string
+     * @return array
      */
     public function getUtmTerm()
     {
@@ -393,36 +405,14 @@ class UtmTag
     }
 
     /**
-     * @param string $utmTerm
+     * @param array $query
      *
-     * @return UtmTag
+     * @return Hit
      */
     public function setUtmTerm($utmTerm)
     {
         $this->utmTerm = $utmTerm;
 
         return $this;
-    }
-
-    /**
-     * Available fields and it's setters.
-     *
-     * @return array
-     */
-    public function getFieldSetterList()
-    {
-        return [
-            'utm_campaign' => 'setUtmCampaign',
-            'utm_source'   => 'setUtmSource',
-            'utm_medium'   => 'setUtmMedium',
-            'utm_content'  => 'setUtmContent',
-            'utm_term'     => 'setUtmTerm',
-            'user_agent'   => 'setUserAgent',
-            'url'          => 'setUrl',
-            'referer'      => 'setReferer',
-            'query'        => 'setQuery',
-            'remote_host'  => 'setRemoteHost',
-            'date_added'   => 'setDateAdded',
-        ];
     }
 }

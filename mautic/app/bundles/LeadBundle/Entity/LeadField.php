@@ -15,10 +15,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Mautic\ApiBundle\Serializer\Driver\ApiMetadataDriver;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\CoreBundle\Entity\FormEntity;
-use Mautic\LeadBundle\Form\Validator\Constraints\FieldAliasKeyword;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
 
 /**
@@ -129,7 +127,7 @@ class LeadField extends FormEntity
         $builder->addLifecycleEvent('identifierWorkaround', 'postLoad');
 
         $builder->setTable('lead_fields')
-            ->setCustomRepositoryClass(LeadFieldRepository::class)
+            ->setCustomRepositoryClass('Mautic\LeadBundle\Entity\LeadFieldRepository')
             ->addIndex(['object'], 'search_by_object');
 
         $builder->addId();
@@ -183,9 +181,7 @@ class LeadField extends FormEntity
             ->nullable()
             ->build();
 
-        $builder->createField('object', 'string')
-            ->nullable()
-            ->build();
+        $builder->addField('object', 'string');
 
         $builder->createField('properties', 'array')
             ->nullable()
@@ -204,18 +200,6 @@ class LeadField extends FormEntity
         $metadata->addConstraint(new UniqueEntity([
             'fields'  => ['alias'],
             'message' => 'mautic.lead.field.alias.unique',
-        ]));
-
-        $metadata->addConstraint(new Assert\Callback([
-            'callback' => function (LeadField $field, ExecutionContextInterface $context) {
-                $violations = $context->getValidator()->validate($field, [new FieldAliasKeyword()]);
-
-                if ($violations->count() > 0) {
-                    $context->buildViolation($violations->get(0)->getMessage())
-                        ->atPath('alias')
-                        ->addViolation();
-                }
-            },
         ]));
     }
 
@@ -477,7 +461,6 @@ class LeadField extends FormEntity
     {
         return $this->object;
     }
-
     /**
      * Set object.
      *
@@ -502,7 +485,6 @@ class LeadField extends FormEntity
     {
         return $this->order;
     }
-
     /**
      * Set isVisible.
      *

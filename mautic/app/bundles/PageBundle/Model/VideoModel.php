@@ -99,7 +99,7 @@ class VideoModel extends FormModel
         $lead = $this->leadModel->getCurrentLead();
         $guid = $request->get('guid');
 
-        $hit = ($lead) ? $this->getHitForLeadByGuid($lead, $guid) : new VideoHit();
+        $hit = $this->getHitForLeadByGuid($lead, $guid);
 
         $hit->setGuid($guid);
         $hit->setDateHit(new \Datetime());
@@ -117,9 +117,7 @@ class VideoModel extends FormModel
         unset($query['d']);
         $hit->setQuery($query);
 
-        if ($lead) {
-            $hit->setLead($lead);
-        }
+        $hit->setLead($lead);
 
         //glean info from the IP address
         if ($details = $ipAddress->getIpDetails()) {

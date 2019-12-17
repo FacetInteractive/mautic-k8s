@@ -28,12 +28,7 @@ $templates = [
     'timezones'      => 'timezone-template',
     'select'         => 'select-template',
     'lists'          => 'leadlist-template',
-    'campaign'       => 'campaign-template',
-    'deviceTypes'    => 'device_type-template',
-    'deviceBrands'   => 'device_brand-template',
-    'deviceOs'       => 'device_os-template',
     'emails'         => 'lead_email_received-template',
-    'assets'         => 'assets-template',
     'tags'           => 'tags-template',
     'stage'          => 'stage-template',
     'locales'        => 'locale-template',
@@ -58,7 +53,7 @@ $filterErrors = ($view['form']->containsErrors($form['filters'])) ? 'class="text
                             <?php endif; ?>
                         </a>
                     </li>
-                    <li data-toggle="tooltip" title="" data-placement="top" data-original-title="<?php echo $view['translator']->trans('mautic.lead.lead.segment.add.help'); ?>">
+                    <li>
                         <a href="#filters" role="tab" data-toggle="tab"<?php echo $filterErrors; ?>>
                             <?php echo $view['translator']->trans('mautic.core.filters'); ?>
                             <?php if ($filterErrors): ?>
@@ -87,7 +82,7 @@ $filterErrors = ($view['form']->containsErrors($form['filters'])) ? 'class="text
                     </div>
                     <div class="tab-pane fade bdr-w-0" id="filters">
                         <div class="form-group">
-                            <div class="available-filters mb-md pl-0 col-md-4" data-prototype="<?php echo $view->escape($view['form']->widget($form['filters']->vars['prototype'])); ?>" data-index="<?php echo $index + 1; ?>">
+                            <div class="available-filters mb-md pl-0 col-md-4" data-prototype="<?php echo $view->escape($view['form']->row($form['filters']->vars['prototype'])); ?>" data-index="<?php echo $index + 1; ?>">
                                 <select class="chosen form-control" id="available_filters">
                                     <option value=""></option>
                                     <?php
@@ -103,8 +98,8 @@ $filterErrors = ($view['form']->containsErrors($form['filters'])) ? 'class="text
                                             $callback  = (!empty($params['properties']['callback'])) ? $params['properties']['callback'] : '';
                                             $operators = (!empty($params['operators'])) ? $view->escape(json_encode($params['operators'])) : '{}';
                                             ?>
-                                            <option value="<?php echo $view->escape($value); ?>"
-                                                    id="available_<?php echo $object.'_'.$value; ?>"
+                                            <option value="<?php echo $value; ?>"
+                                                    id="available_<?php echo $value; ?>"
                                                     data-field-object="<?php echo $object; ?>"
                                                     data-field-type="<?php echo $params['properties']['type']; ?>"
                                                     data-field-list="<?php echo $view->escape($list); ?>"
@@ -121,11 +116,6 @@ $filterErrors = ($view['form']->containsErrors($form['filters'])) ? 'class="text
                             <div class="clearfix"></div>
                         </div>
                         <div class="selected-filters" id="leadlist_filters">
-                            <?php if ($filterErrors): ?>
-                                <div class="alert alert-danger has-error">
-                                    <?php echo $view['form']->errors($form['filters']); ?>
-                                </div>
-                            <?php endif ?>
                             <?php echo $view['form']->widget($form['filters']); ?>
                         </div>
                     </div>
@@ -136,7 +126,6 @@ $filterErrors = ($view['form']->containsErrors($form['filters'])) ? 'class="text
     <div class="col-md-3 bg-white height-auto bdr-l">
         <div class="pr-lg pl-lg pt-md pb-md">
             <?php echo $view['form']->row($form['isGlobal']); ?>
-            <?php echo $view['form']->row($form['isPreferenceCenter']); ?>
             <?php echo $view['form']->row($form['isPublished']); ?>
         </div>
     </div>

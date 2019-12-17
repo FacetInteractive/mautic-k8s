@@ -11,8 +11,8 @@
 
 namespace Mautic\UserBundle\Event;
 
+use Mautic\CampaignBundle\Entity\Event;
 use Mautic\UserBundle\Entity\User;
-use Symfony\Component\EventDispatcher\Event;
 
 /**
  * Class LoginEvent.
@@ -20,7 +20,7 @@ use Symfony\Component\EventDispatcher\Event;
 class LoginEvent extends Event
 {
     /**
-     * @var User
+     * @var \Mautic\UserBundle\Entity\User|null
      */
     private $user;
 
@@ -31,7 +31,6 @@ class LoginEvent extends Event
     {
         $this->user = $user;
     }
-
     /**
      * @return \Mautic\UserBundle\Entity\User|null
      */

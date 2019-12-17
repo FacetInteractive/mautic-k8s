@@ -42,7 +42,6 @@ class CleanupMaintenanceCommand extends ContainerAwareCommand
                         365
                     ),
                     new InputOption('dry-run', 'r', InputOption::VALUE_NONE, 'Do a dry run without actually deleting anything.'),
-                    new InputOption('gdpr', 'g', InputOption::VALUE_NONE, 'Delete data to fullfil GDPR requirement.'),
                 ]
             )
             ->setHelp(
@@ -74,15 +73,11 @@ EOT
         $daysOld       = $input->getOption('days-old');
         $dryRun        = $input->getOption('dry-run');
         $noInteraction = $input->getOption('no-interaction');
-        $gdpr          = $input->getOption('gdpr');
-        if (empty($daysOld) && empty($gdpr)) {
-            // Safety catch; bail
-            return 1;
-        }
 
-        if (!empty($gdpr)) {
-            // to fullfil GDPR, you must delete inactive user data older than 3years
-            $daysOld = 365 * 3;
+        if (empty($daysOld)) {
+            // Safety catch; bail
+
+            return 1;
         }
 
         if (empty($dryRun) && empty($noInteraction)) {
@@ -99,7 +94,7 @@ EOT
 
         $dispatcher = $this->getContainer()->get('event_dispatcher');
 
-        $event = $dispatcher->dispatch(CoreEvents::MAINTENANCE_CLEANUP_DATA, new MaintenanceEvent($daysOld, !empty($dryRun), !empty($gdpr)));
+        $event = $dispatcher->dispatch(CoreEvents::MAINTENANCE_CLEANUP_DATA, new MaintenanceEvent($daysOld, !empty($dryRun)));
         $stats = $event->getStats();
 
         $rows = [];

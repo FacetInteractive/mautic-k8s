@@ -26,7 +26,7 @@ class RoleRepository extends CommonRepository
      *
      * @return Paginator
      */
-    public function getEntities(array $args = [])
+    public function getEntities($args = [])
     {
         $q = $this->createQueryBuilder('r');
 
@@ -69,7 +69,7 @@ class RoleRepository extends CommonRepository
     /**
      * {@inheritdoc}
      */
-    protected function addCatchAllWhereClause($q, $filter)
+    protected function addCatchAllWhereClause(&$q, $filter)
     {
         return $this->addStandardCatchAllWhereClause(
             $q,
@@ -84,7 +84,7 @@ class RoleRepository extends CommonRepository
     /**
      * {@inheritdoc}
      */
-    protected function addSearchCommandWhereClause($q, $filter)
+    protected function addSearchCommandWhereClause(&$q, $filter)
     {
         $command                 = $filter->command;
         $unique                  = $this->generateRandomParameterName();

@@ -13,14 +13,5 @@ return [
     'name'        => 'Gmail',
     'description' => 'Enables integrations with Gmail for email tracking',
     'version'     => '1.0',
-    'author'      => 'Mautic',
-    'services'    => [
-        'integrations' => [
-            'mautic.integration.gmail' => [
-                'class'     => \MauticPlugin\MauticGmailBundle\Integration\GmailIntegration::class,
-                'arguments' => [
-                ],
-            ],
-        ],
-    ],
+    'author'      => 'Werner Garcia',
 ];

@@ -11,7 +11,6 @@
 
 namespace Mautic\LeadBundle\Helper;
 
-use Mautic\LeadBundle\Entity\Company;
 use Mautic\LeadBundle\Model\CompanyModel;
 
 /**
@@ -29,9 +28,10 @@ class IdentifyCompanyHelper
     public static function identifyLeadsCompany($parameters, $lead, CompanyModel $companyModel)
     {
         list($company, $companyEntities) = self::findCompany($parameters, $companyModel);
+
         if (!empty($company)) {
             $leadAdded = false;
-            if (count($companyEntities)) {
+            if (!empty($companyEntities)) {
                 foreach ($companyEntities as $entity) {
                     $companyEntity   = $entity;
                     $companyLeadRepo = $companyModel->getCompanyLeadRepository();
@@ -44,7 +44,7 @@ class IdentifyCompanyHelper
                 }
             } else {
                 //create new company
-                $companyEntity = new Company();
+                $companyEntity = $companyModel->getEntity();
                 $companyModel->setFieldValues($companyEntity, $company, true);
                 $companyModel->saveEntity($companyEntity);
                 $company['id'] = $companyEntity->getId();
@@ -60,29 +60,22 @@ class IdentifyCompanyHelper
     }
 
     /**
-     * @param array        $parameters
+     * @param              $parameters
      * @param CompanyModel $companyModel
      *
      * @return array
      */
-    public static function findCompany(array $parameters, CompanyModel $companyModel)
+    public static function findCompany($parameters, CompanyModel $companyModel)
     {
-        $companyName   = null;
-        $companyDomain = null;
+        $companyName   = $companyDomain   = null;
         $companyEntity = null;
 
         if (isset($parameters['company'])) {
             $companyName = filter_var($parameters['company']);
+        } elseif (isset($parameters['email'])) {
+            $companyName = $companyDomain = self::domainExists($parameters['email']);
         } elseif (isset($parameters['companyname'])) {
             $companyName = filter_var($parameters['companyname']);
-        }
-
-        if (isset($parameters['email']) || isset($parameters['companyemail'])) {
-            $companyDomain = isset($parameters['email']) ? self::domainExists($parameters['email']) : self::domainExists($parameters['companyemail']);
-        }
-
-        if (empty($parameters['companywebsite']) && !empty($parameters['companyemail'])) {
-            $companyDomain = self::domainExists($parameters['companyemail']);
         }
 
         if ($companyName) {
@@ -104,10 +97,13 @@ class IdentifyCompanyHelper
                 ]
             );
 
-            $company = array_merge([
+            $company = [
                 'companyname'    => $companyName,
                 'companywebsite' => $companyDomain,
-            ], $parameters);
+                'companycity'    => $parameters['companycity'],
+                'companystate'   => $parameters['companystate'],
+                'companycountry' => $parameters['companycountry'],
+            ];
 
             if (1 === count($companyEntities)) {
                 end($companyEntities);
@@ -122,38 +118,25 @@ class IdentifyCompanyHelper
     }
 
     /**
-     * Checks if email address' domain has a DNS MX record. Returns the domain if found.
+     * @param $email
      *
-     * @param string $email
-     *
-     * @return string|false
+     * @return mixed
      */
-    protected static function domainExists($email)
+    private static function domainExists($email)
     {
-        if (!strstr($email, '@')) { //not a valid email adress
-            return false;
-        }
-
         list($user, $domain) = explode('@', $email);
         $arr                 = dns_get_record($domain, DNS_MX);
-
-        if (empty($arr)) {
-            return false;
+        if ($arr[0]['host'] == $domain && !empty($arr[0]['target'])) {
+            return $arr[0]['target'];
         }
-
-        if ($arr[0]['host'] === $domain) {
-            return $domain;
-        }
-
-        return false;
     }
 
     /**
-     * @param string $field
-     * @param array  $parameters
-     * @param array  $filter
+     * @param $field
+     * @param $parameters
+     * @param $filter
      */
-    private static function setCompanyFilter($field, array &$parameters, array &$filter)
+    private static function setCompanyFilter($field, &$parameters, &$filter)
     {
         if (isset($parameters[$field]) || isset($parameters['company'.$field])) {
             if (!isset($parameters['company'.$field])) {

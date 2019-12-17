@@ -15,7 +15,6 @@ use Doctrine\Common\DataFixtures\AbstractFixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Mautic\CoreBundle\Helper\CsvHelper;
-use Mautic\CoreBundle\Helper\Serializer;
 use Mautic\EmailBundle\Entity\Email;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -43,9 +42,10 @@ class LoadEmailData extends AbstractFixture implements OrderedFixtureInterface, 
      */
     public function load(ObjectManager $manager)
     {
-        $model  = $this->container->get('mautic.email.model.email');
-        $repo   = $model->getRepository();
-        $emails = CsvHelper::csv_to_array(__DIR__.'/fakeemaildata.csv');
+        $factory = $this->container->get('mautic.factory');
+        $model   = $factory->getModel('email');
+        $repo    = $model->getRepository();
+        $emails  = CsvHelper::csv_to_array(__DIR__.'/fakeemaildata.csv');
 
         foreach ($emails as $count => $rows) {
             $email = new Email();
@@ -55,7 +55,7 @@ class LoadEmailData extends AbstractFixture implements OrderedFixtureInterface, 
                 if ($val != 'NULL') {
                     $setter = 'set'.ucfirst($col);
                     if (in_array($col, ['content', 'variantSettings'])) {
-                        $val = Serializer::decode(stripslashes($val));
+                        $val = unserialize(stripslashes($val));
                     }
                     $email->$setter($val);
                 }

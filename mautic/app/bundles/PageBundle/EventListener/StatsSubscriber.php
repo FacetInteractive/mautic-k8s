@@ -12,7 +12,7 @@
 namespace Mautic\PageBundle\EventListener;
 
 use Doctrine\ORM\EntityManager;
-use Mautic\CoreBundle\EventListener\CommonStatsSubscriber;
+use Mautic\CoreBundle\EventListener\StatsSubscriber as CommonStatsSubscriber;
 
 /**
  * Class StatsSubscriber.

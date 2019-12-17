@@ -13,8 +13,8 @@ namespace Mautic\LeadBundle\Form\Type;
 
 use Doctrine\ORM\EntityRepository;
 use Mautic\CoreBundle\Factory\MauticFactory;
+use Mautic\CoreBundle\Form\EventListener\CleanFormSubscriber;
 use Mautic\CoreBundle\Form\EventListener\FormExitSubscriber;
-use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\LeadBundle\Form\DataTransformer\FieldToOrderTransformer;
 use Mautic\LeadBundle\Helper\FormFieldHelper;
 use Symfony\Component\Form\AbstractType;
@@ -48,6 +48,7 @@ class FieldType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        $builder->addEventSubscriber(new CleanFormSubscriber());
         $builder->addEventSubscriber(new FormExitSubscriber('lead.field', $options));
 
         $builder->add(
@@ -85,7 +86,7 @@ class FieldType extends AbstractType
             ]
         );
 
-        $new         = (!empty($options['data']) && $options['data']->getId()) ? false : true;
+        $new         = (!empty($options['data']) && $options['data']->getAlias()) ? false : true;
         $type        = $options['data']->getType();
         $default     = (empty($type)) ? 'text' : $type;
         $fieldHelper = new FormFieldHelper();
@@ -208,26 +209,20 @@ class FieldType extends AbstractType
             [
                 'label'      => 'mautic.core.defaultvalue',
                 'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
-                    'class'   => 'form-control',
-                    'tooltip' => 'mautic.lead.field.help.defaultvalue',
-                ],
-                'required' => false,
+                'attr'       => ['class' => 'form-control'],
+                'required'   => false,
             ]
         );
 
-        $formModifier = function (FormEvent $event) use ($listChoices, $type) {
-            $cleaningRules = [];
-            $form          = $event->getForm();
-            $data          = $event->getData();
-            $type          = (is_array($data)) ? (isset($data['type']) ? $data['type'] : $type) : $data->getType();
+        $formModifier = function (FormEvent $event) use ($listChoices) {
+            $form = $event->getForm();
+            $data = $event->getData();
+            $type = (is_array($data)) ? (isset($data['type']) ? $data['type'] : null) : $data->getType();
 
             switch ($type) {
                 case 'multiselect':
                 case 'select':
                 case 'lookup':
-                    $cleaningRules['defaultValue'] = 'raw';
-
                     if (is_array($data)) {
                         $properties = isset($data['properties']) ? $data['properties'] : [];
                     } else {
@@ -238,11 +233,10 @@ class FieldType extends AbstractType
                         'properties',
                         'sortablelist',
                         [
-                            'required'          => false,
-                            'label'             => 'mautic.lead.field.form.properties.select',
-                            'data'              => $properties,
-                            'with_labels'       => ('lookup' !== $type),
-                            'option_constraint' => [],
+                            'required'    => false,
+                            'label'       => 'mautic.lead.field.form.properties.select',
+                            'data'        => $properties,
+                            'with_labels' => ('lookup' !== $type),
                         ]
                     );
 
@@ -394,8 +388,6 @@ class FieldType extends AbstractType
 
                 break;
             }
-
-            return $cleaningRules;
         };
 
         $builder->addEventListener(
@@ -408,13 +400,7 @@ class FieldType extends AbstractType
         $builder->addEventListener(
             FormEvents::PRE_SUBMIT,
             function (FormEvent $event) use ($formModifier) {
-                $data          = $event->getData();
-                $cleaningRules = $formModifier($event);
-                $masks         = !empty($cleaningRules) ? $cleaningRules : 'clean';
-                // clean the data
-                $data = InputHelper::_($data, $masks);
-
-                $event->setData($data);
+                $formModifier($event);
             }
         );
 

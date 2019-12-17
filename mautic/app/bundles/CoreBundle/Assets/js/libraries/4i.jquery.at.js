@@ -1,5 +1,3 @@
-// Mautic hack: reverted https://github.com/ichord/At.js/pull/423
-
 /**
  * at.js - 1.5.1
  * Copyright (c) 2016 chord.luo <chord.luo@gmail.com>;
@@ -834,13 +832,13 @@
       } else {
         suffix = (suffix = this.getOpt('suffix')) === "" ? suffix : suffix || "\u00A0";
         data = $li.data('item-data');
-        this.query.el.removeClass('atwho-query').addClass('atwho-inserted').html(content).attr('data-atwho-at-query', "" + data['atwho-at'] + this.query.text);
+        this.query.el.removeClass('atwho-query').addClass('atwho-inserted').html(content).attr('data-atwho-at-query', "" + data['atwho-at'] + this.query.text).attr('contenteditable', "false");
         if (range = this._getRange()) {
           if (this.query.el.length) {
             range.setEndAfter(this.query.el[0]);
           }
           range.collapse(false);
-          range.insertNode(suffixNode = this.app.document.createTextNode("" + suffix));
+          range.insertNode(suffixNode = this.app.document.createTextNode("\u200D" + suffix));
           this._setRange('after', suffixNode, range);
         }
         if (!this.$inputor.is(':focus')) {

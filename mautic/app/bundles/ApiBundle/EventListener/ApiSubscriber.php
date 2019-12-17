@@ -18,7 +18,6 @@ use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\IpLookupHelper;
 use Mautic\CoreBundle\Model\AuditLogModel;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -87,7 +86,14 @@ class ApiSubscriber extends CommonSubscriber
         $isApiRequest = $this->isApiRequest($event);
 
         if ($isApiRequest && !$apiEnabled) {
-            throw new AccessDeniedHttpException($this->translator->trans('mautic.api.error.api.disabled'));
+            throw new AccessDeniedHttpException(
+                $this->translator->trans(
+                    'mautic.core.url.error.401',
+                    [
+                        '%url%' => $request->getRequestUri(),
+                    ]
+                )
+            );
         }
     }
 
@@ -96,9 +102,8 @@ class ApiSubscriber extends CommonSubscriber
      */
     public function onKernelResponse(FilterResponseEvent $event)
     {
-        $response   = $event->getResponse();
-        $content    = $response->getContent();
-        $statusCode = $response->getStatusCode();
+        $response = $event->getResponse();
+        $content  = $response->getContent();
 
         if ($this->isApiRequest($event) && strpos($content, 'error') !== false) {
             // Override api messages with something useful
@@ -118,17 +123,8 @@ class ApiSubscriber extends CommonSubscriber
 
                     switch ($error) {
                         case 'access_denied':
-                            if ($this->isBasicAuth($event->getRequest())) {
-                                if ($this->coreParametersHelper->getParameter('api_enable_basic_auth')) {
-                                    $message = $this->translator->trans('mautic.api.error.basic.auth.invalid.credentials');
-                                } else {
-                                    $message = $this->translator->trans('mautic.api.error.basic.auth.disabled');
-                                }
-                            } else {
-                                $message = $this->translator->trans('mautic.api.auth.error.accessdenied');
-                            }
-
-                            $type = $error;
+                            $message = $this->translator->trans('mautic.api.auth.error.accessdenied');
+                            $type    = $error;
                             break;
                         default:
                             if (isset($data['error_description'])) {
@@ -141,35 +137,25 @@ class ApiSubscriber extends CommonSubscriber
                     }
 
                     if ($message) {
-                        $response = new JsonResponse(
-                            [
-                                'errors' => [
-                                    [
-                                        'message' => $message,
-                                        'code'    => $response->getStatusCode(),
-                                        'type'    => $type,
+                        $event->setResponse(
+                            new JsonResponse(
+                                [
+                                    'errors' => [
+                                        [
+                                            'message' => $message,
+                                            'code'    => $response->getStatusCode(),
+                                            'type'    => $type,
+                                        ],
                                     ],
-                                ],
-                                // @deprecated 2.6.0 to be removed in 3.0
-                                'error'             => $data['error'],
-                                'error_description' => $message.' (`error` and `error_description` are deprecated as of 2.6.0 and will be removed in 3.0. Use the `errors` array instead.)',
-                            ],
-                            $statusCode
+                                    // @deprecated 2.6.0 to be removed in 3.0
+                                    'error'             => $data['error'],
+                                    'error_description' => $message.' (`error` and `error_description` are deprecated as of 2.6.0 and will be removed in 3.0. Use the `errors` array instead.)',
+                                ]
+                            )
                         );
-
-                        $event->setResponse($response);
                     }
                 }
             }
-        }
-    }
-
-    public function isBasicAuth(Request $request)
-    {
-        try {
-            return strpos(strtolower($request->headers->get('Authorization')), 'basic') === 0;
-        } catch (\Exception $e) {
-            return false;
         }
     }
 

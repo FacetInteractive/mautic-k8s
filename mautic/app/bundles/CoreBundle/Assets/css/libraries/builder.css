@@ -5319,17 +5319,6 @@ div[data-section-focus="left"] {
   top: 0px;
   left: 0px;
 }
-div[data-section-focus="clone"] {
-  width: 25px;
-  height: 25px;
-  bottom: 62px;
-  left: 10px;
-  background: #4e5e9e;
-  color: #fff;
-  text-align: center;
-  border: 0;
-  line-height: 25px;
-}
 div[data-section-focus="handle"] {
   width: 25px;
   height: 25px;
@@ -5396,8 +5385,6 @@ div[data-slot-toolbar] .btn .fa {
 div[data-slot],
 [data-section-wrapper] {
   position: relative;
-  font-size: initial;
-  line-height: initial;
 }
 div[data-slot^="image"] {
   padding-top: 1px;
@@ -5481,25 +5468,4 @@ div[data-slot].ui-sortable-helper {
 }
 [data-slot="dynamicContent"] {
   z-index: 50;
-}
-.chosen-container .chosen-results li {
-  font-family: "Open Sans", Helvetica, Arial, sans-serif;
-}
-.chosen-container .chosen-results li:before {
-  font: normal normal normal 14px/1 FontAwesome;
-}
-div:empty[data-slot],div.empty[data-slot],.codemodeHtmlContainer:empty {
-  padding:1em 0 0em 0;
-  display:block;
-  position:relative;
-  margin-bottom:2px;
-}
-div:empty[data-slot]:before,div.empty[data-slot]:before,.codemodeHtmlContainer:empty:before  {
-  content: "\f044";
-  font: normal normal normal 14px/1 FontAwesome;
-  position:absolute;
-  left: 2px;
-  top: 2px;
-  color:gray;
-  font-size:small;
 }

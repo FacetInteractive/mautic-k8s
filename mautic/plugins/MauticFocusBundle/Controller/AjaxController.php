@@ -82,7 +82,7 @@ class AjaxController extends CommonAjaxController
                 /** @var \MauticPlugin\MauticFocusBundle\Model\FocusModel $model */
                 $model            = $this->getModel('focus');
                 $focusArray['id'] = 'preview';
-                $data['html']     = $model->getContent($focusArray, true);
+                $data             = $model->generateJavascript($focusArray, true);
             }
         }
 

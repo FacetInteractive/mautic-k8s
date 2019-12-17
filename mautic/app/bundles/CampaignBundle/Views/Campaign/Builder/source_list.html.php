@@ -26,7 +26,7 @@
                     ); ?>"
                     data-target="#CampaignEventModal"
                     title="<?php echo $view->escape($view['translator']->trans('mautic.campaign.leadsource.'.$option.'.tooltip')); ?>"
-                    value="<?php echo $view->escape($option); ?>"
+                    value="<?php echo $option; ?>"
                 <?php if (!empty($campaignSources[$option])) {
                         echo 'disabled';
                     } ?>>

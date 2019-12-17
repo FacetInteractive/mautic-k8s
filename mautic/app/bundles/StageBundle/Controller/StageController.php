@@ -44,7 +44,9 @@ class StageController extends FormController
             return $this->accessDenied();
         }
 
-        $this->setListFilters();
+        if ($this->request->getMethod() == 'POST') {
+            $this->setListFilters();
+        }
 
         //set limits
         $limit = $this->get('session')->get(

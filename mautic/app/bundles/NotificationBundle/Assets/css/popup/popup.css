@@ -354,6 +354,3 @@ a:not(.default-link) {
 .btn-close:hover {
     color: #000;
 }
-#notification-preview {
-    padding:0 10px;
-}

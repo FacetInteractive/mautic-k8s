@@ -87,11 +87,6 @@ class Field
     private $properties = [];
 
     /**
-     * @var array
-     */
-    private $validation = [];
-
-    /**
      * @var Form
      */
     private $form;
@@ -216,10 +211,6 @@ class Field
             ->nullable()
             ->build();
 
-        $builder->createField('validation', 'json_array')
-            ->nullable()
-            ->build();
-
         $builder->createManyToOne('form', 'Form')
             ->inversedBy('fields')
             ->addJoinColumn('form_id', 'id', false, false, 'CASCADE')
@@ -263,7 +254,6 @@ class Field
                     'helpMessage',
                     'order',
                     'properties',
-                    'validation',
                     'labelAttributes',
                     'inputAttributes',
                     'containerAttributes',
@@ -487,31 +477,6 @@ class Field
     public function getProperties()
     {
         return $this->properties;
-    }
-
-    /**
-     * Set validation.
-     *
-     * @param array $validation
-     *
-     * @return Field
-     */
-    public function setValidation($validation)
-    {
-        $this->isChanged('validation', $validation);
-        $this->validation = $validation;
-
-        return $this;
-    }
-
-    /**
-     * Get validation.
-     *
-     * @return array
-     */
-    public function getValidation()
-    {
-        return $this->validation;
     }
 
     /**
@@ -871,43 +836,28 @@ class Field
             return true;
         }
 
-        // Hide the field if there is the submission count limit and hide it until the limit is overcame
+        // Hide the field if there is the submission count limit and hide it untill the limit is overcame
         if ($this->showAfterXSubmissions > 0 && $this->showAfterXSubmissions > count($submissions)) {
             return false;
         }
 
         if ($this->showWhenValueExists === false) {
+
             // Hide the field if there is the value condition and if we already know the value for this field
             if ($submissions) {
                 foreach ($submissions as $submission) {
-                    if (!empty($submission[$this->alias]) && !$this->isAutoFill) {
+                    if (!empty($submission[$this->alias])) {
                         return false;
                     }
                 }
             }
 
             // Hide the field if the value is already known from the lead profile
-            if ($lead !== null && $this->leadField && !empty($lead->getFieldValue($this->leadField)) && !$this->isAutoFill) {
+            if ($lead !== null && $this->leadField && !empty($lead->getFieldValue($this->leadField))) {
                 return false;
             }
         }
 
         return true;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isCaptchaType()
-    {
-        return $this->type === 'captcha';
-    }
-
-    /**
-     * @return bool
-     */
-    public function isFileType()
-    {
-        return $this->type === 'file';
     }
 }

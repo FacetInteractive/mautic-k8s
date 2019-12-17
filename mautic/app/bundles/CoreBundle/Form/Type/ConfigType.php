@@ -101,8 +101,6 @@ class ConfigType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        $builder->add('last_shown_tab', 'hidden');
-
         $builder->add(
             'site_url',
             'text',
@@ -196,6 +194,18 @@ class ConfigType extends AbstractType
                             'message' => 'mautic.core.value.required',
                         ]
                     ),
+                ],
+            ]
+        );
+
+        $builder->add(
+            'theme',
+            'theme_list',
+            [
+                'label' => 'mautic.core.config.form.theme',
+                'attr'  => [
+                    'class'   => 'form-control',
+                    'tooltip' => 'mautic.page.form.template.help',
                 ],
             ]
         );
@@ -294,6 +304,80 @@ class ConfigType extends AbstractType
                     'required' => false,
                 ]
             )->addViewTransformer($arrayLinebreakTransformer)
+        );
+
+        $builder->add(
+            'rememberme_key',
+            'text',
+            [
+                'label'      => 'mautic.core.config.form.rememberme.key',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'   => 'form-control',
+                    'tooltip' => 'mautic.core.config.form.rememberme.key.tooltip',
+                ],
+                'constraints' => [
+                    new NotBlank(
+                        [
+                            'message' => 'mautic.core.value.required',
+                        ]
+                    ),
+                ],
+            ]
+        );
+
+        $builder->add(
+            'rememberme_lifetime',
+            'text',
+            [
+                'label'      => 'mautic.core.config.form.rememberme.lifetime',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'   => 'form-control',
+                    'tooltip' => 'mautic.core.config.form.rememberme.lifetime.tooltip',
+                ],
+                'constraints' => [
+                    new NotBlank(
+                        [
+                            'message' => 'mautic.core.value.required',
+                        ]
+                    ),
+                ],
+            ]
+        );
+
+        $builder->add(
+            'rememberme_path',
+            'text',
+            [
+                'label'      => 'mautic.core.config.form.rememberme.path',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'   => 'form-control',
+                    'tooltip' => 'mautic.core.config.form.rememberme.path.tooltip',
+                ],
+                'constraints' => [
+                    new NotBlank(
+                        [
+                            'message' => 'mautic.core.value.required',
+                        ]
+                    ),
+                ],
+            ]
+        );
+
+        $builder->add(
+            'rememberme_domain',
+            'text',
+            [
+                'label'      => 'mautic.core.config.form.rememberme.domain',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'   => 'form-control',
+                    'tooltip' => 'mautic.core.config.form.rememberme.domain.tooltip',
+                ],
+                'required' => false,
+            ]
         );
 
         $builder->add(
@@ -442,35 +526,6 @@ class ConfigType extends AbstractType
         );
 
         $builder->add(
-            'default_daterange_filter',
-            'choice',
-            [
-                'choices' => [
-                    'midnight'  => 'mautic.core.daterange.0days',
-                    '-24 hours' => 'mautic.core.daterange.1days',
-                    '-1 week'   => $this->translator->transChoice('mautic.core.daterange.week', 1, ['%count%' => 1]),
-                    '-2 weeks'  => $this->translator->transChoice('mautic.core.daterange.week', 2, ['%count%' => 2]),
-                    '-3 weeks'  => $this->translator->transChoice('mautic.core.daterange.week', 3, ['%count%' => 3]),
-                    '-1 month'  => $this->translator->transChoice('mautic.core.daterange.month', 1, ['%count%' => 1]),
-                    '-2 months' => $this->translator->transChoice('mautic.core.daterange.month', 2, ['%count%' => 2]),
-                    '-3 months' => $this->translator->transChoice('mautic.core.daterange.month', 3, ['%count%' => 3]),
-                    '-1 year'   => $this->translator->transChoice('mautic.core.daterange.year', 1, ['%count%' => 1]),
-                    '-2 years'  => $this->translator->transChoice('mautic.core.daterange.year', 2, ['%count%' => 2]),
-                ],
-                'expanded'   => false,
-                'multiple'   => false,
-                'label'      => 'mautic.core.config.form.default.daterange_default',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
-                    'class'   => 'form-control',
-                    'tooltip' => 'mautic.core.config.form.default.daterange_default.tooltip',
-                ],
-                'required'    => false,
-                'empty_value' => false,
-            ]
-        );
-
-        $builder->add(
             'ip_lookup_service',
             'choice',
             [
@@ -498,21 +553,6 @@ class ConfigType extends AbstractType
                     'class'   => 'form-control',
                     'tooltip' => 'mautic.core.config.form.ip.lookup.auth.tooltip',
                 ],
-                'required' => false,
-            ]
-        );
-
-        $builder->add(
-            'ip_lookup_create_organization',
-            YesNoButtonGroupType::class,
-            [
-                'label'      => 'mautic.core.config.create.organization.from.ip.lookup',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
-                    'class'   => 'form-control',
-                    'tooltip' => 'mautic.core.config.create.organization.from.ip.lookup.tooltip',
-                ],
-                'data'     => isset($options['data']['ip_lookup_create_organization']) ? (bool) $options['data']['ip_lookup_create_organization'] : false,
                 'required' => false,
             ]
         );
@@ -604,6 +644,65 @@ class ConfigType extends AbstractType
         );
 
         $builder->add(
+            'cookie_path',
+            'text',
+            [
+                'label'      => 'mautic.core.config.form.cookie.path',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'   => 'form-control',
+                    'tooltip' => 'mautic.core.config.form.cookie.path.tooltip',
+                ],
+                'constraints' => [
+                    new NotBlank(
+                        [
+                            'message' => 'mautic.core.value.required',
+                        ]
+                    ),
+                ],
+            ]
+        );
+
+        $builder->add(
+            'cookie_domain',
+            'text',
+            [
+                'label'      => 'mautic.core.config.form.cookie.domain',
+                'label_attr' => ['class' => 'control-label'],
+                'attr'       => [
+                    'class'   => 'form-control',
+                    'tooltip' => 'mautic.core.config.form.cookie.domain.tooltip',
+                ],
+                'required' => false,
+            ]
+        );
+
+        $builder->add(
+            'cookie_secure',
+            'yesno_button_group',
+            [
+                'label'       => 'mautic.core.config.form.cookie.secure',
+                'empty_value' => 'mautic.core.form.default',
+                'data'        => (array_key_exists('cookie_secure', $options['data'])) ? $options['data']['cookie_secure'] : '',
+                'attr'        => [
+                    'tooltip' => 'mautic.core.config.form.cookie.secure.tooltip',
+                ],
+            ]
+        );
+
+        $builder->add(
+            'cookie_httponly',
+            'yesno_button_group',
+            [
+                'label' => 'mautic.core.config.form.cookie.httponly',
+                'data'  => (array_key_exists('cookie_httponly', $options['data']) && !empty($options['data']['cookie_httponly'])) ? true : false,
+                'attr'  => [
+                    'tooltip' => 'mautic.core.config.form.cookie.httponly.tooltip',
+                ],
+            ]
+        );
+
+        $builder->add(
             'link_shortener_url',
             'text',
             [
@@ -616,20 +715,6 @@ class ConfigType extends AbstractType
                 'required' => false,
             ]
         );
-
-        $builder->add(
-            'max_entity_lock_time',
-            'number',
-            [
-                'label'      => 'mautic.core.config.form.link.max_entity_lock_time',
-                'label_attr' => ['class' => 'control-label'],
-                'attr'       => [
-                    'class'   => 'form-control',
-                    'tooltip' => 'mautic.core.config.form.link.max_entity_lock_time.tooltip',
-                ],
-                'required' => false,
-            ]
-            );
 
         $builder->add(
             'cors_restrict_domains',

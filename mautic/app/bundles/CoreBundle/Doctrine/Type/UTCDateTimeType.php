@@ -45,13 +45,13 @@ class UTCDateTimeType extends DateTimeType
         if (!is_object($value)) {
             $dateHelper = new DateTimeHelper($value);
             $value      = $dateHelper->getDateTime();
-        } else {
-            $value = clone $value;
         }
 
-        $value->setTimezone(self::$utc);
+        $tz          = $value->getTimeZone();
+        $utcDatetime = new \DateTime($value->format($platform->getDateTimeFormatString()), $tz);
+        $utcDatetime->setTimezone(self::$utc);
 
-        return parent::convertToDatabaseValue($value, $platform);
+        return $utcDatetime->format($platform->getDateTimeFormatString());
     }
 
     /**
@@ -72,16 +72,19 @@ class UTCDateTimeType extends DateTimeType
             self::$utc = new \DateTimeZone('UTC');
         }
 
-        // Set to UTC before converting to DateTime
-        $timezone = date_default_timezone_get();
-        date_default_timezone_set('UTC');
+        $val = \DateTime::createFromFormat(
+            $platform->getDateTimeFormatString(),
+            $value,
+            self::$utc
+        );
+        if (!$val) {
+            throw ConversionException::conversionFailed($value, $this->getName());
+        }
 
-        $value = parent::convertToPHPValue($value, $platform);
+        //set to local timezone
+        $tz = new \DateTimeZone(date_default_timezone_get());
+        $val->setTimezone($tz);
 
-        // Set to local timezone
-        date_default_timezone_set($timezone);
-        $value->setTimezone(new \DateTimeZone($timezone));
-
-        return $value;
+        return $val;
     }
 }

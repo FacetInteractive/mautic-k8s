@@ -19,15 +19,13 @@ use Mautic\LeadBundle\Entity\Lead;
  */
 class LeadUtmTagsEvent extends CommonEvent
 {
-    protected $utmtags;
-
     /**
      * @param Lead $lead
-     * @param bool $utmTag
+     * @param bool $isNew
      */
-    public function __construct(Lead $lead, $utmTag)
+    public function __construct(Lead &$lead, $utmTag)
     {
-        $this->entity  = $lead;
+        $this->entity  = &$lead;
         $this->utmtags = $utmTag;
     }
 

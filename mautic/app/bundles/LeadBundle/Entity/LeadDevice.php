@@ -76,11 +76,6 @@ class LeadDevice
     private $deviceFingerprint;
 
     /**
-     * @var string
-     */
-    private $trackingId;
-
-    /**
      * @var \DateTime
      */
     private $dateAdded;
@@ -151,12 +146,6 @@ class LeadDevice
             ->columnName('device_fingerprint')
             ->nullable()
             ->build();
-
-        $builder->createField('trackingId', 'string')
-            ->columnName('tracking_id')
-            ->unique()
-            ->nullable()
-            ->build();
     }
 
     /**
@@ -190,14 +179,6 @@ class LeadDevice
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSignature()
-    {
-        return md5(json_encode($this->clientInfo).$this->device.$this->deviceOsName.$this->deviceOsPlatform.$this->deviceBrand.$this->deviceModel);
     }
 
     /**
@@ -385,26 +366,6 @@ class LeadDevice
     public function setDeviceFingerprint($deviceFingerprint)
     {
         $this->deviceFingerprint = $deviceFingerprint;
-    }
-
-    /**
-     * @return string
-     */
-    public function getTrackingId()
-    {
-        return $this->trackingId;
-    }
-
-    /**
-     * @param string $trackingId
-     *
-     * @return self
-     */
-    public function setTrackingId($trackingId)
-    {
-        $this->trackingId = $trackingId;
-
-        return $this;
     }
 
     /**

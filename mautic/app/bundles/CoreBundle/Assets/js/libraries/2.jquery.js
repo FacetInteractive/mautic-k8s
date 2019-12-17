@@ -8967,11 +8967,9 @@
                 box = elem.getBoundingClientRect();
             }
             win = getWindow(doc);
-            var pageYOffset = win ? win.pageYOffset : 0;
-            var pageXOffset = win ? win.pageXOffset : 0;
             return {
-                top: box.top + pageYOffset - docElem.clientTop,
-                left: box.left + pageXOffset - docElem.clientLeft
+                top: box.top + win.pageYOffset - docElem.clientTop,
+                left: box.left + win.pageXOffset - docElem.clientLeft
             };
         },
 

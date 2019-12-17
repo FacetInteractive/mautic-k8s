@@ -12,7 +12,6 @@
 namespace MauticPlugin\MauticFocusBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Mautic\ApiBundle\Serializer\Driver\ApiMetadataDriver;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\CoreBundle\Entity\FormEntity;
 use Mautic\FormBundle\Entity\Form;
@@ -33,21 +32,6 @@ class Focus extends FormEntity
      * @var string
      */
     private $description;
-
-    /**
-     * @var string
-     */
-    private $editor;
-
-    /**
-     * @var string
-     */
-    private $html;
-
-    /**
-     * @var string
-     */
-    private $htmlMode;
 
     /**
      * @var string
@@ -90,11 +74,6 @@ class Focus extends FormEntity
     private $properties = [];
 
     /**
-     * @var array
-     */
-    private $utmTags = [];
-
-    /**
      * @var int
      */
     private $form;
@@ -133,13 +112,6 @@ class Focus extends FormEntity
         );
     }
 
-    public function __clone()
-    {
-        $this->id = null;
-
-        parent::__clone();
-    }
-
     /**
      * @param ORM\ClassMetadata $metadata
      */
@@ -167,58 +139,9 @@ class Focus extends FormEntity
 
         $builder->addNullableField('properties', 'array');
 
-        $builder->createField('utmTags', 'array')
-            ->columnName('utm_tags')
-            ->nullable()
-            ->build();
-
         $builder->addNamedField('form', 'integer', 'form_id', true);
 
         $builder->addNullableField('cache', 'text');
-
-        $builder->createField('htmlMode', 'string')
-            ->columnName('html_mode')
-            ->nullable()
-            ->build();
-
-        $builder->addNullableField('editor', 'text');
-
-        $builder->addNullableField('html', 'text');
-    }
-
-    /**
-     * Prepares the metadata for API usage.
-     *
-     * @param $metadata
-     */
-    public static function loadApiMetadata(ApiMetadataDriver $metadata)
-    {
-        $metadata
-            ->addListProperties(
-                [
-                    'id',
-                    'name',
-                    'category',
-                ]
-            )
-            ->addProperties(
-                [
-                    'description',
-                    'type',
-                    'website',
-                    'style',
-                    'publishUp',
-                    'publishDown',
-                    'properties',
-                    'utmTags',
-                    'form',
-                    'htmlMode',
-                    'html',
-                    'editor',
-                    'cache',
-                ]
-            )
-            ->build();
     }
 
     /**
@@ -255,72 +178,6 @@ class Focus extends FormEntity
         $this->isChanged('description', $description);
 
         $this->description = $description;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getEditor()
-    {
-        return $this->editor;
-    }
-
-    /**
-     * @param mixed $setHtml
-     *
-     * @return Focus
-     */
-    public function setEditor($editor)
-    {
-        $this->isChanged('editor', $editor);
-
-        $this->editor = $editor;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getHtml()
-    {
-        return $this->html;
-    }
-
-    /**
-     * @param mixed $setHtml
-     *
-     * @return Focus
-     */
-    public function setHtml($html)
-    {
-        $this->isChanged('html', $html);
-
-        $this->html = $html;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getHtmlMode()
-    {
-        return $this->htmlMode;
-    }
-
-    /**
-     * @param mixed $html
-     *
-     * @return Focus
-     */
-    public function setHtmlMode($htmlMode)
-    {
-        $this->isChanged('htmlMode', $htmlMode);
-
-        $this->htmlMode = $htmlMode;
 
         return $this;
     }
@@ -431,25 +288,6 @@ class Focus extends FormEntity
         $this->isChanged('properties', $properties);
 
         $this->properties = $properties;
-
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getUtmTags()
-    {
-        return $this->utmTags;
-    }
-
-    /**
-     * @param array $utmTags
-     */
-    public function setUtmTags($utmTags)
-    {
-        $this->isChanged('utmTags', $utmTags);
-        $this->utmTags = $utmTags;
 
         return $this;
     }

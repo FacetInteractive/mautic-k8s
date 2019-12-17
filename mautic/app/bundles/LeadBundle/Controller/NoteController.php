@@ -39,7 +39,9 @@ class NoteController extends FormController
             return $lead;
         }
 
-        $this->setListFilters();
+        if ($this->request->getMethod() == 'POST') {
+            $this->setListFilters();
+        }
 
         $session = $this->get('session');
 

@@ -68,17 +68,17 @@ abstract class AbstractFormController extends CommonController
      */
     protected function isLocked($postActionVars, $entity, $model, $batch = false)
     {
-        $date                   = $entity->getCheckedOut();
-        $returnUrl              = !empty($postActionVars['returnUrl'])
-                                ? urlencode($postActionVars['returnUrl'])
-                                : urlencode($this->generateUrl('mautic_dashboard_index'));
-        $postActionVars         = $this->refererPostActionVars($postActionVars);
-        $returnUrl              = $postActionVars['returnUrl'];
-        $override               = '';
+        $date      = $entity->getCheckedOut();
+        $returnUrl = !empty($postActionVars['returnUrl'])
+            ?
+            urlencode($postActionVars['returnUrl'])
+            :
+            urlencode($this->generateUrl('mautic_dashboard_index'));
+        $override = '';
 
-        $modelClass             = $this->getModel($model);
-        $nameFunction           = $modelClass->getNameGetter();
-        $this->permissionBase   = $modelClass->getPermissionBase();
+        $modelClass           = $this->getModel($model);
+        $nameFunction         = $modelClass->getNameGetter();
+        $this->permissionBase = $modelClass->getPermissionBase();
 
         if ($this->canEdit($entity)) {
             $override = $this->get('translator')->trans(
@@ -167,12 +167,11 @@ abstract class AbstractFormController extends CommonController
     /**
      * Binds form data, checks validity, and determines cancel request.
      *
-     * @param Form  $form
-     * @param array $data
+     * @param Form $form
      *
-     * @return bool
+     * @return int
      */
-    protected function isFormValid(Form $form, array $data = null)
+    protected function isFormValid(Form $form)
     {
         //bind request to the form
         $form->handleRequest($this->request);
@@ -232,43 +231,5 @@ abstract class AbstractFormController extends CommonController
                 $this->copyErrorsRecursively($child, $childTo);
             }
         }
-    }
-
-    /**
-     * generate $postActionVars with respect to available referer.
-     *
-     * @param array $postActionVars
-     *
-     * @return array $postActionVars
-     */
-    protected function refererPostActionVars($vars)
-    {
-        if (empty($this->request->server->get('HTTP_REFERER'))) {
-            return $vars;
-        }
-
-        $returnUrl                              = !empty($this->request->server->get('HTTP_REFERER'))
-                                                ? $this->request->server->get('HTTP_REFERER')
-                                                : $returnUrl;
-        $vars['returnUrl']                      = $returnUrl;
-
-        $urlMatcher                             = explode('/s/', $returnUrl);
-        $actionRoute                            = $this->get('router')->match('/s/'.$urlMatcher[1]);
-        $objAction                              = isset($actionRoute['objectAction'])
-                                                ? $actionRoute['objectAction']
-                                                : 'index';
-        $routeCtrlr                             = explode('\\', $actionRoute['_controller']);
-        $vars['contentTemplate']                = isset($vars['contentTemplate'])
-                                                ? $vars['contentTemplate']
-                                                : $routeCtrlr[0].$routeCtrlr[1].':'.
-                                                ucfirst(str_replace('Bundle', '', $routeCtrlr[1])).
-                                                ':'.$objAction;
-        $vars['passthroughVars']['activeLink']  = '#'.str_replace('_action', '_'.$objAction, $actionRoute['_route']);
-
-        if (isset($actionRoute['objectId']) && $actionRoute['objectId'] > 0) {
-            $vars['viewParameters']['objectId'] = $actionRoute['objectId'];
-        }
-
-        return $vars;
     }
 }

@@ -100,14 +100,6 @@ $showActions = count($activeFormActions);
                                 'MauticCoreBundle:Helper:details.html.php',
                                 ['entity' => $activeForm]
                             ); ?>
-                            <tr>
-                                <td width="20%">
-                                    <span class="fw-b"><?php echo $view['translator']->trans('mautic.form.stats.submission_counts'); ?></span>
-                                </td>
-                                <td>
-                                    <?php echo $submissionCounts['unique'].' / '.$submissionCounts['total'] ?>
-                                </td>
-                            </tr>
                             </tbody>
                         </table>
                     </div>
@@ -159,8 +151,6 @@ $showActions = count($activeFormActions);
                 </div>
             </div>
             <!--/ stats -->
-
-            <?php echo $view['content']->getCustomContent('details.stats.graph.below', $mauticTemplateVars); ?>
 
             <!-- tabs controls -->
             <ul class="nav nav-tabs pr-md pl-md">
@@ -326,7 +316,7 @@ $showActions = count($activeFormActions);
                     <textarea class="form-control" readonly onclick="this.setSelectionRange(0, this.value.length);">&lt;script type="text/javascript" src="<?php echo $view['router']->url(
                             'mautic_form_generateform',
                             ['id' => $activeForm->getId()],
-                            true
+                            UrlGeneratorInterface::ABSOLUTE_URL
                         ); ?>"&gt;&lt;/script&gt;</textarea>
                     <h3 class="pt-lg"><?php echo $view['translator']->trans(
                             'mautic.form.form.help.automaticcopy.iframe'
@@ -384,4 +374,4 @@ $showActions = count($activeFormActions);
 </div>
 <!--/ end: box layout -->
 
-<input type="hidden" name="entityId" id="entityId" value="<?php echo $view->escape($activeForm->getId()); ?>"/>
+<input type="hidden" name="entityId" id="entityId" value="<?php echo $activeForm->getId(); ?>"/>

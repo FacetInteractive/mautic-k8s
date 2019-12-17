@@ -96,6 +96,8 @@ class CitrixModel extends FormModel
 
         $this->em->persist($citrixEvent);
         $this->em->flush();
+
+        $this->triggerCampaignEvents($product, $lead);
     }
 
     /**
@@ -223,22 +225,29 @@ class CitrixModel extends FormModel
         if (!CitrixProducts::isValidValue($product) || !CitrixEventTypes::isValidValue($eventType)) {
             return 0; // is not a valid citrix product
         }
-        $dql = 'SELECT COUNT(c.id) as cant FROM MauticCitrixBundle:CitrixEvent c '.
-                  ' WHERE c.product=:product and c.email=:email AND c.eventType=:eventType ';
+        $dql = sprintf(
+            "SELECT COUNT(c.id) as cant FROM MauticCitrixBundle:CitrixEvent c WHERE c.product='%s' and c.email='%s' AND c.eventType='%s' ",
+            $product,
+            $email,
+            $eventType
+        );
 
         if (0 !== count($eventNames)) {
-            $dql .= 'AND c.eventName IN (:eventNames)';
+            $dql .= sprintf(
+                'AND c.eventName IN (%s)',
+                implode(
+                    ',',
+                    array_map(
+                        function ($name) {
+                            return "'".$name."'";
+                        },
+                        $eventNames
+                    )
+                )
+            );
         }
 
         $query = $this->em->createQuery($dql);
-        $query->setParameters([
-            ':product'   => $product,
-            ':email'     => $email,
-            ':eventType' => $eventType,
-        ]);
-        if (0 !== count($eventNames)) {
-            $query->setParameter(':eventNames', $eventNames);
-        }
 
         return (int) $query->getResult()[0]['cant'];
     }
@@ -406,6 +415,8 @@ class CitrixModel extends FormModel
                     $this->dispatcher->dispatch(CitrixEvents::ON_CITRIX_EVENT_UPDATE, $citrixEvent);
                     unset($citrixEvent);
                 }
+
+                $this->triggerCampaignEvents($product, $entity->getLead());
             }
         }
 
@@ -413,6 +424,23 @@ class CitrixModel extends FormModel
         $this->em->clear(CitrixEvent::class);
 
         return $count;
+    }
+
+    /**
+     * @param string $product
+     * @param string $lead
+     *
+     * @throws \Symfony\Component\DependencyInjection\Exception\ServiceCircularReferenceException
+     * @throws \Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException
+     */
+    private function triggerCampaignEvents($product, $lead)
+    {
+        if (!CitrixProducts::isValidValue($product)) {
+            return; // is not a valid citrix product
+        }
+
+        $this->leadModel->setSystemCurrentLead($lead);
+        $this->eventModel->triggerEvent('citrix.event.'.$product);
     }
 
     /**

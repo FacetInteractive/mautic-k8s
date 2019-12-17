@@ -14,9 +14,7 @@ namespace Mautic\FormBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Mautic\ApiBundle\Serializer\Driver\ApiMetadataDriver;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
-use Mautic\CoreBundle\Entity\IpAddress;
 use Mautic\LeadBundle\Entity\Lead;
-use Mautic\PageBundle\Entity\Page;
 
 /**
  * Class Submission.
@@ -129,19 +127,6 @@ class Submission
                     'results',
                 ]
             )
-            ->setGroupPrefix('submissionEvent')
-            ->addProperties(
-                [
-                    'id',
-                    'ipAddress',
-                    'form',
-                    'trackingId',
-                    'dateSubmitted',
-                    'referer',
-                    'page',
-                    'results',
-                ]
-            )
             ->build();
     }
 
@@ -234,7 +219,7 @@ class Submission
      *
      * @return Submission
      */
-    public function setIpAddress(IpAddress $ipAddress = null)
+    public function setIpAddress(\Mautic\CoreBundle\Entity\IpAddress $ipAddress = null)
     {
         $this->ipAddress = $ipAddress;
 
@@ -271,8 +256,6 @@ class Submission
     public function setResults($results)
     {
         $this->results = $results;
-
-        return $this;
     }
 
     /**
@@ -282,7 +265,7 @@ class Submission
      *
      * @return Submission
      */
-    public function setPage(Page $page = null)
+    public function setPage(\Mautic\PageBundle\Entity\Page $page = null)
     {
         $this->page = $page;
 
@@ -308,15 +291,11 @@ class Submission
     }
 
     /**
-     * @param Lead|null $lead
-     *
-     * @return $this
+     * @param mixed $lead
      */
-    public function setLead(Lead $lead = null)
+    public function setLead(Lead $lead)
     {
         $this->lead = $lead;
-
-        return $this;
     }
 
     /**
@@ -328,15 +307,11 @@ class Submission
     }
 
     /**
-     * @param $trackingId
-     *
-     * @return $this
+     * @param mixed $trackingId
      */
     public function setTrackingId($trackingId)
     {
         $this->trackingId = $trackingId;
-
-        return  $this;
     }
 
     /**
@@ -348,21 +323,5 @@ class Submission
     public function getCreatedBy()
     {
         return $this->getForm()->getCreatedBy();
-    }
-
-    /**
-     * @param string $alias
-     *
-     * @return Field|null
-     */
-    public function getFieldByAlias($alias)
-    {
-        foreach ($this->getForm()->getFields() as $field) {
-            if ($field->getAlias() === $alias) {
-                return $field;
-            }
-        }
-
-        return null;
     }
 }

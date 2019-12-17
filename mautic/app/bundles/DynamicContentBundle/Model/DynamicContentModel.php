@@ -147,10 +147,6 @@ class DynamicContentModel extends FormModel implements AjaxLookupModelInterface
      */
     public function getSlotContentForLead($slot, $lead)
     {
-        if (!$lead) {
-            return [];
-        }
-
         $qb = $this->em->getConnection()->createQueryBuilder();
 
         $id = $lead instanceof Lead ? $lead->getId() : $lead['id'];
@@ -160,7 +156,6 @@ class DynamicContentModel extends FormModel implements AjaxLookupModelInterface
             ->leftJoin('dc', MAUTIC_TABLE_PREFIX.'dynamic_content_lead_data', 'dcld', 'dcld.dynamic_content_id = dc.id')
             ->andWhere($qb->expr()->eq('dcld.slot', ':slot'))
             ->andWhere($qb->expr()->eq('dcld.lead_id', ':lead_id'))
-            ->andWhere($qb->expr()->eq('dc.is_published', 1))
             ->setParameter('slot', $slot)
             ->setParameter('lead_id', $id)
             ->orderBy('dcld.date_added', 'DESC')
@@ -176,19 +171,7 @@ class DynamicContentModel extends FormModel implements AjaxLookupModelInterface
      */
     public function createStatEntry(DynamicContent $dynamicContent, $lead, $source = null)
     {
-        if (empty($lead)) {
-            return;
-        }
-
-        if ($lead instanceof Lead && !$lead->getId()) {
-            return;
-        }
-
         if (is_array($lead)) {
-            if (empty($lead['id'])) {
-                return;
-            }
-
             $lead = $this->em->getReference('MauticLeadBundle:Lead', $lead['id']);
         }
 
@@ -328,8 +311,7 @@ class DynamicContentModel extends FormModel implements AjaxLookupModelInterface
                     $start,
                     $this->security->isGranted($this->getPermissionBase().':viewother'),
                     isset($options['top_level']) ? $options['top_level'] : false,
-                    isset($options['ignore_ids']) ? $options['ignore_ids'] : [],
-                    isset($options['where']) ? $options['where'] : ''
+                    isset($options['ignore_ids']) ? $options['ignore_ids'] : []
                 );
 
                 foreach ($entities as $entity) {

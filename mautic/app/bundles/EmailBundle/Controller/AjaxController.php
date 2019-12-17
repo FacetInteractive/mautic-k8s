@@ -14,11 +14,7 @@ namespace Mautic\EmailBundle\Controller;
 use Mautic\CoreBundle\Controller\AjaxController as CommonAjaxController;
 use Mautic\CoreBundle\Controller\AjaxLookupControllerTrait;
 use Mautic\CoreBundle\Controller\VariantAjaxControllerTrait;
-use Mautic\CoreBundle\Translation\Translator;
-use Mautic\EmailBundle\Helper\MailHelper;
 use Mautic\EmailBundle\Helper\PlainTextHelper;
-use Mautic\EmailBundle\Model\EmailModel;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -51,7 +47,7 @@ class AjaxController extends CommonAjaxController
      *
      * @return \Symfony\Component\HttpFoundation\JsonResponse
      */
-    public function sendBatchAction(Request $request)
+    protected function sendBatchAction(Request $request)
     {
         $dataArray = ['success' => 0];
 
@@ -63,12 +59,11 @@ class AjaxController extends CommonAjaxController
 
         if ($objectId && $entity = $model->getEntity($objectId)) {
             $dataArray['success'] = 1;
-            $session              = $this->container->get('session');
+            $session              = $this->get('session');
             $progress             = $session->get('mautic.email.send.progress', [0, (int) $pending]);
             $stats                = $session->get('mautic.email.send.stats', ['sent' => 0, 'failed' => 0, 'failedRecipients' => []]);
-            $inProgress           = $session->get('mautic.email.send.active', false);
 
-            if ($pending && !$inProgress && $entity->isPublished()) {
+            if ($pending && !$inProgress = $session->get('mautic.email.send.active', false)) {
                 $session->set('mautic.email.send.active', true);
                 list($batchSentCount, $batchFailedCount, $batchFailedRecipients) = $model->sendEmailToLists($entity, null, $limit);
 
@@ -85,7 +80,8 @@ class AjaxController extends CommonAjaxController
                 $session->set('mautic.email.send.active', false);
             }
 
-            $dataArray['percent']  = ($progress[1]) ? ceil(($progress[0] / $progress[1]) * 100) : 100;
+            $dataArray['percent'] = ($progress[1]) ? ceil(($progress[0] / $progress[1]) * 100) : 100;
+
             $dataArray['progress'] = $progress;
             $dataArray['stats']    = $stats;
         }
@@ -185,7 +181,7 @@ class AjaxController extends CommonAjaxController
                 $dataArray['success'] = 1;
                 $dataArray['message'] = $this->translator->trans('mautic.core.success');
             } catch (\Exception $e) {
-                $dataArray['message'] = $this->translator->trans($e->getMessage());
+                $dataArray['message'] = $e->getMessage();
             }
         }
 
@@ -259,8 +255,26 @@ class AjaxController extends CommonAjaxController
 
                 try {
                     $mailer->start();
+                    $translator = $this->get('translator');
+
+                    if ($settings['send_test'] == 'true') {
+                        $message = new \Swift_Message(
+                            $translator->trans('mautic.email.config.mailer.transport.test_send.subject'),
+                            $translator->trans('mautic.email.config.mailer.transport.test_send.body')
+                        );
+
+                        $userFullName = trim($user->getFirstName().' '.$user->getLastName());
+                        if (empty($userFullName)) {
+                            $userFullName = null;
+                        }
+                        $message->setFrom([$settings['from_email'] => $settings['from_name']]);
+                        $message->setTo([$user->getEmail() => $userFullName]);
+
+                        $mailer->send($message);
+                    }
+
                     $dataArray['success'] = 1;
-                    $dataArray['message'] = $this->get('translator')->trans('mautic.core.success');
+                    $dataArray['message'] = $translator->trans('mautic.core.success');
                 } catch (\Exception $e) {
                     $dataArray['message'] = $e->getMessage().'<br />'.$logger->dump();
                 }
@@ -268,86 +282,5 @@ class AjaxController extends CommonAjaxController
         }
 
         return $this->sendJsonResponse($dataArray);
-    }
-
-    /**
-     * @param Request $request
-     */
-    protected function sendTestEmailAction(Request $request)
-    {
-        /** @var MailHelper $mailer */
-        $mailer = $this->get('mautic.helper.mailer');
-        /** @var Translator $translator */
-        $translator = $this->get('translator');
-
-        $mailer->setSubject($translator->trans('mautic.email.config.mailer.transport.test_send.subject'));
-        $mailer->setBody($translator->trans('mautic.email.config.mailer.transport.test_send.body'));
-
-        $user         = $this->get('mautic.helper.user')->getUser();
-        $userFullName = trim($user->getFirstName().' '.$user->getLastName());
-        if (empty($userFullName)) {
-            $userFullName = null;
-        }
-        $mailer->setTo([$user->getEmail() => $userFullName]);
-
-        $success = 1;
-        $message = $translator->trans('mautic.core.success');
-        if (!$mailer->send(true)) {
-            $success   = 0;
-            $errors    = $mailer->getErrors();
-            unset($errors['failures']);
-            $message = implode('; ', $errors);
-        }
-
-        return $this->sendJsonResponse(['success' => $success, 'message' => $message]);
-    }
-
-    /**
-     * @param Request $request
-     */
-    protected function getEmailCountStatsAction(Request $request)
-    {
-        /** @var EmailModel $model */
-        $model = $this->getModel('email');
-
-        $id  = $request->get('id');
-        $ids = $request->get('ids');
-
-        // Support for legacy calls
-        if (!$ids && $id) {
-            $ids = [$id];
-        }
-
-        $data = [];
-        foreach ($ids as $id) {
-            if ($email = $model->getEntity($id)) {
-                $pending = $model->getPendingLeads($email, null, true);
-                $queued  = $model->getQueuedCounts($email);
-
-                $data[] = [
-                    'id'          => $id,
-                    'pending'     => 'list' === $email->getEmailType() && $pending ? $this->translator->trans(
-                        'mautic.email.stat.leadcount',
-                        ['%count%' => $pending]
-                    ) : 0,
-                    'queued'      => ($queued) ? $this->translator->trans('mautic.email.stat.queued', ['%count%' => $queued]) : 0,
-                    'sentCount'   => $this->translator->trans('mautic.email.stat.sentcount', ['%count%' => $email->getSentCount(true)]),
-                    'readCount'   => $this->translator->trans('mautic.email.stat.readcount', ['%count%' => $email->getReadCount(true)]),
-                    'readPercent' => $this->translator->trans('mautic.email.stat.readpercent', ['%count%' => $email->getReadPercentage(true)]),
-                ];
-            }
-        }
-
-        // Support for legacy calls
-        if ($request->get('id')) {
-            $data = $data[0];
-        } else {
-            $data = [
-                'success' => 1,
-                'stats'   => $data,
-            ];
-        }
-
-        return new JsonResponse($data);
     }
 }

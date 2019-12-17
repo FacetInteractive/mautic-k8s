@@ -46,34 +46,6 @@ class ChannelBroadcastEvent extends Event
     protected $output;
 
     /**
-     * Min contact ID filter can be used for process parallelization.
-     *
-     * @var int
-     */
-    private $minContactIdFilter;
-
-    /**
-     * Max contact ID filter can be used for process parallelization.
-     *
-     * @var int
-     */
-    private $maxContactIdFilter;
-
-    /**
-     * How many contacts to load from the database.
-     *
-     * @var int
-     */
-    private $limit = 100;
-
-    /**
-     * How big batches to use to actually send.
-     *
-     * @var int
-     */
-    private $batch = 50;
-
-    /**
      * MaintenanceEvent constructor.
      *
      * @param int  $daysOld
@@ -103,17 +75,15 @@ class ChannelBroadcastEvent extends Event
     }
 
     /**
-     * @param string $channelLabel
-     * @param int    $successCount
-     * @param int    $failedCount
-     * @param array  $failedRecipientsByList
+     * @param     $channelLabel
+     * @param int $successCount
+     * @param int $failedCount
      */
-    public function setResults($channelLabel, $successCount, $failedCount = 0, array $failedRecipientsByList = [])
+    public function setResults($channelLabel, $successCount, $failedCount = 0)
     {
         $this->results[$channelLabel] = [
-            'success'                => (int) $successCount,
-            'failed'                 => (int) $failedCount,
-            'failedRecipientsByList' => $failedRecipientsByList,
+            'success' => (int) $successCount,
+            'failed'  => (int) $failedCount,
         ];
     }
 
@@ -145,69 +115,5 @@ class ChannelBroadcastEvent extends Event
     public function getOutput()
     {
         return $this->output;
-    }
-
-    /**
-     * @param int $minContactIdFilter
-     */
-    public function setMinContactIdFilter($minContactIdFilter)
-    {
-        $this->minContactIdFilter = $minContactIdFilter;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getMinContactIdFilter()
-    {
-        return $this->minContactIdFilter;
-    }
-
-    /**
-     * @param int $maxContactIdFilter
-     */
-    public function setMaxContactIdFilter($maxContactIdFilter)
-    {
-        $this->maxContactIdFilter = $maxContactIdFilter;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getMaxContactIdFilter()
-    {
-        return $this->maxContactIdFilter;
-    }
-
-    /**
-     * @param int $limit
-     */
-    public function setLimit($limit)
-    {
-        $this->limit = $limit;
-    }
-
-    /**
-     * @return int
-     */
-    public function getLimit()
-    {
-        return $this->limit;
-    }
-
-    /**
-     * @param int $batch
-     */
-    public function setBatch($batch)
-    {
-        $this->batch = $batch;
-    }
-
-    /**
-     * @return int
-     */
-    public function getBatch()
-    {
-        return $this->batch;
     }
 }

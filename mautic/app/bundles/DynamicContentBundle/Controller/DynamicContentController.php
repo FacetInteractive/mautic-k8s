@@ -52,7 +52,9 @@ class DynamicContentController extends FormController
             return $this->accessDenied();
         }
 
-        $this->setListFilters();
+        if ($this->request->getMethod() == 'POST') {
+            $this->setListFilters();
+        }
 
         //set limits
         $limit = $this->get('session')->get('mautic.dynamicContent.limit', $this->coreParametersHelper->getParameter('default_pagelimit'));
@@ -219,7 +221,7 @@ class DynamicContentController extends FormController
         return $this->delegateView(
             [
                 'viewParameters' => [
-                    'form' => $this->setFormTheme($form, 'MauticDynamicContentBundle:DynamicContent:form.html.php', 'MauticDynamicContentBundle:FormTheme\Filter'),
+                    'form' => $this->setFormTheme($form, 'MauticDynamicContentBundle:DynamicContent:form.html.php'),
                 ],
                 'contentTemplate' => 'MauticDynamicContentBundle:DynamicContent:form.html.php',
                 'passthroughVars' => $passthrough,
@@ -323,7 +325,7 @@ class DynamicContentController extends FormController
         return $this->delegateView(
             [
                 'viewParameters' => [
-                    'form'          => $this->setFormTheme($form, 'MauticDynamicContentBundle:DynamicContent:form.html.php', 'MauticDynamicContentBundle:FormTheme\Filter'),
+                    'form'          => $this->setFormTheme($form, 'MauticDynamicContentBundle:DynamicContent:form.html.php'),
                     'currentListId' => $objectId,
                 ],
                 'contentTemplate' => 'MauticDynamicContentBundle:DynamicContent:form.html.php',

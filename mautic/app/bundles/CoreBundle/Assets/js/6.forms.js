@@ -109,10 +109,9 @@ Mautic.ajaxifyForm = function (formName) {
     mQuery(form + ' :submit').each(function () {
         mQuery(this).off('click.ajaxform');
         mQuery(this).on('click.ajaxform', function () {
-            if (mQuery(this).attr('name') && !mQuery('input[name="' + mQuery(this).attr('name') + '"]').length) {
-                mQuery('input.button-clicked').remove(); // ensure the previously clicked buttons are gone
+            if (mQuery(this).attr('name') && !mQuery("input[name='" + mQuery(this).attr('name') + "']").length) {
                 mQuery('form[name="' + formName + '"]').append(
-                    mQuery('<input type="hidden" class="button-clicked">').attr({
+                    mQuery("<input type='hidden'>").attr({
                         name: mQuery(this).attr('name'),
                         value: mQuery(this).attr('value')
                     })
@@ -389,8 +388,7 @@ Mautic.updateEntitySelect = function (response) {
 
         var sortOptions = function (options) {
             return options.sort(function (a, b) {
-                var alc = a.text ? a.text.toLowerCase() : mQuery(a).attr("label").toLowerCase();
-                var blc = b.text ? b.text.toLowerCase() : mQuery(b).attr("label").toLowerCase();
+                var alc = a.text.toLowerCase(), blc = b.text.toLowerCase();
                 return alc > blc ? 1 : alc < blc ? -1 : 0;
             });
         }
@@ -468,7 +466,7 @@ Mautic.updateEntitySelect = function (response) {
         }
 
         newOption.prop('selected', true);
-        mQueryParent(el).val(response.id).trigger("chosen:updated");
+        mQueryParent(el).trigger("chosen:updated");
     }
 
     if (window.opener) {
@@ -552,9 +550,8 @@ Mautic.createOption = function (value, label) {
  *
  * @param field
  * @param action
- * @param valueOnChange
  */
-Mautic.updateFieldOperatorValue = function(field, action, valueOnChange, valueOnChangeArguments) {
+Mautic.updateFieldOperatorValue = function(field, action) {
     var fieldId = mQuery(field).attr('id');
     Mautic.activateLabelLoadingIndicator(fieldId);
 
@@ -583,7 +580,7 @@ Mautic.updateFieldOperatorValue = function(field, action, valueOnChange, valueOn
 
             if (mQuery('#'+fieldPrefix+'value_chosen').length) {
                 valueFieldAttrs['value'] = '';
-                Mautic.destroyChosen(valueField);
+                valueField.chosen('destroy');
             }
 
             if (!mQuery.isEmptyObject(response.options) && response.fieldType !== 'number') {
@@ -597,27 +594,11 @@ Mautic.updateFieldOperatorValue = function(field, action, valueOnChange, valueOn
                     if (typeof optgroup === 'object') {
                         var optgroupEl = mQuery('<optgroup/>').attr('label', value);
                         mQuery.each(optgroup, function(optVal, label) {
-                            var option = Mautic.createOption(optVal, label);
-
-                            if (response.optionsAttr && response.optionsAttr[optVal]) {
-                                mQuery.each(response.optionsAttr[optVal], function(optAttr, optVal) {
-                                    option.attr(optAttr, optVal);
-                                });
-                            }
-
-                            optgroupEl.append(option)
+                            optgroupEl.append(Mautic.createOption(optVal, label))
                         });
                         newValueField.append(optgroupEl);
                     } else {
-                        var option = Mautic.createOption(value, optgroup);
-
-                        if (response.optionsAttr && response.optionsAttr[value]) {
-                            mQuery.each(response.optionsAttr[value], function(optAttr, optVal) {
-                                option.attr(optAttr, optVal);
-                            });
-                        }
-
-                        newValueField.append(option);
+                        newValueField.append(Mautic.createOption(value, optgroup));
                     }
                 });
                 newValueField.val(valueFieldAttrs['value']);
@@ -645,21 +626,12 @@ Mautic.updateFieldOperatorValue = function(field, action, valueOnChange, valueOn
                 }
             }
 
-            if (valueOnChange && typeof valueOnChange == 'function') {
-                mQuery('#'+fieldPrefix+'value').on('change', function () {
-                    if (typeof valueOnChangeArguments != 'object') {
-                        valueOnChangeArguments = [];
-                    }
-                    valueOnChangeArguments.unshift(mQuery('#'+fieldPrefix+'value'));
-
-                    valueOnChange.apply(null, valueOnChangeArguments);
-                });
-            }
-
             if (!mQuery.isEmptyObject(response.operators)) {
                 var operatorField = mQuery('#'+fieldPrefix+'operator');
 
-                Mautic.destroyChosen(operatorField);
+                if (mQuery('#'+fieldPrefix+'operator_chosen').length) {
+                    operatorField.chosen('destroy');
+                }
 
                 var operatorFieldAttrs = {
                     'class': operatorField.attr('class'),

@@ -62,7 +62,7 @@ $indexCount = 1;
             if ($child->vars['name'] == 'label_'.$indexCount):
                 if ($isRequired):
                     $name = $child->vars['full_name'];
-                    echo '<input type="hidden" value="'.$child->vars['attr']['data-label'].'" name="'.$name.'" />';
+                    echo '<input type="hidden" value="'.$child->vars['value'].'" name="'.$name.'" />';
                 endif;
                 ?>
                 <div class="pl-xs pr-xs <?php echo $class; ?><?php if ($isRequired): echo ' has-error'; endif; ?>">
@@ -71,7 +71,7 @@ $indexCount = 1;
                                id="<?php echo $child->vars['id']; ?>"
                                name="<?php echo $child->vars['full_name']; ?>"
                                class="<?php echo $child->vars['attr']['class']; ?>"
-                               value="<?php echo $view->escape($child->vars['attr']['data-label']); ?>"
+                               value="<?php echo $child->vars['value']; ?>"
                                readonly />
                     </div>
                 </div>
@@ -81,30 +81,30 @@ $indexCount = 1;
                 <div class="row">
                     <div class="form-group col-xs-12 ">
                         <div class="choice-wrapper">
-                            <div class="btn-group btn-block" data-toggle="buttons" <?php if ($child->vars['attr']['forceDirection']) : echo 'data-force-direction="1"'; endif; ?>>
+                            <div class="btn-group btn-block" data-toggle="buttons">
                                 <?php $checked = $child->vars['value'] === '0'; ?>
-                                <label class="btn-arrow<?php echo $indexCount; ?> btn btn-default<?php if ($checked): echo ' active'; endif; ?> <?php if ($child->vars['attr']['disabled']) : echo 'disabled'; endif; ?>">
+                                <label class="btn btn-default<?php if ($checked): echo ' active'; endif; ?>">
                                     <input type="radio"
                                            id="<?php echo $child->vars['id']; ?>_0"
                                            name="<?php echo $child->vars['full_name']; ?>"
+                                           data-toggle="tooltip"
                                            title=""
                                            autocomplete="false"
                                            value="0"
                                            onchange="Mautic.matchedFields(<?php echo $indexCount; ?>, '<?php echo $object; ?>', '<?php echo $integration; ?>')"
-                                           <?php if ($checked): ?>checked="checked"<?php endif; ?>
-                                           <?php if ($child->vars['attr']['disabled']) : echo 'disabled'; endif; ?>>
+                                           <?php if ($checked): ?>checked="checked"<?php endif; ?>>
                                     <btn class="btn-nospin fa fa-arrow-circle-left"></btn>
                                 </label>
                                 <?php $checked = $child->vars['value'] === '1'; ?>
-                                <label class="btn-arrow<?php echo $indexCount; ?> btn btn-default<?php if ($checked): echo ' active'; endif; ?> <?php if ($child->vars['attr']['disabled']) :echo 'disabled'; endif; ?>">
+                                <label class="btn btn-default<?php if ($checked): echo ' active'; endif; ?>">
                                     <input type="radio" id="<?php echo $child->vars['id']; ?>_1"
                                            name="<?php echo $child->vars['full_name']; ?>"
+                                           data-toggle="tooltip"
                                            title=""
                                            autocomplete="false"
                                            value="1"
                                            onchange="Mautic.matchedFields(<?php echo $indexCount; ?>, '<?php echo $object; ?>', '<?php echo $integration; ?>')"
-                                           <?php if ($child->vars['value'] === '1'): ?>checked="checked"<?php endif; ?>
-                                           <?php if ($child->vars['attr']['disabled']) : echo 'disabled'; endif; ?>>
+                                           <?php if ($child->vars['value'] === '1'): ?>checked="checked"<?php endif; ?>>
                                     <btn class="btn-nospin fa fa-arrow-circle-right"></btn>
                                 </label>
                             </div>
@@ -131,14 +131,14 @@ $indexCount = 1;
                     <?php if (is_array($options)) : ?>
                     <optgroup label="<?php echo $keyLabel; ?>">
                         <?php foreach ($options as $keyValue => $o): ?>
-                        <option value="<?php echo $view->escape($keyValue); ?>" <?php if ($keyValue === $child->vars['data']): echo 'selected'; $selected = true; elseif (empty($selected) && $keyValue == '-1'): echo 'selected'; endif; ?>>
+                        <option value="<?php echo $keyValue; ?>" <?php if ($keyValue === $child->vars['data']): echo 'selected'; $selected = true; elseif (empty($selected) && $keyValue == '-1'): echo 'selected'; endif; ?>>
                             <?php echo $o; ?>
                         </option>
                         <?php endforeach; ?>
 
                     </optgroup>
                     <?php else : ?>
-                    <option value="<?php echo $view->escape($keyLabel); ?>" <?php if ($keyLabel === $child->vars['data']): echo 'selected'; $selected = true; elseif (empty($selected) && $keyLabel == '-1'): echo 'selected'; endif; ?>>
+                    <option value="<?php echo $keyLabel; ?>" <?php if ($keyLabel === $child->vars['data']): echo 'selected'; $selected = true; elseif (empty($selected) && $keyLabel == '-1'): echo 'selected'; endif; ?>>
                         <?php echo $options; ?>
                     </option>
                     <?php endif; ?>

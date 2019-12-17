@@ -9,6 +9,7 @@
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 if ($item->hasChildren() && $options['depth'] !== 0 && $item->getDisplayChildren()) {
+
     /* Top menu level start */
     if ($item->isRoot()) {
         echo '<ul class="nav mt-10" data-toggle="menu">'."\n";
@@ -60,7 +61,7 @@ if ($item->hasChildren() && $options['depth'] !== 0 && $item->getDisplayChildren
         if (!isset($labelAttributes['class'])) {
             $labelAttributes['class'] = 'nav-item-name';
         }
-        $labelPull = empty($extras['depth']) ? ' pull-left' : '';
+        $labelPull = $extras['depth'] === 0 ? ' pull-left' : '';
         $labelAttributes['class'] .= ' text'.$labelPull;
 
         echo "<span{$view['menu']->parseAttributes($labelAttributes)}>{$view['translator']->trans($child->getLabel())}</span>";
@@ -70,8 +71,8 @@ if ($item->hasChildren() && $options['depth'] !== 0 && $item->getDisplayChildren
 
         /* Submenu items start */
         if ($showChildren) {
-            $options['depth']         = ($options['depth']) ? $options['depth']-- : null;
-            $options['matchingDepth'] = ($options['matchingDepth']) ? $options['matchingDepth']-- : null;
+            $options['depth']         = ($options['depth']) ? $options['depth']-- : '';
+            $options['matchingDepth'] = ($options['matchingDepth']) ? $options['matchingDepth']-- : '';
 
             $levelClass = $isAncestor ? 'nav-submenu collapse in' : 'nav-submenu collapse';
 

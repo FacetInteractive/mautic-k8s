@@ -87,8 +87,6 @@ $view['slots']->set(
             </div>
             <!--/ stats -->
 
-            <?php echo $view['content']->getCustomContent('details.stats.graph.below', $mauticTemplateVars); ?>
-
             <!-- tabs controls -->
             <ul class="nav nav-tabs pr-md pl-md">
                 <li class="active">
@@ -108,10 +106,7 @@ $view['slots']->set(
         <!-- start: tab-content -->
         <div class="tab-content pa-md">
             <div class="tab-pane active bdr-w-0" id="clicks-container">
-                <?php echo $view->render('MauticPageBundle:Trackable:click_counts.html.php', [
-                    'trackables'  => $trackables,
-                    'entity'      => $notification,
-                    'channel'     => 'notification', ]); ?>
+                <?php echo $view->render('MauticPageBundle:Trackable:click_counts.html.php', ['trackables' => $trackables]); ?>
             </div>
 
             <div class="tab-pane fade in bdr-w-0 page-list" id="contacts-container">
@@ -127,6 +122,6 @@ $view['slots']->set(
         <?php echo $view->render('MauticCoreBundle:Helper:recentactivity.html.php', ['logs' => $logs]); ?>
     </div>
     <!--/ right section -->
-    <input name="entityId" id="entityId" type="hidden" value="<?php echo $view->escape($notification->getId()); ?>" />
+    <input name="entityId" id="entityId" type="hidden" value="<?php echo $notification->getId(); ?>" />
 </div>
 <!--/ end: box layout -->

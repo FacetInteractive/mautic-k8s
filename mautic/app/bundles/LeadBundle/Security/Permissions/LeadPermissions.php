@@ -35,7 +35,6 @@ class LeadPermissions extends AbstractPermissions
             ],
         ];
         $this->addExtendedPermissions('leads', false);
-        $this->addStandardPermissions('imports');
     }
 
     /**
@@ -81,8 +80,6 @@ class LeadPermissions extends AbstractPermissions
             'bundle' => 'lead',
             'level'  => 'fields',
         ]);
-
-        $this->addStandardFormFields($this->getName(), 'imports', $builder, $data);
     }
 
     /**
@@ -114,7 +111,7 @@ class LeadPermissions extends AbstractPermissions
      */
     protected function getSynonym($name, $level)
     {
-        if ($name === 'fields') {
+        if ($name == 'fields') {
             //set some synonyms
             switch ($level) {
                 case 'publishown':
@@ -124,15 +121,6 @@ class LeadPermissions extends AbstractPermissions
             }
         }
 
-        if ($name === 'lists') {
-            switch ($level) {
-                case 'view':
-                case 'viewown':
-                    $name = 'leads';
-                    break;
-            }
-        }
-
-        return parent::getSynonym($name, $level);
+        return [$name, $level];
     }
 }

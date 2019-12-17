@@ -32,7 +32,7 @@ class LeadFieldEvent extends CommonEvent
     /**
      * Returns the Field entity.
      *
-     * @return LeadField
+     * @return Field
      */
     public function getField()
     {
@@ -40,9 +40,9 @@ class LeadFieldEvent extends CommonEvent
     }
 
     /**
-     * Sets the LeadField entity.
+     * Sets the Field entity.
      *
-     * @param LeadField $field
+     * @param Field $field
      */
     public function setField(LeadField $field)
     {

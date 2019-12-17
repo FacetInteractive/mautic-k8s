@@ -14,6 +14,7 @@ $scriptSrc = str_replace('/index_dev.php', '', $scriptSrc);
 ?>
 
 <script type="text/javascript">
+
     /** This section is only needed once per page if manually copying **/
     if (typeof MauticSDKLoaded == 'undefined') {
         var MauticSDKLoaded = true;

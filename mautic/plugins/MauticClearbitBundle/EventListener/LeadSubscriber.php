@@ -31,6 +31,8 @@ class LeadSubscriber extends CommonSubscriber
      */
     public function __construct(LookupHelper $lookupHelper)
     {
+        parent::__construct();
+
         $this->lookupHelper = $lookupHelper;
     }
 

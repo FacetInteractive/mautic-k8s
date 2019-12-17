@@ -144,13 +144,6 @@ return [
             'mautic.user.route.subscriber' => [
                 'class' => 'Mautic\UserBundle\EventListener\RouteSubscriber',
             ],
-            'mautic.user.security_subscriber' => [
-                'class'     => 'Mautic\UserBundle\EventListener\SecuritySubscriber',
-                'arguments' => [
-                    'mautic.helper.ip_lookup',
-                    'mautic.core.model.auditlog',
-                ],
-            ],
         ],
         'forms' => [
             'mautic.form.type.user' => [
@@ -199,7 +192,6 @@ return [
                 'alias'     => 'userconfig',
                 'arguments' => [
                     'mautic.helper.core_parameters',
-                    'translator',
                 ],
             ],
         ],
@@ -214,11 +206,6 @@ return [
                 'class'     => 'Mautic\UserBundle\Entity\UserRepository',
                 'arguments' => 'Mautic\UserBundle\Entity\User',
                 'factory'   => ['@mautic.user.manager', 'getRepository'],
-            ],
-            'mautic.user.token.repository' => [
-                'class'     => 'Mautic\UserBundle\Entity\UserTokenRepository',
-                'arguments' => 'Mautic\UserBundle\Entity\UserToken',
-                'factory'   => ['@doctrine', 'getRepository'],
             ],
             'mautic.permission.manager' => [
                 'class'     => 'Doctrine\ORM\EntityManager',
@@ -269,7 +256,6 @@ return [
                     'monolog.logger',
                     'event_dispatcher',
                     '', // providerKey
-                    'mautic.permission.repository',
                 ],
                 'public' => false,
             ],
@@ -314,23 +300,6 @@ return [
                 'class'     => 'Mautic\UserBundle\Model\UserModel',
                 'arguments' => [
                     'mautic.helper.mailer',
-                    'mautic.user.model.user_token_service',
-                ],
-            ],
-            'mautic.user.model.user_token_service' => [
-                'class'     => \Mautic\UserBundle\Model\UserToken\UserTokenService::class,
-                'arguments' => [
-                    'mautic.helper.random',
-                    'mautic.user.repository.user_token',
-                ],
-            ],
-        ],
-        'repositories' => [
-            'mautic.user.repository.user_token' => [
-                'class'     => \Doctrine\ORM\EntityRepository::class,
-                'factory'   => ['@doctrine.orm.entity_manager', 'getRepository'],
-                'arguments' => [
-                    \Mautic\UserBundle\Entity\UserToken::class,
                 ],
             ],
         ],

@@ -38,11 +38,6 @@ class Form extends FormEntity
     /**
      * @var string
      */
-    private $formAttributes;
-
-    /**
-     * @var string
-     */
     private $description;
 
     /**
@@ -124,11 +119,6 @@ class Form extends FormEntity
     private $formType;
 
     /**
-     * @var bool
-     */
-    private $noIndex;
-
-    /**
      * This var is used to cache the result once gained from the loop.
      *
      * @var bool
@@ -165,8 +155,6 @@ class Form extends FormEntity
         $builder->addIdColumns();
 
         $builder->addField('alias', 'string');
-
-        $builder->addNullableField('formAttributes', 'string', 'form_attr');
 
         $builder->addCategory();
 
@@ -223,11 +211,6 @@ class Form extends FormEntity
             ->build();
 
         $builder->addNullableField('formType', 'string', 'form_type');
-
-        $builder->createField('noIndex', 'boolean')
-            ->columnName('no_index')
-            ->nullable()
-            ->build();
     }
 
     /**
@@ -306,13 +289,12 @@ class Form extends FormEntity
                     'fields',
                     'actions',
                     'template',
+                    'submissionCount',
                     'inKioskMode',
                     'renderStyle',
                     'formType',
                     'postAction',
                     'postActionProperty',
-                    'noIndex',
-                    'formAttributes',
                 ]
             )
             ->build();
@@ -324,11 +306,13 @@ class Form extends FormEntity
      */
     protected function isChanged($prop, $val)
     {
+        $getter  = 'get'.ucfirst($prop);
+        $current = $this->$getter();
         if ($prop == 'actions' || $prop == 'fields') {
             //changes are already computed so just add them
             $this->changes[$prop][$val[0]] = $val[1];
-        } else {
-            parent::isChanged($prop, $val);
+        } elseif ($current != $val) {
+            $this->changes[$prop] = [$current, $val];
         }
     }
 
@@ -575,7 +559,7 @@ class Form extends FormEntity
     /**
      * Get fields.
      *
-     * @return \Doctrine\Common\Collections\Collection|Field[]
+     * @return \Doctrine\Common\Collections\Collection
      */
     public function getFields()
     {
@@ -653,7 +637,7 @@ class Form extends FormEntity
     /**
      * Get submissions.
      *
-     * @return \Doctrine\Common\Collections\Collection|Submission[]
+     * @return \Doctrine\Common\Collections\Collection
      */
     public function getSubmissions()
     {
@@ -788,48 +772,6 @@ class Form extends FormEntity
         $this->formType = $formType;
 
         return $this;
-    }
-
-    /**
-     * Set noIndex.
-     *
-     * @param bool $noIndex
-     */
-    public function setNoIndex($noIndex)
-    {
-        $this->isChanged('noIndex', $noIndex);
-        $this->noIndex = $noIndex;
-    }
-
-    /**
-     * Get noIndex.
-     *
-     * @return bool
-     */
-    public function getNoIndex()
-    {
-        return $this->noIndex;
-    }
-
-    /**
-     * @param string $formAttributes
-     *
-     * @return Form
-     */
-    public function setFormAttributes($formAttributes)
-    {
-        $this->isChanged('formAttributes', $formAttributes);
-        $this->formAttributes = $formAttributes;
-
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFormAttributes()
-    {
-        return $this->formAttributes;
     }
 
     /**

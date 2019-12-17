@@ -124,14 +124,6 @@ $mauticBundles  = array_filter(
 );
 unset($buildBundles);
 
-// Load extra annotations
-$container->loadFromExtension('sensio_framework_extra', [
-    'router'  => ['annotations' => false],
-    'request' => ['converters' => false],
-    'view'    => ['annotations' => true],
-    'cache'   => ['annotations' => false],
-]);
-
 // Sort Mautic's bundles into Core and Plugins
 $setBundles = $setPluginBundles = [];
 foreach ($mauticBundles as $bundle) {
@@ -155,19 +147,20 @@ unset($setBundles, $setPluginBundles);
 $container->setParameter('mautic.ip_lookup_services', $ipLookupServices);
 
 // Load parameters
-include __DIR__.'/parameters.php';
+$loader->import('parameters.php');
 $container->loadFromExtension('mautic_core');
 
 // Set template engines
 $engines = ['php', 'twig'];
 
-// Decide on secure cookie based on site_url setting
-$secureCookie = $container->hasParameter('mautic.site_url') && substr(ltrim($container->getParameter('mautic.site_url')), 0, 5) === 'https';
-
 // Generate session name
-// Cannot use $parameters here directly because that fails spectaculary if parameters_local file exists
-$key         = $container->hasParameter('mautic.secret_key') ? $container->getParameter('mautic.secret_key') : uniqid();
-$sessionName = md5(md5($paths['local_config']).$key);
+if (isset($_COOKIE['mautic_session_name'])) {
+    // Attempt to keep from losing sessions if cache is cleared through UI
+    $sessionName = $_COOKIE['mautic_session_name'];
+} else {
+    $key         = $container->hasParameter('mautic.secret_key') ? $container->getParameter('mautic.secret_key') : uniqid();
+    $sessionName = md5(md5($paths['local_config']).$key);
+}
 
 $container->loadFromExtension('framework', [
     'secret' => '%mautic.secret_key%',
@@ -196,9 +189,8 @@ $container->loadFromExtension('framework', [
     'trusted_hosts'   => '%mautic.trusted_hosts%',
     'trusted_proxies' => '%mautic.trusted_proxies%',
     'session'         => [ //handler_id set to null will use default session handler from php.ini
-        'handler_id'    => null,
-        'name'          => $sessionName,
-        'cookie_secure' => $secureCookie,
+        'handler_id' => null,
+        'name'       => $sessionName,
     ],
     'fragments'            => null,
     'http_method_override' => true,
@@ -208,22 +200,15 @@ $container->loadFromExtension('framework', [
     )*/
 ]);
 
-$container->setParameter('mautic.famework.csrf_protection', true);
-
 //Doctrine Configuration
 $dbalSettings = [
-    'driver'                => '%mautic.db_driver%',
-    'host'                  => '%mautic.db_host%',
-    'port'                  => '%mautic.db_port%',
-    'dbname'                => '%mautic.db_name%',
-    'user'                  => '%mautic.db_user%',
-    'password'              => '%mautic.db_password%',
-    'charset'               => 'UTF8',
-    'default_table_options' => [
-        'charset'    => 'utf8',
-        'collate'    => 'utf8_unicode_ci',
-        'row_format' => 'DYNAMIC',
-    ],
+    'driver'   => '%mautic.db_driver%',
+    'host'     => '%mautic.db_host%',
+    'port'     => '%mautic.db_port%',
+    'dbname'   => '%mautic.db_name%',
+    'user'     => '%mautic.db_user%',
+    'password' => '%mautic.db_password%',
+    'charset'  => 'UTF8',
     'types'    => [
         'array'    => 'Mautic\CoreBundle\Doctrine\Type\ArrayType',
         'datetime' => 'Mautic\CoreBundle\Doctrine\Type\UTCDateTimeType',
@@ -355,29 +340,6 @@ $container->loadFromExtension('jms_serializer', [
             'options' => JSON_PRETTY_PRINT,
         ],
     ],
-]);
-
-$container->loadFromExtension('doctrine_cache', [
-  'providers' => [
-    'api_rate_limiter_cache' => '%mautic.api_rate_limiter_cache%',
-  ],
-]);
-
-$api_rate_limiter_limit = $container->getParameter('mautic.api_rate_limiter_limit');
-$container->loadFromExtension('noxlogic_rate_limit', [
-  'enabled'           => $api_rate_limiter_limit == 0 ? false : true,
-  'storage_engine'    => 'doctrine',
-  'doctrine_provider' => 'api_rate_limiter_cache',
-  'path_limits'       => [
-    [
-      'path'   => '/api',
-      'limit'  => '%mautic.api_rate_limiter_limit%',
-      'period' => 3600,
-    ],
-  ],
-  'fos_oauth_key_listener' => true,
-  'display_headers'        => true,
-  'rate_response_message'  => '{ "errors": [ { "code": 429, "message": "You exceeded the rate limit of %mautic.api_rate_limiter_limit% API calls per hour.", "details": [] } ]}',
 ]);
 
 $container->setParameter(

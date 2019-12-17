@@ -84,8 +84,7 @@ class NotificationModel extends FormModel implements AjaxLookupModelInterface
     {
         //iterate over the results so the events are dispatched on each delete
         $batchSize = 20;
-        $i         = 0;
-        foreach ($entities as $entity) {
+        foreach ($entities as $k => $entity) {
             $isNew = ($entity->getId()) ? false : true;
 
             //set some defaults
@@ -101,7 +100,7 @@ class NotificationModel extends FormModel implements AjaxLookupModelInterface
                 $this->dispatchEvent('post_save', $entity, $isNew, $event);
             }
 
-            if (++$i % $batchSize === 0) {
+            if ((($k + 1) % $batchSize) === 0) {
                 $this->em->flush();
             }
         }

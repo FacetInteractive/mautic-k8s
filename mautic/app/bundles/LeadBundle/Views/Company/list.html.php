@@ -108,41 +108,28 @@ if ($tmpl == 'index') {
                     </td>
                     <td>
                         <div>
-                            <?php if ($view['security']->hasEntityAccess(
-                                       $permissions['lead:leads:editown'],
-                                       $permissions['lead:leads:editother'],
-                                       $item->getCreatedBy()
-                                       )
-                                   ): ?>
 
                             <a href="<?php echo $view['router']->generate(
                                 'mautic_company_action',
                                 ['objectAction' => 'edit', 'objectId' => $item->getId()]
                             ); ?>" data-toggle="ajax">
                                 <?php if (isset($fields['core']['companyname'])) : ?>
-                                    <?php echo $view->escape($fields['core']['companyname']['value']); ?>
+                                    <?php echo $fields['core']['companyname']['value']; ?>
                                 <?php endif; ?>
                             </a>
-                        <?php else: ?>
-                            <?php if (isset($fields['core']['companyname'])) : ?>
-                                <?php echo $view->escape($fields['core']['companyname']['value']); ?>
-                            <?php endif; ?>
-                        <?php endif; ?>
                         </div>
                     </td>
                     <td>
-                        <?php if (isset($fields['core']['companyemail'])): ?>
                         <div class="text-muted mt-4">
                             <small>
-                                <?php echo $view->escape($fields['core']['companyemail']['value']); ?>
+                                <?php echo $fields['core']['companyemail']['value']; ?>
                             </small>
                         </div>
-                        <?php endif; ?>
                     </td>
 
                     <td class="visible-md visible-lg">
                         <?php if (isset($fields['core']['companywebsite'])) :?>
-                        <?php echo \Mautic\CoreBundle\Helper\InputHelper::url($fields['core']['companywebsite']['value']); ?>
+                        <?php echo $fields['core']['companywebsite']['value']; ?>
                         <?php endif; ?>
                     </td>
                     <td class="visible-md visible-lg">
@@ -153,7 +140,7 @@ if ($tmpl == 'index') {
                             'mautic_contact_index',
                             [
                                 'search' => $view['translator']->trans('mautic.lead.lead.searchcommand.company').':"'
-                                    .$view->escape($fields['core']['companyname']['value']).'"',
+                                    .$fields['core']['companyname']['value'].'"',
                             ]
                         ); ?>" data-toggle="ajax"<?php echo ($leadCounts[$item->getId()] == 0) ? 'disabled=disabled' : ''; ?>>
                             <?php echo $view['translator']->transChoice(

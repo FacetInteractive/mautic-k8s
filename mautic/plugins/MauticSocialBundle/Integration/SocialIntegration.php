@@ -11,7 +11,6 @@
 
 namespace MauticPlugin\MauticSocialBundle\Integration;
 
-use Mautic\PluginBundle\Helper\IntegrationHelper;
 use Mautic\PluginBundle\Integration\AbstractIntegration;
 use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormBuilder;
@@ -19,19 +18,6 @@ use Symfony\Component\Form\FormBuilder;
 abstract class SocialIntegration extends AbstractIntegration
 {
     protected $persistNewLead = false;
-
-    /**
-     * @var IntegrationHelper
-     */
-    protected $integrationHelper;
-
-    /**
-     * @param IntegrationHelper $integrationHelper
-     */
-    public function setIntegrationHelper(IntegrationHelper $integrationHelper)
-    {
-        $this->integrationHelper = $integrationHelper;
-    }
 
     /**
      * @param \Mautic\PluginBundle\Integration\Form|FormBuilder $builder
@@ -64,13 +50,14 @@ abstract class SocialIntegration extends AbstractIntegration
         static $fields = [];
 
         if (empty($fields)) {
-            $s         = $this->getName();
-            $available = $this->getAvailableLeadFields($settings);
+            $translator = $this->factory->getTranslator();
+            $s          = $this->getName();
+            $available  = $this->getAvailableLeadFields($settings);
             if (empty($available) || !is_array($available)) {
                 return [];
             }
             //create social profile fields
-            $socialProfileUrls = $this->integrationHelper->getSocialProfileUrlRegex();
+            $socialProfileUrls = $this->factory->getHelper('integration')->getSocialProfileUrlRegex();
 
             foreach ($available as $field => $details) {
                 $label = (!empty($details['label'])) ? $details['label'] : false;
@@ -79,7 +66,7 @@ abstract class SocialIntegration extends AbstractIntegration
                     case 'string':
                     case 'boolean':
                         $fields[$fn] = (!$label)
-                            ? $this->translator->transConditional("mautic.integration.common.{$fn}", "mautic.integration.{$s}.{$fn}")
+                            ? $translator->transConditional("mautic.integration.common.{$fn}", "mautic.integration.{$s}.{$fn}")
                             : $label;
                         break;
                     case 'object':
@@ -87,12 +74,12 @@ abstract class SocialIntegration extends AbstractIntegration
                             foreach ($details['fields'] as $f) {
                                 $fn          = $this->matchFieldName($field, $f);
                                 $fields[$fn] = (!$label)
-                                    ? $this->translator->transConditional("mautic.integration.common.{$fn}", "mautic.integration.{$s}.{$fn}")
+                                    ? $translator->transConditional("mautic.integration.common.{$fn}", "mautic.integration.{$s}.{$fn}")
                                     : $label;
                             }
                         } else {
                             $fields[$field] = (!$label)
-                                ? $this->translator->transConditional("mautic.integration.common.{$fn}", "mautic.integration.{$s}.{$fn}")
+                                ? $translator->transConditional("mautic.integration.common.{$fn}", "mautic.integration.{$s}.{$fn}")
                                 : $label;
                         }
                         break;
@@ -100,24 +87,24 @@ abstract class SocialIntegration extends AbstractIntegration
                         if ($field == 'urls' || $field == 'url') {
                             foreach ($socialProfileUrls as $p => $d) {
                                 $fields["{$p}ProfileHandle"] = (!$label)
-                                    ? $this->translator->transConditional("mautic.integration.common.{$p}ProfileHandle", "mautic.integration.{$s}.{$p}ProfileHandle")
+                                    ? $translator->transConditional("mautic.integration.common.{$p}ProfileHandle", "mautic.integration.{$s}.{$p}ProfileHandle")
                                     : $label;
                             }
                             foreach ($details['fields'] as $f) {
                                 $fields["{$p}Urls"] = (!$label)
-                                    ? $this->translator->transConditional("mautic.integration.common.{$f}Urls", "mautic.integration.{$s}.{$f}Urls")
+                                    ? $translator->transConditional("mautic.integration.common.{$f}Urls", "mautic.integration.{$s}.{$f}Urls")
                                     : $label;
                             }
                         } elseif (isset($details['fields'])) {
                             foreach ($details['fields'] as $f) {
                                 $fn          = $this->matchFieldName($field, $f);
                                 $fields[$fn] = (!$label)
-                                    ? $this->translator->transConditional("mautic.integration.common.{$fn}", "mautic.integration.{$s}.{$fn}")
+                                    ? $translator->transConditional("mautic.integration.common.{$fn}", "mautic.integration.{$s}.{$fn}")
                                     : $label;
                             }
                         } else {
                             $fields[$fn] = (!$label)
-                                ? $this->translator->transConditional("mautic.integration.common.{$fn}", "mautic.integration.{$s}.{$fn}")
+                                ? $translator->transConditional("mautic.integration.common.{$fn}", "mautic.integration.{$s}.{$fn}")
                                 : $label;
                         }
                         break;
@@ -226,15 +213,12 @@ abstract class SocialIntegration extends AbstractIntegration
      */
     protected function getContactAccessToken(&$socialCache)
     {
-        if (!$this->session) {
-            return null;
-        }
-
-        if (!$this->session->isStarted()) {
+        $session = $this->factory->getSession();
+        if (!$session->isStarted()) {
             return (isset($socialCache['accessToken'])) ? $this->decryptApiKeys($socialCache['accessToken']) : null;
         }
 
-        $accessToken = $this->session->get($this->getName().'_tokenResponse', []);
+        $accessToken = $this->factory->getSession()->get($this->getName().'_tokenResponse', []);
         if (!isset($accessToken[$this->getAuthTokenKey()])) {
             if (isset($socialCache['accessToken'])) {
                 $accessToken = $this->decryptApiKeys($socialCache['accessToken']);
@@ -242,7 +226,7 @@ abstract class SocialIntegration extends AbstractIntegration
                 return null;
             }
         } else {
-            $this->session->remove($this->getName().'_tokenResponse');
+            $this->factory->getSession()->remove($this->getName().'_tokenResponse');
             $socialCache['accessToken'] = $this->encryptApiKeys($accessToken);
 
             $this->persistNewLead = true;

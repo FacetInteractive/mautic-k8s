@@ -65,15 +65,6 @@ final class FormEvents
     const FORM_ON_BUILD = 'mautic.form_on_build';
 
     /**
-     * The mautic.on_form_validate event is dispatched when a form is validated.
-     *
-     * The event listener receives a Mautic\FormBundle\Event\ValidationEvent instance.
-     *
-     * @var string
-     */
-    const ON_FORM_VALIDATE = 'mautic.on_form_validate';
-
-    /**
      * The mautic.form_on_submit event is dispatched when a new submission is fired.
      *
      * The event listener receives a Mautic\FormBundle\Event\SubmissionEvent instance.
@@ -110,5 +101,5 @@ final class FormEvents
      *
      * @var string
      */
-    const ON_EXECUTE_SUBMIT_ACTION = 'mautic.form.on_execute_submit_action';
+    const ON_EXECUTE_SUBMIT_ACTION = 'matuic.form.on_execute_submit_action';
 }

@@ -86,10 +86,7 @@ return [
                 ],
             ],
             'mautic.asset.reportbundle.subscriber' => [
-                'class'     => \Mautic\AssetBundle\EventListener\ReportSubscriber::class,
-                'arguments' => [
-                    'mautic.lead.model.company_report_data',
-                ],
+                'class' => 'Mautic\AssetBundle\EventListener\ReportSubscriber',
             ],
             'mautic.asset.builder.subscriber' => [
                 'class'     => 'Mautic\AssetBundle\EventListener\BuilderSubscriber',
@@ -126,11 +123,11 @@ return [
                 ],
             ],
             'oneup_uploader.pre_upload' => [
-                'class'     => \Mautic\AssetBundle\EventListener\UploadSubscriber::class,
+                'class'     => 'Mautic\AssetBundle\EventListener\UploadSubscriber',
                 'arguments' => [
+                    'translator',
                     'mautic.helper.core_parameters',
                     'mautic.asset.model.asset',
-                    'mautic.core.validator.file_upload',
                 ],
             ],
             'mautic.asset.dashboard.subscriber' => [
@@ -191,16 +188,13 @@ return [
         ],
         'models' => [
             'mautic.asset.model.asset' => [
-                'class'     => \Mautic\AssetBundle\Model\AssetModel::class,
+                'class'     => 'Mautic\AssetBundle\Model\AssetModel',
                 'arguments' => [
                     'mautic.lead.model.lead',
                     'mautic.category.model.category',
                     'request_stack',
                     'mautic.helper.ip_lookup',
                     'mautic.helper.core_parameters',
-                    'mautic.lead.service.device_creator_service',
-                    'mautic.lead.factory.device_detector_factory',
-                    'mautic.lead.service.device_tracking_service',
                 ],
             ],
         ],

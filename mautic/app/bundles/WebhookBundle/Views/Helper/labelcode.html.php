@@ -8,20 +8,14 @@
  *
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
-if ($code >= 200 && $code < 300): ?>
+if ($code == '200'): ?>
     <span class="label label-success">
          <?php echo $code; ?>
     </span>
-<?php elseif ($code >= 300 && $code < 500): ?>
-    <span class="label label-warning">
-         <?php echo $code; ?>
-    </span>
-<?php elseif ($code >= 500): ?>
-    <span class="label label-warning">
-         <?php echo $code; ?>
-    </span>
+    <?php echo $view['translator']->trans('mautic.webhook.label.success'); ?>
 <?php else: ?>
-    <span class="label label-default">
+    <span class="label label-warning">
          <?php echo $code; ?>
     </span>
+    <?php echo $view['translator']->trans('mautic.webhook.label.warning'); ?>
 <?php endif; ?>

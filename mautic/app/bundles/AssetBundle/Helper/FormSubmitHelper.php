@@ -11,7 +11,6 @@
 
 namespace Mautic\AssetBundle\Helper;
 
-use Doctrine\ORM\NoResultException;
 use Mautic\AssetBundle\Entity\Asset;
 use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\FormBundle\Entity\Action;
@@ -33,27 +32,20 @@ class FormSubmitHelper
     public static function onFormSubmit(Action $action, MauticFactory $factory)
     {
         $properties = $action->getProperties();
-        $assetId    = $properties['asset'];
-        $categoryId = isset($properties['category']) ? $properties['category'] : null;
-        $model      = $factory->getModel('asset');
-        $asset      = null;
 
-        if (null !== $assetId) {
-            $asset = $model->getEntity($assetId);
-        } elseif (null !== $categoryId) {
-            try {
-                $asset = $model->getRepository()->getLatestAssetForCategory($categoryId);
-            } catch (NoResultException $e) {
-                $asset = null;
-            }
-        }
+        $assetId = $properties['asset'];
+
+        /** @var \Mautic\AssetBundle\Model\AssetModel $model */
+        $model = $factory->getModel('asset');
+        $asset = $model->getEntity($assetId);
+        $form  = $action->getForm();
 
         //make sure the asset still exists and is published
-        if ($asset !== null && $asset->isPublished()) {
+        if ($asset != null && $asset->isPublished()) {
             //register a callback after the other actions have been fired
             return [
                 'callback' => '\Mautic\AssetBundle\Helper\FormSubmitHelper::downloadFile',
-                'form'     => $action->getForm(),
+                'form'     => $form,
                 'asset'    => $asset,
                 'message'  => (isset($properties['message'])) ? $properties['message'] : '',
             ];

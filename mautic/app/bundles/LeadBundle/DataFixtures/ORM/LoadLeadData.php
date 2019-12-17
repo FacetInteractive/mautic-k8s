@@ -16,7 +16,6 @@ use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Mautic\CoreBundle\Entity\IpAddress;
 use Mautic\CoreBundle\Helper\CsvHelper;
-use Mautic\LeadBundle\Entity\CompanyLead;
 use Mautic\LeadBundle\Entity\Lead;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -44,9 +43,8 @@ class LoadLeadData extends AbstractFixture implements OrderedFixtureInterface, C
      */
     public function load(ObjectManager $manager)
     {
-        $leadRepo        = $this->container->get('doctrine.orm.default_entity_manager')->getRepository(Lead::class);
-        $companyLeadRepo = $this->container->get('doctrine.orm.default_entity_manager')->getRepository(CompanyLead::class);
-
+        $factory  = $this->container->get('mautic.factory');
+        $leadRepo = $factory->getModel('lead.lead')->getRepository();
         $today    = new \DateTime();
 
         $leads = CsvHelper::csv_to_array(__DIR__.'/fakeleaddata.csv');
@@ -55,34 +53,17 @@ class LoadLeadData extends AbstractFixture implements OrderedFixtureInterface, C
             $lead = new Lead();
             $lead->setDateAdded($today);
             $ipAddress = new IpAddress();
-            $ipAddress->setIpAddress($l['ip'], $this->container->get('mautic.helper.core_parameters')->getParameter('parameters'));
+            $ipAddress->setIpAddress($l['ip'], $factory->getSystemParameters());
             $this->setReference('ipAddress-'.$key, $ipAddress);
             unset($l['ip']);
             $lead->addIpAddress($ipAddress);
-
-            if ($this->hasReference('sales-user')) {
-                $lead->setOwner($this->getReference('sales-user'));
-            }
-
+            $lead->setOwner($this->getReference('sales-user'));
             foreach ($l as $col => $val) {
                 $lead->addUpdatedField($col, $val);
             }
-
             $leadRepo->saveEntity($lead);
 
             $this->setReference('lead-'.$count, $lead);
-
-            // Assign to companies in a predictable way
-            $lastCharacter = (int) substr($count, -1, 1);
-            if ($lastCharacter <= 3) {
-                if ($this->hasReference('company-'.$lastCharacter)) {
-                    $companyLead = new CompanyLead();
-                    $companyLead->setLead($lead);
-                    $companyLead->setCompany($this->getReference('company-'.$lastCharacter));
-                    $companyLead->setDateAdded($today);
-                    $companyLeadRepo->saveEntity($companyLead);
-                }
-            }
         }
     }
 

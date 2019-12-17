@@ -15,7 +15,7 @@ use Mautic\PluginBundle\Exception\ApiErrorException;
 
 class MailchimpApi extends EmailMarketingApi
 {
-    private $version = '3.0';
+    private $version = '2.0';
 
     /**
      * @param        $endpoint
@@ -51,8 +51,9 @@ class MailchimpApi extends EmailMarketingApi
         } elseif (is_array($response) && !empty($response['errors'])) {
             $errors = [];
             foreach ($response['errors'] as $error) {
-                $errors[] = $error['message'];
+                $errors[] = $error['error'];
             }
+
             throw new ApiErrorException(implode(' ', $errors));
         } else {
             return $response;
@@ -61,7 +62,7 @@ class MailchimpApi extends EmailMarketingApi
 
     public function getLists()
     {
-        return $this->request('lists', ['limit' => 100]);
+        return $this->request('lists/list', ['limit' => 100]);
     }
 
     /**
@@ -73,7 +74,7 @@ class MailchimpApi extends EmailMarketingApi
      */
     public function getCustomFields($listId)
     {
-        return $this->request('lists/'.$listId.'/merge-fields');
+        return $this->request('lists/merge-vars', ['id' => [$listId]]);
     }
 
     /**
@@ -92,13 +93,11 @@ class MailchimpApi extends EmailMarketingApi
         $emailStruct->email = $email;
 
         $parameters = array_merge($config, [
-            'id' => $listId,
+            'id'         => $listId,
+            'merge_vars' => $fields,
         ]);
-        if (!empty($fields)) {
-            $parameters = array_merge($parameters, ['merge_fields' => $fields]);
-        }
-        $parameters['email_address'] = $email;
+        $parameters['email'] = $emailStruct;
 
-        return $this->request('lists/'.$listId.'/members', $parameters, 'POST');
+        return $this->request('lists/subscribe', $parameters, 'POST');
     }
 }

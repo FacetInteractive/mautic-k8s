@@ -11,8 +11,8 @@
 
 namespace Mautic\LeadBundle\Form\Type;
 
+use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\CoreBundle\Form\EventListener\CleanFormSubscriber;
-use Mautic\CoreBundle\Helper\UserHelper;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Constraints\Email;
@@ -24,16 +24,13 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 class EmailType extends AbstractType
 {
     /**
-     * @var UserHelper
+     * @var MauticFactory
      */
-    private $userHelper;
+    private $factory;
 
-    /**
-     * @param UserHelper $userHelper
-     */
-    public function __construct(UserHelper $userHelper)
+    public function __construct(MauticFactory $factory)
     {
-        $this->userHelper = $userHelper;
+        $this->factory = $factory;
     }
 
     /**
@@ -55,7 +52,7 @@ class EmailType extends AbstractType
             ]
         );
 
-        $user = $this->userHelper->getUser();
+        $user = $this->factory->getUser();
 
         $default = (empty($options['data']['fromname'])) ? $user->getFirstName().' '.$user->getLastName() : $options['data']['fromname'];
         $builder->add(

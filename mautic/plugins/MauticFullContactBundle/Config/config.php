@@ -12,7 +12,7 @@ return [
     'name'        => 'FullContact',
     'description' => 'Enables integration with FullContact for contact and company lookup',
     'version'     => '1.0',
-    'author'      => 'Mautic',
+    'author'      => 'Werner Garcia',
 
     'routes' => [
         'public' => [
@@ -64,13 +64,6 @@ return [
                     'router',
                     'mautic.lead.model.lead',
                     'mautic.lead.model.company',
-                ],
-            ],
-        ],
-        'integrations' => [
-            'mautic.integration.fullcontact' => [
-                'class'     => \MauticPlugin\MauticFullContactBundle\Integration\FullContactIntegration::class,
-                'arguments' => [
                 ],
             ],
         ],

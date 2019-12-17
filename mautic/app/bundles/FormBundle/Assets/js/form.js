@@ -4,16 +4,6 @@ Mautic.formOnLoad = function (container) {
         Mautic.activateSearchAutocomplete('list-search', 'form.form');
     }
     var bodyOverflow = {};
-
-    mQuery('select.form-builder-new-component').change(function (e) {
-        mQuery(this).find('option:selected');
-        Mautic.ajaxifyModal(mQuery(this).find('option:selected'));
-        // Reset the dropdown
-        mQuery(this).val('');
-        mQuery(this).trigger('chosen:updated');
-    });
-
-
     if (mQuery('#mauticforms_fields')) {
         //make the fields sortable
         mQuery('#mauticforms_fields').sortable({
@@ -48,6 +38,14 @@ Mautic.formOnLoad = function (container) {
                     data: mQuery('#mauticforms_fields').sortable("serialize", {attribute: 'data-sortable-id'}) + "&formId=" + mQuery('#mauticform_sessionId').val()
                 });
             }
+        });
+
+        mQuery('#available_fields').change(function (e) {
+            mQuery(this).find('option:selected');
+            Mautic.ajaxifyModal(mQuery(this).find('option:selected'));
+            // Reset the dropdown
+            mQuery(this).val('');
+            mQuery(this).trigger('chosen:updated');
         });
 
         Mautic.initFormFieldButtons();
@@ -305,14 +303,12 @@ Mautic.onPostSubmitActionChange = function(value) {
 
 Mautic.selectFormType = function(formType) {
     if (formType == 'standalone') {
-        mQuery('option.action-standalone-only').removeClass('hide');
+        mQuery('.action-standalone-only').removeClass('hide');
         mQuery('.page-header h3').text(mauticLang.newStandaloneForm);
     } else {
-        mQuery('option.action-standalone-only').addClass('hide');
+        mQuery('.action-standalone-only').addClass('hide');
         mQuery('.page-header h3').text(mauticLang.newCampaignForm);
     }
-
-    mQuery('.available-actions select').trigger('chosen:updated');
 
     mQuery('#mauticform_formType').val(formType);
 

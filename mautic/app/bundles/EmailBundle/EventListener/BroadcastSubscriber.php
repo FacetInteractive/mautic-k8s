@@ -42,9 +42,7 @@ class BroadcastSubscriber implements EventSubscriberInterface
     /**
      * BroadcastSubscriber constructor.
      *
-     * @param EmailModel          $emailModel
-     * @param EntityManager       $em
-     * @param TranslatorInterface $translator
+     * @param EmailModel $emailModel
      */
     public function __construct(EmailModel $emailModel, EntityManager $em, TranslatorInterface $translator)
     {
@@ -73,27 +71,17 @@ class BroadcastSubscriber implements EventSubscriberInterface
         }
 
         // Get list of published broadcasts or broadcast if there is only a single ID
-        $emails = $this->model->getRepository()->getPublishedBroadcasts($event->getId());
+        $id     = $event->getId();
+        $emails = $this->model->getRepository()->getPublishedBroadcasts($id);
 
+        $output = $event->getOutput();
+
+        /** @var Email $email */
         while (($email = $emails->next()) !== false) {
-            $emailEntity                                            = $email[0];
-            list($sentCount, $failedCount, $failedRecipientsByList) = $this->model->sendEmailToLists(
-                $emailEntity,
-                null,
-                $event->getLimit(),
-                $event->getBatch(),
-                $event->getOutput(),
-                $event->getMinContactIdFilter(),
-                $event->getMaxContactIdFilter()
-            );
+            list($sentCount, $failedCount, $ignore) = $this->model->sendEmailToLists($email[0], null, 100, true, $output);
 
-            $event->setResults(
-                $this->translator->trans('mautic.email.email').': '.$emailEntity->getName(),
-                $sentCount,
-                $failedCount,
-                $failedRecipientsByList
-            );
-            $this->em->detach($emailEntity);
+            $event->setResults($this->translator->trans('mautic.email.email').': '.$email[0]->getName(), $sentCount, $failedCount);
+            $this->em->detach($email[0]);
         }
     }
 }

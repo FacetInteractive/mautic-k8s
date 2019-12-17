@@ -10,13 +10,10 @@
  */
 $header = $view['translator']->trans(
     'mautic.report.report.header.view',
-    ['%name%' => $view->escape($view['translator']->trans($report->getName()))]
+    ['%name%' => $view['translator']->trans($report->getName())]
 );
 
 if ($tmpl == 'index') {
-    $showDynamicFilters  = (!empty($report->getSettings()['showDynamicFilters']) === true);
-    $hideDateRangeFilter = (!empty($report->getSettings()['hideDateRangeFilter']) === true);
-
     $view->extend('MauticCoreBundle:Default:content.html.php');
     $view['slots']->set('mauticContent', 'report');
 
@@ -109,7 +106,7 @@ if ($tmpl == 'index') {
 <!-- report detail header -->
 <?php if ($report->getDescription()): ?>
 <div class="pr-md pl-md pt-lg pb-lg">
-    <div class="text-white dark-sm mb-0"><?php echo $view->escape($report->getDescription()); ?></div>
+    <div class="text-white dark-sm mb-0"><?php echo $report->getDescription(); ?></div>
 </div>
 <?php endif; ?>
 <!--/ report detail header -->
@@ -129,11 +126,11 @@ if ($tmpl == 'index') {
             </div>
         </div>
     </div>
-    <div class="collapse<?php if ($showDynamicFilters): ?> in<?php endif; ?>" id="report-filters">
+    <div class="collapse" id="report-filters">
         <div class="pr-md pl-md pb-md">
             <div class="panel shd-none mb-0 pa-lg">
                 <div class="row">
-                    <div class="col-sm-12 mb-10<?php if ($hideDateRangeFilter):?> hide<?php endif; ?>">
+                    <div class="col-sm-12 mb-10">
                         <?php echo $view->render('MauticCoreBundle:Helper:graph_dateselect.html.php', ['dateRangeForm' => $dateRangeForm]); ?>
                     </div>
                     <?php $view['form']->start($dynamicFilterForm); ?>
@@ -158,7 +155,7 @@ if ($tmpl == 'index') {
             <a href="#report-details" class="arrow text-muted collapsed" data-toggle="collapse" aria-expanded="false" aria-controls="report-details">
                 <span class="caret"></span> <?php echo $view['translator']->trans('mautic.core.details'); ?>
             </a>
-            <a href="#report-filters" class="arrow text-muted <?php if (!$showDynamicFilters): ?>collapsed<?php endif; ?>" data-toggle="collapse" aria-expanded="false" aria-controls="report-filters">
+            <a href="#report-filters" class="arrow text-muted collapsed" data-toggle="collapse" aria-expanded="false" aria-controls="report-filters">
                 <span class="caret"></span> <?php echo $view['translator']->trans('mautic.core.filters'); ?>
             </a>
         </div>
@@ -172,10 +169,8 @@ if ($tmpl == 'index') {
 <?php if (!empty($debug)): ?>
 <div class="well">
     <h4>Debug: <?php echo $debug['query_time']; ?></h4>
-    <div><?php echo $debug['count_query']; ?></div>
-    <br />
     <div><?php echo $debug['query']; ?></div>
 </div>
 <?php endif; ?>
 <!--/ end: box layout -->
-<input type="hidden" name="entityId" id="entityId" value="<?php echo $view->escape($report->getId()); ?>"/>
+<input type="hidden" name="entityId" id="entityId" value="<?php echo $report->getId(); ?>"/>

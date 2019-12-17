@@ -12,7 +12,6 @@
 namespace Mautic\LeadBundle\Entity;
 
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
-use Mautic\LeadBundle\Helper\CustomFieldHelper;
 use Mautic\LeadBundle\Model\FieldModel;
 
 trait CustomFieldEntityTrait
@@ -30,14 +29,6 @@ trait CustomFieldEntityTrait
      * @var array
      */
     protected $updatedFields = [];
-
-    /**
-     * A place events can use to pass data around on the object to prevent issues like creating a contact and having it processed to be sent back
-     * to the origin of creation in a webhook (like Pipedrive).
-     *
-     * @var array
-     */
-    protected $eventData = [];
 
     /**
      * @param $name
@@ -74,9 +65,8 @@ trait CustomFieldEntityTrait
         if (($isSetter && array_key_exists(0, $arguments)) || $isGetter) {
             $fieldRequested = mb_strtolower(mb_substr($name, 3));
             $fields         = $this->getProfileFields();
-
             if (array_key_exists($fieldRequested, $fields)) {
-                return ($isSetter) ? $this->addUpdatedField($fieldRequested, $arguments[0]) : $this->getFieldValue($fieldRequested);
+                return ($isSetter) ? $this->addUpdatedField($fieldRequested, $arguments[0]) : $this->getFieldValue($name);
             }
         }
 
@@ -121,28 +111,17 @@ trait CustomFieldEntityTrait
      */
     public function addUpdatedField($alias, $value, $oldValue = null)
     {
-        // Don't allow overriding ID
-        if ('id' === $alias) {
-            return $this;
-        }
-
         $property = (defined('self::FIELD_ALIAS')) ? str_replace(self::FIELD_ALIAS, '', $alias) : $alias;
-        $field    = $this->getField($alias);
-        $setter   = 'set'.ucfirst($property);
+
+        if (property_exists($this, $property)) {
+            // Fixed custom field so use the setter
+            $setter = 'set'.ucfirst($property);
+
+            $this->$setter($value);
+        }
 
         if (null == $oldValue) {
             $oldValue = $this->getFieldValue($alias);
-        } elseif ($field) {
-            $oldValue = CustomFieldHelper::fixValueType($field['type'], $oldValue);
-        }
-
-        if (property_exists($this, $property) && method_exists($this, $setter)) {
-            // Fixed custom field so use the setter but don't get caught in a loop such as a custom field called "notes"
-            // Set empty value as null
-            if ($value === '') {
-                $value = null;
-            }
-            $this->$setter($value);
         }
 
         if (is_string($value)) {
@@ -160,11 +139,7 @@ trait CustomFieldEntityTrait
             $value = implode('|', $value);
         }
 
-        if ($field) {
-            $value = CustomFieldHelper::fixValueType($field['type'], $value);
-        }
-
-        if ($oldValue !== $value && !(('' === $oldValue && null === $value) || (null === $oldValue && '' === $value))) {
+        if ($oldValue !== $value) {
             $this->addChange('fields', [$alias => [$oldValue, $value]]);
             $this->updatedFields[$alias] = $value;
         }
@@ -183,52 +158,27 @@ trait CustomFieldEntityTrait
     }
 
     /**
-     * Get field value.
+     * Get company field value.
      *
-     * @param string $field
-     * @param string $group
+     * @param      $field
+     * @param null $group
      *
-     * @return mixed
+     * @return bool
      */
     public function getFieldValue($field, $group = null)
     {
-        if (property_exists($this, $field)) {
-            $value = $this->{'get'.ucfirst($field)}();
-
-            if (null !== $value) {
-                return $value;
-            }
-        }
-
-        if (array_key_exists($field, $this->updatedFields)) {
+        if (isset($this->updatedFields[$field])) {
             return $this->updatedFields[$field];
         }
 
-        if ($field = $this->getField($field, $group)) {
-            return CustomFieldHelper::fixValueType($field['type'], $field['value']);
-        }
-
-        return null;
-    }
-
-    /**
-     * Get field details.
-     *
-     * @param string $key
-     * @param string $group
-     *
-     * @return array|false
-     */
-    public function getField($key, $group = null)
-    {
-        if ($group && isset($this->fields[$group][$key])) {
-            return $this->fields[$group][$key];
+        if (!empty($group) && isset($this->fields[$group][$field])) {
+            return $this->fields[$group][$field]['value'];
         }
 
         foreach ($this->fields as $group => $groupFields) {
             foreach ($groupFields as $name => $details) {
-                if ($name == $key) {
-                    return $details;
+                if ($name == $field) {
+                    return $details['value'];
                 }
             }
         }
@@ -247,10 +197,11 @@ trait CustomFieldEntityTrait
             $fieldValues = [
                 'id' => $this->id,
             ];
-
-            foreach ($this->fields as $group => $fields) {
-                foreach ($fields as $alias => $field) {
-                    $fieldValues[$alias] = $field['value'];
+            if (isset($this->fields['core'])) {
+                foreach ($this->fields as $group => $fields) {
+                    foreach ($fields as $alias => $field) {
+                        $fieldValues[$alias] = $field['value'];
+                    }
                 }
             }
 
@@ -260,35 +211,6 @@ trait CustomFieldEntityTrait
 
             return $this->fields;
         }
-    }
-
-    /**
-     * @return bool
-     */
-    public function hasFields()
-    {
-        return !empty($this->fields);
-    }
-
-    /**
-     * @param $key
-     */
-    public function getEventData($key)
-    {
-        return (isset($this->eventData[$key])) ? $this->eventData[$key] : null;
-    }
-
-    /**
-     * @param $key
-     * @param $value
-     *
-     * @return $this
-     */
-    public function setEventData($key, $value)
-    {
-        $this->eventData[$key] = $value;
-
-        return $this;
     }
 
     /**

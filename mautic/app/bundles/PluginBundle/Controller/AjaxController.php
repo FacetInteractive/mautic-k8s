@@ -78,14 +78,14 @@ class AjaxController extends CommonAjaxController
                     // Get a list of custom form fields
                     $mauticFields       = ($isLead) ? $pluginModel->getLeadFields() : $pluginModel->getCompanyFields();
                     $featureSettings    = $integrationObject->getIntegrationSettings()->getFeatureSettings();
-                    $enableDataPriority = $integrationObject->getDataPriority();
+                    $formSettings       = $integrationObject->getFormDisplaySettings();
+                    $enableDataPriority = !empty($formSettings['enable_data_priority']);
                     $formType           = $isLead ? 'integration_fields' : 'integration_company_fields';
                     $form               = $this->createForm(
                         $formType,
                         isset($featureSettings[$object.'Fields']) ? $featureSettings[$object.'Fields'] : [],
                         [
                             'mautic_fields'        => $mauticFields,
-                            'data'                 => $featureSettings,
                             'integration_fields'   => $integrationFields,
                             'csrf_protection'      => false,
                             'integration_object'   => $integrationObject,
@@ -119,8 +119,9 @@ class AjaxController extends CommonAjaxController
                         $idPrefix = substr($idPrefix, 0, -1);
                     }
 
-                    $html                 = preg_replace('/'.$formType.'\[(.*?)\]/', $prefix.'[$1]', $html);
-                    $html                 = str_replace($formType, $idPrefix, $html);
+                    $html = preg_replace('/'.$formType.'\[(.*?)\]/', $prefix.'[$1]', $html);
+                    $html = str_replace($formType, $idPrefix, $html);
+
                     $dataArray['success'] = 1;
                     $dataArray['html']    = $html;
                 }

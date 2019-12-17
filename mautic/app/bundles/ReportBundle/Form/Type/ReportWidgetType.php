@@ -11,7 +11,6 @@
 
 namespace Mautic\ReportBundle\Form\Type;
 
-use Mautic\CoreBundle\Helper\Serializer;
 use Mautic\ReportBundle\Entity\Report;
 use Mautic\ReportBundle\Model\ReportModel;
 use Symfony\Component\Form\AbstractType;
@@ -48,7 +47,7 @@ class ReportWidgetType extends AbstractType
             foreach ($reports as $report) {
                 $choices[$report['name']] = [];
 
-                $graphs = Serializer::decode($report['graphs']);
+                $graphs = unserialize($report['graphs']);
 
                 foreach ($graphs as $graph) {
                     $graphValue                            = $report['id'].':'.$graph;

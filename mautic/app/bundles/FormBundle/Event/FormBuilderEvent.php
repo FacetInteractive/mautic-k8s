@@ -13,7 +13,6 @@ namespace Mautic\FormBundle\Event;
 
 use Mautic\CoreBundle\Event\ComponentValidationTrait;
 use Symfony\Component\EventDispatcher\Event;
-use Symfony\Component\Form\Form;
 
 /**
  * Class FormBuilderEvent.
@@ -210,28 +209,6 @@ class FormBuilderEvent extends Event
         $this->verifyComponent(['eventName'], $validator);
 
         $this->validators[$key] = $validator;
-    }
-
-    /**
-     * @param Form $form
-     */
-    public function addValidatorsToBuilder(Form $form)
-    {
-        if (!empty($this->validators)) {
-            $validationData = (isset($form->getData()['validation'])) ? $form->getData()['validation'] : [];
-            foreach ($this->validators as $validator) {
-                if (isset($validator['formType']) && isset($validator['fieldType']) && $validator['fieldType'] == $form->getData()['type']) {
-                    $form->add(
-                        'validation',
-                        $validator['formType'],
-                        [
-                            'label' => false,
-                            'data'  => $validationData,
-                        ]
-                    );
-                }
-            }
-        }
     }
 
     /**

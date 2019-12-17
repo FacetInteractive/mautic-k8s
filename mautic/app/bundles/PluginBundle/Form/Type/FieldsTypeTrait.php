@@ -18,7 +18,6 @@ use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Translation\TranslatorInterface;
 
 trait FieldsTypeTrait
 {
@@ -36,12 +35,11 @@ trait FieldsTypeTrait
         array $mauticFields,
         $fieldObject,
         $limit,
-        $start,
-        TranslatorInterface $translator
+        $start
     ) {
         $builder->addEventListener(
             FormEvents::PRE_SET_DATA,
-            function (FormEvent $event) use ($options, $integrationFields, $mauticFields, $fieldObject, $limit, $start, $translator) {
+            function (FormEvent $event) use ($options, $integrationFields, $mauticFields, $fieldObject, $limit, $start) {
                 $form = $event->getForm();
                 $index = 0;
                 $choices = [];
@@ -72,7 +70,7 @@ trait FieldsTypeTrait
                         $optionalFields[$groupName] = [];
                     }
 
-                    if (is_array($details) && (!empty($details['required']) || $choices[$field] == 'Email')) {
+                    if (is_array($details) && !empty($details['required'])) {
                         $requiredFields[$groupName][$field] = $details;
                     } else {
                         $optionalFields[$groupName][$field] = $details;
@@ -117,17 +115,9 @@ trait FieldsTypeTrait
                 }
 
                 $paginatedFields = array_slice($fields, $start, $limit);
-                $fieldsName = 'leadFields';
-                if ($fieldObject) {
-                    $fieldsName = $fieldObject.'Fields';
-                }
-                if (isset($fieldData[$fieldsName])) {
-                    $fieldData[$fieldsName] = $options['integration_object']->formatMatchedFields($fieldData[$fieldsName]);
-                }
-
                 foreach ($paginatedFields as $field => $details) {
-                    $matched = isset($fieldData[$fieldsName][$field]);
-                    $required = (int) (!empty($integrationFields[$field]['required']) || $choices[$field] == 'Email');
+                    $matched = isset($fieldData[$field]);
+                    $required = (int) !empty($integrationFields[$field]['required']);
                     ++$index;
                     $form->add(
                         'label_'.$index,
@@ -148,22 +138,9 @@ trait FieldsTypeTrait
                     );
                     if (isset($options['enable_data_priority']) and $options['enable_data_priority']) {
                         $updateName = 'update_mautic';
-
                         if ($fieldObject) {
                             $updateName .= '_'.$fieldObject;
                         }
-
-                        $forceDirection = false;
-                        $disabled = (isset($fieldData[$fieldsName][$field])) ? $options['integration_object']->isCompoundMauticField($fieldData[$fieldsName][$field]) : false;
-                        $data = isset($fieldData[$updateName][$field]) ? (int) $fieldData[$updateName][$field] : 1;
-
-                        // Force to use just one way for certainly fields
-                        if (isset($fields[$field]['update_mautic'])) {
-                            $data = (bool) $fields[$field]['update_mautic'];
-                            $disabled = true;
-                            $forceDirection = true;
-                        }
-
                         $form->add(
                             $updateName.$index,
                             'button_group',
@@ -173,22 +150,14 @@ trait FieldsTypeTrait
                                     '<btn class="btn-nospin fa fa-arrow-circle-right"></btn>',
                                 ],
                                 'label'       => false,
-                                'data'        => $data,
+                                'data'        => isset($options[$updateName][$field]) ? (int) $options[$updateName][$field] : 1,
                                 'empty_value' => false,
                                 'attr'        => [
-                                    'data-toggle'   => 'tooltip',
-                                    'title'         => 'mautic.plugin.direction.data.update',
-                                    'disabled'      => $disabled,
-                                    'forceDirection'=> $forceDirection,
+                                    'data-toggle' => 'tooltip',
+                                    'title'       => 'mautic.plugin.direction.data.update',
                                 ],
                             ]
                         );
-                    }
-                    if (!$fieldObject) {
-                        $contactId['mauticContactId'] = $this->translator->trans('mautic.lead.report.contact_id');
-                        $contactLink['mauticContactTimelineLink'] = $this->translator->trans('mautic.plugin.integration.contact.timeline.link');
-                        $isContactable['mauticContactIsContactableByEmail'] = $this->translator->trans('mautic.plugin.integration.contact.donotcontact.email');
-                        $mauticFields = array_merge($mauticFields, $contactLink, $isContactable, $contactId);
                     }
 
                     $form->add(
@@ -197,13 +166,13 @@ trait FieldsTypeTrait
                         [
                             'choices'    => $mauticFields,
                             'label'      => false,
-                            'data'       => $matched && isset($fieldData[$fieldsName][$field]) ? $fieldData[$fieldsName][$field] : '',
+                            'data'       => $matched ? $fieldData[$field] : '',
                             'label_attr' => ['class' => 'control-label'],
                             'attr'       => [
                                 'class'            => 'field-selector',
                                 'data-placeholder' => ' ',
                                 'data-required'    => $required,
-                                'data-value'       => $matched && isset($fieldData[$fieldsName][$field]) ? $fieldData[$fieldsName][$field] : '',
+                                'data-value'       => $matched ? $fieldData[$field] : '',
                                 'data-choices'     => $mauticFields,
                             ],
                         ]
@@ -215,7 +184,6 @@ trait FieldsTypeTrait
                             'data' => $field,
                             'attr' => [
                                 'data-required' => $required,
-                                'data-value'    => $field,
                             ],
                         ]
                     );
@@ -226,7 +194,6 @@ trait FieldsTypeTrait
                             'data' => $index,
                             'attr' => [
                                 'data-required' => $required,
-                                'data-value'    => $index,
                             ],
                         ]
                     );

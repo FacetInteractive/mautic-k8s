@@ -12,13 +12,11 @@
 namespace MauticPlugin\MauticEmailMarketingBundle\Form\Type;
 
 use Mautic\CoreBundle\Factory\MauticFactory;
-use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
-use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 /**
@@ -30,21 +28,10 @@ class ConstantContactType extends AbstractType
      * @var MauticFactory
      */
     private $factory;
-    /**
-     * @var Session
-     */
-    protected $session;
 
-    /**
-     * @var CoreParametersHelper
-     */
-    protected $coreParametersHelper;
-
-    public function __construct(MauticFactory $factory, Session $session, CoreParametersHelper $coreParametersHelper)
+    public function __construct(MauticFactory $factory)
     {
-        $this->factory              = $factory;
-        $this->session              = $session;
-        $this->coreParametersHelper = $coreParametersHelper;
+        $this->factory = $factory;
     }
 
     /**
@@ -53,18 +40,12 @@ class ConstantContactType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+
         /** @var \Mautic\PluginBundle\Helper\IntegrationHelper $helper */
         $helper = $this->factory->getHelper('integration');
 
         /** @var \MauticPlugin\MauticEmailMarketingBundle\Integration\ConstantContactIntegration $object */
-        $object          = $helper->getIntegrationObject('ConstantContact');
-        $integrationName = $object->getName();
-        $session         = $this->session;
-        $limit           = $session->get(
-            'mautic.plugin.'.$integrationName.'.lead.limit',
-            $this->coreParametersHelper->getParameter('default_pagelimit')
-        );
-        $page = $session->get('mautic.plugin.'.$integrationName.'.lead.page', 1);
+        $object = $helper->getIntegrationObject('ConstantContact');
 
         $api = $object->getApiHelper();
         try {
@@ -81,7 +62,6 @@ class ConstantContactType extends AbstractType
         } catch (\Exception $e) {
             $choices = [];
             $error   = $e->getMessage();
-            $page    = 1;
         }
 
         $builder->add('list', 'choice', [
@@ -118,14 +98,9 @@ class ConstantContactType extends AbstractType
                 'label'                => 'mautic.integration.leadfield_matches',
                 'required'             => true,
                 'mautic_fields'        => $leadFields,
-                'integration'          => $object->getName(),
-                'integration_object'   => $object,
-                'limit'                => $limit,
-                'page'                 => $page,
-                'data'                 => isset($options['data']) ? $options['data'] : [],
+                'data'                 => isset($options['data']['leadFields']) ? $options['data']['leadFields'] : [],
                 'integration_fields'   => $fields,
                 'special_instructions' => $specialInstructions,
-                'mapped'               => true,
                 'alert_type'           => $alertType,
             ]);
         }

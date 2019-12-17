@@ -31,7 +31,6 @@ class CampaignApiController extends CommonApiController
         $this->entityClass      = 'Mautic\CampaignBundle\Entity\Campaign';
         $this->entityNameOne    = 'campaign';
         $this->entityNameMulti  = 'campaigns';
-        $this->permissionBase   = 'campaign:campaigns';
         $this->serializerGroups = ['campaignDetails', 'campaignEventDetails', 'categoryList', 'publishDetails', 'leadListList', 'formList'];
 
         parent::initialize($event);
@@ -244,8 +243,6 @@ class CampaignApiController extends CommonApiController
 
         $where = InputHelper::clean($this->request->query->get('where', []));
         $order = InputHelper::clean($this->request->query->get('order', []));
-        $start = (int) $this->request->query->get('start', 0);
-        $limit = (int) $this->request->query->get('limit', 100);
 
         $where[] = [
             'col'  => 'campaign_id',
@@ -266,44 +263,7 @@ class CampaignApiController extends CommonApiController
                 'itemsName' => 'contacts',
                 'order'     => $order,
                 'where'     => $where,
-                'start'     => $start,
-                'limit'     => $limit,
             ]
         );
-    }
-
-    public function cloneCampaignAction($campaignId)
-    {
-        if (empty($campaignId) || intval($campaignId) == false) {
-            return $this->notFound();
-        }
-
-        $original = $this->model->getEntity($campaignId);
-        if (empty($original)) {
-            return $this->notFound();
-        }
-        $entity = clone $original;
-
-        if (!$this->checkEntityAccess($entity, 'create')) {
-            return $this->accessDenied();
-        }
-
-        $this->model->saveEntity($entity);
-
-        $headers = [];
-        //return the newly created entities location if applicable
-
-        $route               = 'mautic_api_campaigns_getone';
-        $headers['Location'] = $this->generateUrl(
-            $route,
-            array_merge(['id' => $entity->getId()], $this->routeParams),
-            true
-        );
-
-        $view = $this->view([$this->entityNameOne => $entity], Codes::HTTP_OK, $headers);
-
-        $this->setSerializationContext($view);
-
-        return $this->handleView($view);
     }
 }

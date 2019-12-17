@@ -12,37 +12,22 @@ $url    = $notification->getUrl();
 $button = $notification->getButton();
 
 ?>
-<label>Preview</label>
-<div id="notification-preview" class="panel panel-default">
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">
+            <?php echo $notification->getHeading()?>
+            <?php if ($url) : ?>
+            <span class="pull-right">
+                <a href="<?php echo $url; ?>" target="_blank"><span class="fa fa-external-link"></span></a>
+            </span>
+            <?php endif; ?>
+        </h3>
+    </div>
     <div class="panel-body">
-        <div class="row">
-            <div class="icon height-auto text-center">
-                <span class="fa fa-bell fs-48"></span>
-            </div>
-            <div class="text height-auto bg-white">
-                <h4>
-                    <?php 
-                    if ($notification->getHeading()) {
-                        echo $notification->getHeading();
-                    } else {
-                        echo 'Your notification header';
-                    }
-                    ?>  
-                </h4>
-                <p>
-                    <?php 
-                    if ($notification->getMessage()) {
-                        echo $notification->getMessage();
-                    } else {
-                        echo 'The message body of your notification';
-                    }?>  
-                </p>
-                <span><?php echo $_SERVER['HTTP_HOST']; ?></span>
-            </div>
-        </div>
+        <p><?php echo $notification->getMessage()?></p>
         <?php if ($url && $button) : ?>
-            <hr>
-            <a href="<?php echo $url ?>"><?php echo $button ?></a>
+            <br>
+            <p><a href="<?php echo $url ?>" class="btn btn-primary"><?php echo $button ?></a></p>
         <?php endif; ?>
     </div>
 </div>

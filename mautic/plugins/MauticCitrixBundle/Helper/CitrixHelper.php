@@ -21,7 +21,6 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\Router;
-use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 class CitrixHelper
 {
@@ -166,7 +165,7 @@ class CitrixHelper
         try {
             // Check if integration is enabled
             if (!self::isAuthorized(self::listToIntegration($listType))) {
-                throw new AuthenticationException('You are not authorized to view '.$listType);
+                throw new \AuthenticationException('You are not authorized to view '.$listType);
             }
             $currentYear = date('Y');
             // TODO: the date range can be configured elsewhere
@@ -319,7 +318,7 @@ class CitrixHelper
     {
         try {
             $response = [];
-            if (CitrixProducts::GOTOWEBINAR === $product) {
+            if ($product === CitrixProducts::GOTOWEBINAR) {
                 $params = [
                     'email'     => $email,
                     'firstName' => $firstname,
@@ -332,7 +331,7 @@ class CitrixHelper
                     'POST'
                 );
             } else {
-                if (CitrixProducts::GOTOTRAINING === $product) {
+                if ($product === CitrixProducts::GOTOTRAINING) {
                     $params = [
                         'email'     => $email,
                         'givenName' => $firstname,
@@ -368,21 +367,21 @@ class CitrixHelper
     public static function startToProduct($product, $productId, $email, $firstname, $lastname)
     {
         try {
-            if (CitrixProducts::GOTOMEETING === $product) {
+            if ($product === CitrixProducts::GOTOMEETING) {
                 $response = self::getG2mApi()->request(
                     'meetings/'.$productId.'/start'
                 );
 
                 return (is_array($response) && array_key_exists('hostURL', $response)) ? $response['hostURL'] : '';
             } else {
-                if (CitrixProducts::GOTOTRAINING === $product) {
+                if ($product === CitrixProducts::GOTOTRAINING) {
                     $response = self::getG2tApi()->request(
                         'trainings/'.$productId.'/start'
                     );
 
                     return (is_array($response) && array_key_exists('hostURL', $response)) ? $response['hostURL'] : '';
                 } else {
-                    if (CitrixProducts::GOTOASSIST === $product) {
+                    if ($product === CitrixProducts::GOTOASSIST) {
                         // TODO: use the sessioncallback to update attendance status
                         /** @var Router $router */
                         $router = self::getContainer()->get('router');
@@ -504,7 +503,7 @@ class CitrixHelper
 
             case CitrixProducts::GOTOTRAINING:
                 $reports  = self::getG2tApi()->request($product.'s/'.$productId, [], 'GET', 'rest/reports');
-                $sessions = array_column($reports, 'sessionKey');
+                $sessions = array_map(create_function('$o', 'return $o["sessionKey"];'), $reports);
                 foreach ($sessions as $session) {
                     $result = self::getG2tApi()->request(
                         'sessions/'.$session.'/attendees',
@@ -512,7 +511,7 @@ class CitrixHelper
                         'GET',
                         'rest/reports'
                     );
-                    $arr    = array_column($result, 'email');
+                    $arr    = array_map(create_function('$o', 'return $o["email"];'), $result);
                     $result = array_merge($result, $arr);
                 }
 

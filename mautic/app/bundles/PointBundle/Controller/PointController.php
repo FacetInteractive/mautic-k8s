@@ -11,7 +11,7 @@
 
 namespace Mautic\PointBundle\Controller;
 
-use Mautic\CoreBundle\Controller\AbstractFormController;
+use Mautic\CoreBundle\Controller\FormController;
 use Mautic\PointBundle\Entity\Point;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Class PointController.
  */
-class PointController extends AbstractFormController
+class PointController extends FormController
 {
     /**
      * @param int $page
@@ -41,7 +41,9 @@ class PointController extends AbstractFormController
             return $this->accessDenied();
         }
 
-        $this->setListFilters();
+        if ($this->request->getMethod() == 'POST') {
+            $this->setListFilters();
+        }
 
         //set limits
         $limit = $this->get('session')->get('mautic.point.limit', $this->coreParametersHelper->getParameter('default_pagelimit'));

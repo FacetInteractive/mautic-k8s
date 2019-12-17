@@ -70,7 +70,7 @@
             "svg"
         ],
             "resize": {
-            "enabled":false,
+            "enabled":true,
                 "maxWidth": 1280,
                 "maxHeight": 1024
         }

@@ -13,14 +13,10 @@ namespace Mautic\PageBundle\Controller;
 
 use Mautic\CoreBundle\Controller\FormController as CommonFormController;
 use Mautic\CoreBundle\Helper\TrackingPixelHelper;
-use Mautic\CoreBundle\Helper\UrlHelper;
-use Mautic\LeadBundle\Helper\PrimaryCompanyHelper;
 use Mautic\LeadBundle\Helper\TokenHelper;
 use Mautic\LeadBundle\Model\LeadModel;
-use Mautic\LeadBundle\Tracker\Service\DeviceTrackingService\DeviceTrackingServiceInterface;
 use Mautic\PageBundle\Entity\Page;
 use Mautic\PageBundle\Event\PageDisplayEvent;
-use Mautic\PageBundle\Helper\TrackingHelper;
 use Mautic\PageBundle\Model\VideoModel;
 use Mautic\PageBundle\PageEvents;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -50,8 +46,7 @@ class PublicController extends CommonFormController
         /** @var Page $entity */
         $entity = $model->getEntityBySlugs($slug);
 
-        // Do not hit preference center pages
-        if (!empty($entity) && !$entity->getIsPreferenceCenter()) {
+        if (!empty($entity)) {
             $userAccess = $security->hasEntityAccess('page:pages:viewown', 'page:pages:viewother', $entity->getCreatedBy());
             $published  = $entity->isPublished();
 
@@ -197,11 +192,7 @@ class PublicController extends CommonFormController
                             $useId = key($variants);
 
                             //set the cookie - 14 days
-                            $this->get('mautic.helper.cookie')->setCookie(
-                                'mautic_page_'.$entity->getId(),
-                                $useId,
-                                3600 * 24 * 14
-                            );
+                            $this->get('mautic.helper.cookie')->setCookie('mautic_page_'.$entity->getId(), $useId, 3600 * 24 * 14);
 
                             if ($useId != $entity->getId()) {
                                 $entity = $childrenVariants[$useId];
@@ -212,11 +203,7 @@ class PublicController extends CommonFormController
 
                 // Now show the translation for the page or a/b test - only fetch a translation if a slug was not used
                 if ($entity->isTranslation() && empty($entity->languageSlug)) {
-                    list($translationParent, $translatedEntity) = $model->getTranslatedEntity(
-                        $entity,
-                        $lead,
-                        $this->request
-                    );
+                    list($translationParent, $translatedEntity) = $model->getTranslatedEntity($entity, $lead, $this->request);
 
                     if ($translationParent && $translatedEntity !== $entity) {
                         if (!$this->request->get('ntrd', 0)) {
@@ -268,9 +255,6 @@ class PublicController extends CommonFormController
             } else {
                 if (!empty($analytics)) {
                     $content = str_replace('</head>', $analytics."\n</head>", $content);
-                }
-                if ($entity->getNoIndex()) {
-                    $content = str_replace('</head>', "<meta name=\"robots\" content=\"noindex\">\n</head>", $content);
                 }
             }
 
@@ -361,8 +345,6 @@ class PublicController extends CommonFormController
 
     /**
      * @return Response
-     *
-     * @throws \Exception
      */
     public function trackingImageAction()
     {
@@ -375,8 +357,6 @@ class PublicController extends CommonFormController
 
     /**
      * @return JsonResponse
-     *
-     * @throws \Exception
      */
     public function trackingAction()
     {
@@ -395,22 +375,13 @@ class PublicController extends CommonFormController
         /** @var LeadModel $leadModel */
         $leadModel = $this->getModel('lead');
 
-        $lead = $leadModel->getCurrentLead();
-        /** @var DeviceTrackingServiceInterface $trackedDevice */
-        $trackedDevice = $this->get('mautic.lead.service.device_tracking_service')->getTrackedDevice();
-        $trackingId    = ($trackedDevice === null ? null : $trackedDevice->getTrackingId());
-
-        /** @var TrackingHelper $trackingHelper */
-        $trackingHelper = $this->get('mautic.page.helper.tracking');
-        $sessionValue   = $trackingHelper->getSession(true);
+        list($lead, $trackingId, $generated) = $leadModel->getCurrentLead(true);
 
         return new JsonResponse(
             [
-                'success'   => 1,
-                'id'        => ($lead) ? $lead->getId() : null,
-                'sid'       => $trackingId,
-                'device_id' => $trackingId,
-                'events'    => $sessionValue,
+                'success' => 1,
+                'id'      => $lead->getId(),
+                'sid'     => $trackingId,
             ]
         );
     }
@@ -420,36 +391,29 @@ class PublicController extends CommonFormController
      *
      * @return \Symfony\Component\HttpFoundation\RedirectResponse
      *
-     * @throws \Exception
+     * @throws \Symfony\Component\HttpKernel\Exception\NotFoundHttpException
      */
     public function redirectAction($redirectId)
     {
-        $logger = $this->container->get('monolog.logger.mautic');
-
-        $logger->debug('Attempting to load redirect with tracking_id of: '.$redirectId);
-
         /** @var \Mautic\PageBundle\Model\RedirectModel $redirectModel */
         $redirectModel = $this->getModel('page.redirect');
         $redirect      = $redirectModel->getRedirectById($redirectId);
 
-        $logger->debug('Executing Redirect: '.(string) $redirect);
-
-        if (null === $redirect || !$redirect->isPublished(false)) {
-            $logger->debug('Redirect with tracking_id of '.$redirectId.' not found');
-
-            $url = ($redirect) ? $redirect->getUrl() : 'n/a';
-
-            throw $this->createNotFoundException($this->translator->trans('mautic.core.url.error.404', ['%url%' => $url]));
+        if (empty($redirect) || !$redirect->isPublished(false)) {
+            throw $this->createNotFoundException($this->translator->trans('mautic.core.url.error.404'));
         }
 
+        $this->getModel('page')->hitPage($redirect, $this->request);
+
+        $url = $redirect->getUrl();
+
         // Ensure the URL does not have encoded ampersands
-        $url = str_replace('&amp;', '&', $redirect->getUrl());
+        $url = str_replace('&amp;', '&', $url);
 
         // Get query string
         $query = $this->request->query->all();
 
-        // Unset the clickthrough from the URL query
-        $ct = $query['ct'];
+        // Unset the clickthrough
         unset($query['ct']);
 
         // Tak on anything left to the URL
@@ -458,75 +422,14 @@ class PublicController extends CommonFormController
             $url .= http_build_query($query);
         }
 
-        // If the IP address is not trackable, it means it came form a configured "do not track" IP or a "do not track" user agent
-        // This prevents simulated clicks from 3rd party services such as URL shorteners from simulating clicks
-        $ipAddress = $this->container->get('mautic.helper.ip_lookup')->getIpAddress();
-        if ($ipAddress->isTrackable()) {
-            // Search replace lead fields in the URL
-            /** @var \Mautic\LeadBundle\Model\LeadModel $leadModel */
-            $leadModel = $this->getModel('lead');
-            $lead      = $leadModel->getContactFromRequest(['ct' => $ct]);
-
-            /** @var \Mautic\PageBundle\Model\PageModel $pageModel */
-            $pageModel = $this->getModel('page');
-            $pageModel->hitPage($redirect, $this->request, 200, $lead);
-
-            /** @var PrimaryCompanyHelper $primaryCompanyHelper */
-            $primaryCompanyHelper = $this->get('mautic.lead.helper.primary_company');
-            $leadArray            = ($lead) ? $primaryCompanyHelper->getProfileFieldsWithPrimaryCompany($lead) : [];
-
-            $url = TokenHelper::findLeadTokens($url, $leadArray, true);
-        }
-
-        $url = UrlHelper::sanitizeAbsoluteUrl($url);
-
-        if (false === filter_var($url, FILTER_VALIDATE_URL)) {
-            throw $this->createNotFoundException($this->translator->trans('mautic.core.url.error.404', ['%url%' => $url]));
-        }
+        // Search replace lead fields in the URL
+        /** @var \Mautic\LeadBundle\Model\LeadModel $leadModel */
+        $leadModel = $this->getModel('lead');
+        $lead      = $leadModel->getCurrentLead();
+        $leadArray = $lead->getProfileFields();
+        $url       = TokenHelper::findLeadTokens($url, $leadArray, true);
 
         return $this->redirect($url);
-    }
-
-    /**
-     * @param string $url
-     *
-     * @return string
-     */
-    private function replaceAssetTokenUrl($url)
-    {
-        if ($this->urlIsToken($url)) {
-            $tokens = $this->get('mautic.asset.helper.token')->findAssetTokens($url);
-
-            return isset($tokens[$url]) ? $tokens[$url] : $url;
-        }
-
-        return $url;
-    }
-
-    /**
-     * @param string $url
-     *
-     * @return string
-     */
-    private function replacePageTokenUrl($url)
-    {
-        if ($this->urlIsToken($url)) {
-            $tokens = $this->get('mautic.page.helper.token')->findPageTokens($url);
-
-            return isset($tokens[$url]) ? $tokens[$url] : $url;
-        }
-
-        return $url;
-    }
-
-    /**
-     * @param string $url
-     *
-     * @return bool
-     */
-    private function urlIsToken($url)
-    {
-        return substr($url, 0, 1) === '{';
     }
 
     /**
@@ -648,14 +551,10 @@ class PublicController extends CommonFormController
             /** @var LeadModel $leadModel */
             $leadModel = $this->getModel('lead');
 
-            $lead = $leadModel->getCurrentLead();
-            /** @var DeviceTrackingServiceInterface $trackedDevice */
-            $trackedDevice = $this->get('mautic.lead.service.device_tracking_service')->getTrackedDevice();
-            $trackingId    = ($trackedDevice === null ? null : $trackedDevice->getTrackingId());
-            $data          = [
-                'id'        => ($lead) ? $lead->getId() : null,
-                'sid'       => $trackingId,
-                'device_id' => $trackingId,
+            list($lead, $trackingId, $generated) = $leadModel->getCurrentLead(true);
+            $data                                = [
+                'id'  => $lead->getId(),
+                'sid' => $trackingId,
             ];
         }
 

@@ -24,7 +24,7 @@ class PostCountRepository extends CommonRepository
      *
      * @return Paginator
      */
-    public function getEntities(array $args = [])
+    public function getEntities($args = [])
     {
         return parent::getEntities($args);
     }
@@ -45,8 +45,8 @@ class PostCountRepository extends CommonRepository
     {
         $chartQuery = new ChartQuery($this->getEntityManager()->getConnection(), $dateFrom, $dateTo);
 
-        // Load points for selected periods
-        $q = $chartQuery->prepareTimeDataQuery(MAUTIC_TABLE_PREFIX.'monitor_post_count', 'post_date', $options, 'post_count', 'sum');
+        // Load points for selected period
+        $q = $chartQuery->prepareTimeDataQuery(MAUTIC_TABLE_PREFIX.'monitor_post_count', 'post_date', $options);
         if (isset($options['monitor_id'])) {
             $q->andwhere($q->expr()->eq('t.monitor_id', (int) $options['monitor_id']));
         }

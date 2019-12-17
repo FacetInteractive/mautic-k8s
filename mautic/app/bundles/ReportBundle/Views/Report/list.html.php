@@ -89,12 +89,12 @@ if ($tmpl == 'index') {
                                 ['item' => $item, 'model' => 'report.report']
                             ); ?>
                             <a href="<?php echo $view['router']->path('mautic_report_view', ['objectId' => $item->getId()]); ?>" data-toggle="ajax">
-                                <?php echo $view->escape($item->getName()); ?>
+                                <?php echo $item->getName(); ?>
                             </a>
                         </div>
                         <?php if ($description = $item->getDescription()): ?>
                             <div class="text-muted mt-4">
-                                <small><?php echo $view->escape($description); ?></small>
+                                <small><?php echo $description; ?></small>
                             </div>
                         <?php endif; ?>
                     </td>

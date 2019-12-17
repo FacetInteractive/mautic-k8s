@@ -14,13 +14,11 @@ namespace Mautic\CampaignBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Mautic\ApiBundle\Serializer\Driver\ApiMetadataDriver;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
-use Mautic\CoreBundle\Entity\IpAddress;
-use Mautic\LeadBundle\Entity\Lead as LeadEntity;
 
 /**
  * Class LeadEventLog.
  */
-class LeadEventLog implements ChannelInterface
+class LeadEventLog
 {
     /**
      * @var
@@ -33,7 +31,7 @@ class LeadEventLog implements ChannelInterface
     private $event;
 
     /**
-     * @var LeadEntity
+     * @var \Mautic\LeadBundle\Entity\Lead
      */
     private $lead;
 
@@ -98,11 +96,6 @@ class LeadEventLog implements ChannelInterface
     private $rotation = 1;
 
     /**
-     * @var FailedLeadEventLog
-     */
-    private $failedLog;
-
-    /**
      * @param ORM\ClassMetadata $metadata
      */
     public static function loadMetadata(ORM\ClassMetadata $metadata)
@@ -112,12 +105,9 @@ class LeadEventLog implements ChannelInterface
         $builder->setTable('campaign_lead_event_log')
             ->setCustomRepositoryClass('Mautic\CampaignBundle\Entity\LeadEventLogRepository')
             ->addIndex(['is_scheduled', 'lead_id'], 'campaign_event_upcoming_search')
-            ->addIndex(['campaign_id', 'is_scheduled', 'trigger_date'], 'campaign_event_schedule_counts')
             ->addIndex(['date_triggered'], 'campaign_date_triggered')
             ->addIndex(['lead_id', 'campaign_id', 'rotation'], 'campaign_leads')
             ->addIndex(['channel', 'channel_id', 'lead_id'], 'campaign_log_channel')
-            ->addIndex(['campaign_id', 'event_id', 'date_triggered'], 'campaign_actions')
-            ->addIndex(['campaign_id', 'date_triggered', 'event_id', 'non_action_path_taken'], 'campaign_stats')
             ->addUniqueConstraint(['event_id', 'lead_id', 'rotation'], 'campaign_rotation');
 
         $builder->addId();
@@ -162,16 +152,9 @@ class LeadEventLog implements ChannelInterface
         $builder->createField('channel', 'string')
                 ->nullable()
                 ->build();
-
         $builder->addNamedField('channelId', 'integer', 'channel_id', true);
 
         $builder->addNullableField('nonActionPathTaken', 'boolean', 'non_action_path_taken');
-
-        $builder->createOneToOne('failedLog', 'FailedLeadEventLog')
-            ->mappedBy('log')
-            ->fetchExtraLazy()
-            ->cascadeAll()
-            ->build();
     }
 
     /**
@@ -234,22 +217,18 @@ class LeadEventLog implements ChannelInterface
     }
 
     /**
-     * @param \DateTime|null $dateTriggered
-     *
-     * @return $this
+     * @param \DateTime $dateTriggered
      */
-    public function setDateTriggered(\DateTime $dateTriggered = null)
+    public function setDateTriggered($dateTriggered)
     {
         $this->dateTriggered = $dateTriggered;
         if (null !== $dateTriggered) {
             $this->setIsScheduled(false);
         }
-
-        return $this;
     }
 
     /**
-     * @return IpAddress
+     * @return \Mautic\CoreBundle\Entity\IpAddress
      */
     public function getIpAddress()
     {
@@ -257,19 +236,15 @@ class LeadEventLog implements ChannelInterface
     }
 
     /**
-     * @param IpAddress $ipAddress
-     *
-     * @return $this
+     * @param \Mautic\CoreBundle\Entity\IpAddress $ipAddress
      */
-    public function setIpAddress(IpAddress $ipAddress)
+    public function setIpAddress($ipAddress)
     {
         $this->ipAddress = $ipAddress;
-
-        return $this;
     }
 
     /**
-     * @return LeadEntity
+     * @return mixed
      */
     public function getLead()
     {
@@ -277,11 +252,11 @@ class LeadEventLog implements ChannelInterface
     }
 
     /**
-     * @param LeadEntity $lead
+     * @param $lead
      *
      * @return $this
      */
-    public function setLead(LeadEntity $lead)
+    public function setLead($lead)
     {
         $this->lead = $lead;
 
@@ -301,7 +276,7 @@ class LeadEventLog implements ChannelInterface
      *
      * @return $this
      */
-    public function setEvent(Event $event)
+    public function setEvent($event)
     {
         $this->event = $event;
 
@@ -355,11 +330,11 @@ class LeadEventLog implements ChannelInterface
     }
 
     /**
-     * @param \DateTime $triggerDate
+     * @param $triggerDate
      *
      * @return $this
      */
-    public function setTriggerDate(\DateTime $triggerDate = null)
+    public function setTriggerDate($triggerDate)
     {
         $this->triggerDate = $triggerDate;
         $this->setIsScheduled(true);
@@ -368,7 +343,7 @@ class LeadEventLog implements ChannelInterface
     }
 
     /**
-     * @return Campaign
+     * @return mixed
      */
     public function getCampaign()
     {
@@ -376,11 +351,11 @@ class LeadEventLog implements ChannelInterface
     }
 
     /**
-     * @param Campaign $campaign
+     * @param $campaign
      *
      * @return $this
      */
-    public function setCampaign(Campaign $campaign)
+    public function setCampaign($campaign)
     {
         $this->campaign = $campaign;
 
@@ -433,19 +408,6 @@ class LeadEventLog implements ChannelInterface
     public function getMetadata()
     {
         return $this->metadata;
-    }
-
-    /**
-     * @param $metadata
-     */
-    public function appendToMetadata($metadata)
-    {
-        if (!is_array($metadata)) {
-            // Assumed output for timeline BC for <2.14
-            $metadata = ['timeline' => $metadata];
-        }
-
-        $this->metadata = array_merge($this->metadata, $metadata);
     }
 
     /**
@@ -523,43 +485,5 @@ class LeadEventLog implements ChannelInterface
         $this->rotation = (int) $rotation;
 
         return $this;
-    }
-
-    /**
-     * @return FailedLeadEventLog
-     */
-    public function getFailedLog()
-    {
-        return $this->failedLog;
-    }
-
-    /**
-     * @param FailedLeadEventLog $log
-     *
-     * return $this
-     */
-    public function setFailedLog(FailedLeadEventLog $log = null)
-    {
-        $this->failedLog = $log;
-
-        return $this;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isFailed()
-    {
-        $log = $this->getFailedLog();
-
-        return !empty($log);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isSuccess()
-    {
-        return !$this->isFailed();
     }
 }

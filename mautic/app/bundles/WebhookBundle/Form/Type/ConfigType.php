@@ -11,7 +11,6 @@
 
 namespace Mautic\WebhookBundle\Form\Type;
 
-use Doctrine\Common\Collections\Criteria;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -45,19 +44,6 @@ class ConfigType extends AbstractType
                     ]
                 ),
             ],
-        ]);
-
-        $builder->add('events_orderby_dir', 'choice', [
-            'choices' => [
-                Criteria::ASC  => 'mautic.webhook.config.event.orderby.chronological',
-                Criteria::DESC => 'mautic.webhook.config.event.orderby.reverse.chronological',
-            ],
-            'label' => 'mautic.webhook.config.event.orderby',
-            'attr'  => [
-                'class'   => 'form-control',
-                'tooltip' => 'mautic.webhook.config.event.orderby.tooltip',
-            ],
-            'required' => false,
         ]);
     }
 

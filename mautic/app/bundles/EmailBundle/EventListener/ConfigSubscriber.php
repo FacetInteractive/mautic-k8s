@@ -85,17 +85,28 @@ class ConfigSubscriber extends CommonSubscriber
 
                 if ($key != 'general') {
                     if (empty($monitor['host']) || empty($monitor['address']) || empty($monitor['folder'])) {
-                        // Reset to defaults
-                        $data['monitored_email'][$key]['override_settings'] = 0;
-                        $data['monitored_email'][$key]['address']           = null;
-                        $data['monitored_email'][$key]['host']              = null;
-                        $data['monitored_email'][$key]['user']              = null;
-                        $data['monitored_email'][$key]['password']          = null;
-                        $data['monitored_email'][$key]['encryption']        = '/ssl';
+                        $data['monitored_email'][$key]['override_settings'] = '';
+                        $data['monitored_email'][$key]['address']           = '';
+                        $data['monitored_email'][$key]['host']              = '';
+                        $data['monitored_email'][$key]['user']              = '';
+                        $data['monitored_email'][$key]['password']          = '';
+                        $data['monitored_email'][$key]['ssl']               = '1';
                         $data['monitored_email'][$key]['port']              = '993';
                     }
                 }
             }
+        }
+
+        // Ensure that percent signs are decoded in the unsubscribe/webview settings
+        $decode = [
+            'unsubscribe_text',
+            'webview_text',
+            'unsubscribe_message',
+            'resubscribe_message',
+            'default_signature_text',
+        ];
+        foreach ($decode as $key) {
+            $data[$key] = $event->escapeString($data[$key]);
         }
 
         $event->setConfig($data, 'emailconfig');

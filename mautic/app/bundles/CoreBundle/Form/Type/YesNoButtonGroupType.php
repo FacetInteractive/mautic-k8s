@@ -55,7 +55,7 @@ class YesNoButtonGroupType extends AbstractType
                         return null;
                     }
 
-                    return (is_string($choiceKey) && !is_numeric($choiceKey)) ? $choiceKey : (int) $choiceKey;
+                    return (int) $choiceKey;
                 },
                 'expanded'    => true,
                 'multiple'    => false,

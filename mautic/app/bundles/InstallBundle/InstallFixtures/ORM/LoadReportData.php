@@ -15,7 +15,6 @@ use Doctrine\Common\DataFixtures\AbstractFixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Mautic\CoreBundle\Helper\CsvHelper;
-use Mautic\CoreBundle\Helper\Serializer;
 use Mautic\ReportBundle\Entity\Report;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -51,7 +50,7 @@ class LoadReportData extends AbstractFixture implements OrderedFixtureInterface,
                 if ($val != 'NULL') {
                     $setter = 'set'.ucfirst($col);
                     if (in_array($col, ['columns', 'filters', 'graphs', 'tableOrder'])) {
-                        $val = Serializer::decode(stripslashes($val));
+                        $val = unserialize(stripslashes($val));
                     }
                     $report->$setter($val);
                 }

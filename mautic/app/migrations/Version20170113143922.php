@@ -3,7 +3,7 @@
  * @copyright   2017 Mautic Contributors. All rights reserved
  * @author      Mautic
  *
- * @see         http://mautic.org
+ * @link        http://mautic.org
  *
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -28,7 +28,7 @@ class Version20170113143922 extends AbstractMauticMigration
     public function preUp(Schema $schema)
     {
         $table = $schema->getTable($this->prefix.'push_notifications');
-        if ($table->hasColumn('button') && false === $table->getColumn('button')->getNotnull()) {
+        if ($table->hasColumn('button') && $table->getColumn('button')->getNotnull() === false) {
             throw new SkipMigrationException('Schema includes this migration');
         }
     }

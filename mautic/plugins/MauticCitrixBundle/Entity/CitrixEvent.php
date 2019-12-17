@@ -127,15 +127,11 @@ class CitrixEvent
     }
 
     /**
-     * @param $product
-     *
-     * @return $this
+     * @param string $product
      */
     public function setProduct($product)
     {
         $this->product = $product;
-
-        return $this;
     }
 
     /**
@@ -209,15 +205,11 @@ class CitrixEvent
     }
 
     /**
-     * @param $eventName
-     *
-     * @return $this
+     * @param string $eventName
      */
     public function setEventName($eventName)
     {
         $this->eventName = $eventName;
-
-        return $this;
     }
 
     /**
@@ -230,14 +222,10 @@ class CitrixEvent
 
     /**
      * @param \DateTime $eventDate
-     *
-     * @return $this
      */
     public function setEventDate(\DateTime $eventDate)
     {
         $this->eventDate = $eventDate;
-
-        return $this;
     }
 
     /**
@@ -249,27 +237,19 @@ class CitrixEvent
     }
 
     /**
-     * @param $eventType
-     *
-     * @return $this
+     * @param string $eventType
      */
     public function setEventType($eventType)
     {
         $this->eventType = $eventType;
-
-        return $this;
     }
 
     /**
-     * @param $eventDesc
-     *
-     * @return $this
+     * @param mixed $eventDesc
      */
     public function setEventDesc($eventDesc)
     {
         $this->eventDesc = $eventDesc;
-
-        return $this;
     }
 
     /**

@@ -96,6 +96,9 @@ class FormFieldHelper extends AbstractFormFieldHelper
         'region' => [
             'properties' => [],
         ],
+        'timezone' => [
+            'properties' => [],
+        ],
         'locale' => [
             'properties' => [],
         ],
@@ -122,7 +125,7 @@ class FormFieldHelper extends AbstractFormFieldHelper
      */
     public static function getListTypes()
     {
-        return ['select', 'multiselect', 'boolean', 'lookup', 'country', 'region', 'timezone', 'locale'];
+        return ['select', 'boolean', 'lookup', 'country', 'region', 'timezone', 'locale'];
     }
 
     /**
@@ -239,6 +242,20 @@ class FormFieldHelper extends AbstractFormFieldHelper
             '-P1D'        => $this->translator->trans('mautic.campaign.event.timed.choice.yesterday'),
             '+P1D'        => $this->translator->trans('mautic.campaign.event.timed.choice.tomorrow'),
         ];
+
+        $daysOptions = [];
+        for ($dayInterval = 2; $dayInterval <= 31; ++$dayInterval) {
+            $daysOptions['+P'.$dayInterval.'D'] = '+ '.$dayInterval.' days';
+        }
+
+        $options = array_merge($options, $daysOptions);
+
+        $beforeDaysOptions = [];
+        for ($dayInterval = 2; $dayInterval <= 31; ++$dayInterval) {
+            $beforeDaysOptions['-P'.$dayInterval.'D'] = $dayInterval.' days before';
+        }
+
+        $options = array_merge($options, $beforeDaysOptions);
 
         return $options;
     }

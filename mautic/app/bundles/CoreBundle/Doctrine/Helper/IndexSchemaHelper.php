@@ -78,8 +78,6 @@ class IndexSchemaHelper
     /**
      * @param $name
      *
-     * @return $this
-     *
      * @throws SchemaException
      */
     public function setName($name)
@@ -89,8 +87,6 @@ class IndexSchemaHelper
         }
 
         $this->table = $this->sm->listTableDetails($this->prefix.$name);
-
-        return $this;
     }
 
     /**
@@ -102,13 +98,13 @@ class IndexSchemaHelper
     }
 
     /**
+     * Add or update an index to the table.
+     *
      * @param       $columns
      * @param       $name
      * @param array $options
      *
-     * @return $this
-     *
-     * @throws \Doctrine\DBAL\Schema\SchemaException
+     * @throws SchemaException
      */
     public function addIndex($columns, $name, $options = [])
     {
@@ -138,8 +134,6 @@ class IndexSchemaHelper
                 $this->addedIndexes[] = $index;
             }
         }
-
-        return $this;
     }
 
     /**
@@ -152,14 +146,14 @@ class IndexSchemaHelper
         $sql = [];
         if (count($this->changedIndexes)) {
             foreach ($this->changedIndexes as $index) {
-                $sql[] = $platform->getDropIndexSQL($index, $this->table);
+                $sql[] = $platform->getDropIndexSQL($index);
                 $sql[] = $platform->getCreateIndexSQL($index, $this->table);
             }
         }
 
         if (count($this->dropIndexes)) {
             foreach ($this->dropIndexes as $index) {
-                $sql[] = $platform->getDropIndexSQL($index, $this->table);
+                $sql[] = $platform->getDropIndexSQL($index);
             }
         }
 

@@ -12,7 +12,6 @@
 namespace Mautic\EmailBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\PersistentCollection;
@@ -29,7 +28,6 @@ use Mautic\CoreBundle\Helper\EmojiHelper;
 use Mautic\FormBundle\Entity\Form;
 use Mautic\LeadBundle\Entity\LeadList;
 use Mautic\LeadBundle\Form\Validator\Constraints\LeadListAccess;
-use Mautic\PageBundle\Entity\Page;
 use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -95,11 +93,6 @@ class Email extends FormEntity implements VariantEntityInterface, TranslationEnt
     private $content = [];
 
     /**
-     * @var array
-     */
-    private $utmTags = [];
-
-    /**
      * @var string
      */
     private $plainText;
@@ -123,11 +116,6 @@ class Email extends FormEntity implements VariantEntityInterface, TranslationEnt
      * @var \DateTime
      */
     private $publishDown;
-
-    /**
-     * @var bool
-     */
-    private $publicPreview = 1;
 
     /**
      * @var int
@@ -175,11 +163,6 @@ class Email extends FormEntity implements VariantEntityInterface, TranslationEnt
     private $unsubscribeForm;
 
     /**
-     * @var \Mautic\PageBundle\Entity\Page
-     */
-    private $preferenceCenter;
-
-    /**
      * @var ArrayCollection
      */
     private $assetAttachments;
@@ -191,35 +174,19 @@ class Email extends FormEntity implements VariantEntityInterface, TranslationEnt
      */
     private $sessionId;
 
-    /**
-     * @var array
-     */
-    private $headers = [];
-
-    /**
-     * @var int
-     */
-    private $pendingCount = 0;
-
-    /**
-     * @var int
-     */
-    private $queuedCount = 0;
-
     public function __clone()
     {
         $this->id               = null;
+        $this->stats            = new ArrayCollection();
         $this->sentCount        = 0;
         $this->readCount        = 0;
         $this->revision         = 0;
         $this->variantSentCount = 0;
-        $this->variantReadCount = 0;
         $this->variantStartDate = null;
         $this->emailType        = null;
         $this->sessionId        = 'new_'.hash('sha1', uniqid(mt_rand()));
         $this->clearTranslations();
         $this->clearVariants();
-        $this->clearStats();
 
         parent::__clone();
     }
@@ -229,11 +196,10 @@ class Email extends FormEntity implements VariantEntityInterface, TranslationEnt
      */
     public function __construct()
     {
-        $this->lists               = new ArrayCollection();
-        $this->stats               = new ArrayCollection();
-        $this->translationChildren = new ArrayCollection();
-        $this->variantChildren     = new ArrayCollection();
-        $this->assetAttachments    = new ArrayCollection();
+        $this->lists            = new ArrayCollection();
+        $this->stats            = new ArrayCollection();
+        $this->variantChildren  = new ArrayCollection();
+        $this->assetAttachments = new ArrayCollection();
     }
 
     /**
@@ -252,31 +218,73 @@ class Email extends FormEntity implements VariantEntityInterface, TranslationEnt
         $builder = new ClassMetadataBuilder($metadata);
 
         $builder->setTable('emails')
-            ->setCustomRepositoryClass(EmailRepository::class)
+            ->setCustomRepositoryClass('Mautic\EmailBundle\Entity\EmailRepository')
             ->addLifecycleEvent('cleanUrlsInContent', Events::preUpdate)
             ->addLifecycleEvent('cleanUrlsInContent', Events::prePersist);
 
         $builder->addIdColumns();
-        $builder->addNullableField('subject', Type::TEXT);
-        $builder->addNullableField('fromAddress', Type::STRING, 'from_address');
-        $builder->addNullableField('fromName', Type::STRING, 'from_name');
-        $builder->addNullableField('replyToAddress', Type::STRING, 'reply_to_address');
-        $builder->addNullableField('bccAddress', Type::STRING, 'bcc_address');
-        $builder->addNullableField('template', Type::STRING);
-        $builder->addNullableField('content', Type::TARRAY);
-        $builder->addNullableField('utmTags', Type::TARRAY, 'utm_tags');
-        $builder->addNullableField('plainText', Type::TEXT, 'plain_text');
-        $builder->addNullableField('customHtml', Type::TEXT, 'custom_html');
-        $builder->addNullableField('emailType', Type::TEXT, 'email_type');
+        $builder->createField('subject', 'text')
+            ->nullable()
+            ->build();
+
+        $builder->createField('fromAddress', 'string')
+            ->columnName('from_address')
+            ->nullable()
+            ->build();
+
+        $builder->createField('fromName', 'string')
+            ->columnName('from_name')
+            ->nullable()
+            ->build();
+
+        $builder->createField('replyToAddress', 'string')
+            ->columnName('reply_to_address')
+            ->nullable()
+            ->build();
+
+        $builder->createField('bccAddress', 'string')
+            ->columnName('bcc_address')
+            ->nullable()
+            ->build();
+
+        $builder->createField('template', 'string')
+            ->nullable()
+            ->build();
+
+        $builder->createField('content', 'array')
+            ->nullable()
+            ->build();
+
+        $builder->createField('plainText', 'text')
+            ->columnName('plain_text')
+            ->nullable()
+            ->build();
+
+        $builder->createField('customHtml', 'text')
+            ->columnName('custom_html')
+            ->nullable()
+            ->build();
+
+        $builder->createField('emailType', 'text')
+            ->columnName('email_type')
+            ->nullable()
+            ->build();
+
         $builder->addPublishDates();
-        $builder->addNamedField('readCount', Type::INTEGER, 'read_count');
-        $builder->addNamedField('sentCount', Type::INTEGER, 'sent_count');
-        $builder->addNamedField('variantSentCount', Type::INTEGER, 'variant_sent_count');
-        $builder->addNamedField('variantReadCount', Type::INTEGER, 'variant_read_count');
-        $builder->addField('revision', Type::INTEGER);
+
+        $builder->createField('readCount', 'integer')
+            ->columnName('read_count')
+            ->build();
+
+        $builder->createField('sentCount', 'integer')
+            ->columnName('sent_count')
+            ->build();
+
+        $builder->addField('revision', 'integer');
+
         $builder->addCategory();
 
-        $builder->createManyToMany('lists', LeadList::class)
+        $builder->createManyToMany('lists', 'Mautic\LeadBundle\Entity\LeadList')
             ->setJoinTable('email_list_xref')
             ->setIndexBy('id')
             ->addInverseJoinColumn('leadlist_id', 'id', false, false, 'CASCADE')
@@ -295,24 +303,24 @@ class Email extends FormEntity implements VariantEntityInterface, TranslationEnt
         self::addVariantMetadata($builder, self::class);
         self::addDynamicContentMetadata($builder);
 
-        $builder->createManyToOne('unsubscribeForm', Form::class)
+        $builder->createField('variantSentCount', 'integer')
+            ->columnName('variant_sent_count')
+            ->build();
+
+        $builder->createField('variantReadCount', 'integer')
+            ->columnName('variant_read_count')
+            ->build();
+
+        $builder->createManyToOne('unsubscribeForm', 'Mautic\FormBundle\Entity\Form')
             ->addJoinColumn('unsubscribeform_id', 'id', true, false, 'SET NULL')
             ->build();
 
-        $builder->createManyToOne('preferenceCenter', Page::class)
-            ->addJoinColumn('preference_center_id', 'id', true, false, 'SET NULL')
-            ->build();
-
-        $builder->createManyToMany('assetAttachments', Asset::class)
+        $builder->createManyToMany('assetAttachments', 'Mautic\AssetBundle\Entity\Asset')
             ->setJoinTable('email_assets_xref')
             ->addInverseJoinColumn('asset_id', 'id', false, false, 'CASCADE')
             ->addJoinColumn('email_id', 'id', false, false, 'CASCADE')
             ->fetchExtraLazy()
             ->build();
-
-        $builder->addField('headers', 'json_array');
-
-        $builder->addNullableField('publicPreview', Type::BOOLEAN, 'public_preview');
     }
 
     /**
@@ -325,15 +333,6 @@ class Email extends FormEntity implements VariantEntityInterface, TranslationEnt
             new NotBlank(
                 [
                     'message' => 'mautic.core.name.required',
-                ]
-            )
-        );
-
-        $metadata->addPropertyConstraint(
-            'subject',
-            new NotBlank(
-                [
-                    'message' => 'mautic.core.subject.required',
                 ]
             )
         );
@@ -436,7 +435,6 @@ class Email extends FormEntity implements VariantEntityInterface, TranslationEnt
                     'fromName',
                     'replyToAddress',
                     'bccAddress',
-                    'utmTags',
                     'customHtml',
                     'plainText',
                     'template',
@@ -457,7 +455,6 @@ class Email extends FormEntity implements VariantEntityInterface, TranslationEnt
                     'unsubscribeForm',
                     'dynamicContent',
                     'lists',
-                    'headers',
                 ]
             )
             ->build();
@@ -574,25 +571,6 @@ class Email extends FormEntity implements VariantEntityInterface, TranslationEnt
 
         $this->isChanged('content', $content);
         $this->content = $content;
-
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getUtmTags()
-    {
-        return $this->utmTags;
-    }
-
-    /**
-     * @param array $utmTags
-     */
-    public function setUtmTags($utmTags)
-    {
-        $this->isChanged('utmTags', $utmTags);
-        $this->utmTags = $utmTags;
 
         return $this;
     }
@@ -998,26 +976,6 @@ class Email extends FormEntity implements VariantEntityInterface, TranslationEnt
     /**
      * @return mixed
      */
-    public function getPreferenceCenter()
-    {
-        return $this->preferenceCenter;
-    }
-
-    /**
-     * @param Page $preferenceCenter
-     *
-     * @return $this
-     */
-    public function setPreferenceCenter(Page $preferenceCenter = null)
-    {
-        $this->preferenceCenter = $preferenceCenter;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
     public function getEmailType()
     {
         return $this->emailType;
@@ -1070,26 +1028,6 @@ class Email extends FormEntity implements VariantEntityInterface, TranslationEnt
     }
 
     /**
-     * @return array
-     */
-    public function getHeaders()
-    {
-        return $this->headers;
-    }
-
-    /**
-     * @param array $headers
-     *
-     * @return Email
-     */
-    public function setHeaders($headers)
-    {
-        $this->headers = $headers;
-
-        return $this;
-    }
-
-    /**
      * Lifecycle callback to clean URLs in the content.
      */
     public function cleanUrlsInContent()
@@ -1131,74 +1069,5 @@ class Email extends FormEntity implements VariantEntityInterface, TranslationEnt
         } else {
             return 0;
         }
-    }
-
-    /**
-     * @return bool
-     */
-    public function getPublicPreview()
-    {
-        return $this->publicPreview;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isPublicPreview()
-    {
-        return $this->publicPreview;
-    }
-
-    /**
-     * @param bool $publicPreview
-     *
-     * @return $this
-     */
-    public function setPublicPreview($publicPreview)
-    {
-        $this->isChanged('publicPreview', $publicPreview);
-        $this->publicPreview = $publicPreview;
-
-        return $this;
-    }
-
-    /**
-     * @param int $count
-     *
-     * @return $this
-     */
-    public function setQueuedCount($count)
-    {
-        $this->queuedCount = $count;
-
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getQueuedCount()
-    {
-        return $this->queuedCount;
-    }
-
-    /**
-     * @param int $count
-     *
-     * @return $this
-     */
-    public function setPendingCount($count)
-    {
-        $this->pendingCount = $count;
-
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getPendingCount()
-    {
-        return $this->pendingCount;
     }
 }

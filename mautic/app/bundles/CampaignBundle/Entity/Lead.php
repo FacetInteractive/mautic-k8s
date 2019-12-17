@@ -99,22 +99,22 @@ class Lead
     public static function loadApiMetadata(ApiMetadataDriver $metadata)
     {
         $metadata->setGroupPrefix('campaignLead')
-            ->addListProperties(
-                [
-                    'dateAdded',
-                    'manuallyRemoved',
-                    'manuallyAdded',
-                    'rotation',
-                    'dateLastExited',
-                ]
-            )
-            ->addProperties(
-                [
-                    'lead',
-                    'campaign',
-                ]
-            )
-            ->build();
+                 ->addListProperties(
+                     [
+                         'dateAdded',
+                         'manuallyRemoved',
+                         'manuallyAdded',
+                         'rotation',
+                         'dateLastExited',
+                     ]
+                 )
+                ->addProperties(
+                    [
+                        'lead',
+                        'campaign',
+                    ]
+                )
+                 ->build();
     }
 
     /**
@@ -134,7 +134,7 @@ class Lead
     }
 
     /**
-     * @return \Mautic\LeadBundle\Entity\Lead
+     * @return mixed
      */
     public function getLead()
     {
@@ -142,9 +142,9 @@ class Lead
     }
 
     /**
-     * @param \Mautic\LeadBundle\Entity\Lead $lead
+     * @param mixed $lead
      */
-    public function setLead(\Mautic\LeadBundle\Entity\Lead $lead)
+    public function setLead($lead)
     {
         $this->lead = $lead;
     }
@@ -160,7 +160,7 @@ class Lead
     /**
      * @param Campaign $campaign
      */
-    public function setCampaign(Campaign $campaign)
+    public function setCampaign($campaign)
     {
         $this->campaign = $campaign;
     }
@@ -234,17 +234,6 @@ class Lead
     }
 
     /**
-     * @return $this
-     */
-    public function startNewRotation()
-    {
-        $this->rotation += 1;
-        $this->dateAdded = new \DateTime();
-
-        return $this;
-    }
-
-    /**
      * @return \DateTime
      */
     public function getDateLastExited()
@@ -253,11 +242,11 @@ class Lead
     }
 
     /**
-     * @param \DateTime|null $dateLastExited
+     * @param \DateTime $dateLastExited
      *
      * @return Lead
      */
-    public function setDateLastExited(\DateTime $dateLastExited = null)
+    public function setDateLastExited(\DateTime $dateLastExited)
     {
         $this->dateLastExited = $dateLastExited;
 

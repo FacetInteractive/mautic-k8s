@@ -14,60 +14,89 @@ namespace Mautic\LeadBundle\Controller\Api;
 use FOS\RestBundle\Util\Codes;
 use JMS\Serializer\SerializationContext;
 use Mautic\ApiBundle\Controller\CommonApiController;
-use Mautic\CoreBundle\Helper\ArrayHelper;
 use Mautic\CoreBundle\Helper\DateTimeHelper;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\LeadBundle\Controller\FrequencyRuleTrait;
-use Mautic\LeadBundle\Controller\LeadDetailsTrait;
 use Mautic\LeadBundle\Entity\DoNotContact;
 use Mautic\LeadBundle\Entity\Lead;
-use Mautic\LeadBundle\Model\LeadModel;
-use Symfony\Component\Form\Form;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 
 /**
  * Class LeadApiController.
- *
- * @property LeadModel $model
  */
 class LeadApiController extends CommonApiController
 {
     use CustomFieldsApiControllerTrait;
     use FrequencyRuleTrait;
-    use LeadDetailsTrait;
-
-    const MODEL_ID = 'lead.lead';
 
     /**
      * @param FilterControllerEvent $event
      */
     public function initialize(FilterControllerEvent $event)
     {
-        $this->model            = $this->getModel(self::MODEL_ID);
-        $this->entityClass      = Lead::class;
+        $this->model            = $this->getModel('lead.lead');
+        $this->entityClass      = 'Mautic\LeadBundle\Entity\Lead';
         $this->entityNameOne    = 'contact';
         $this->entityNameMulti  = 'contacts';
-        $this->serializerGroups = ['leadDetails', 'frequencyRulesList', 'doNotContactList', 'userList', 'stageList', 'publishDetails', 'ipAddress', 'tagList', 'utmtagsList'];
+        $this->serializerGroups = ['leadDetails', 'frequencyRulesList', 'doNotContactList', 'userList', 'publishDetails', 'ipAddress', 'tagList'];
 
         parent::initialize($event);
     }
 
     /**
-     * Get existing duplicated contact based on unique fields and the request data.
-     *
-     * @param array $parameters
-     * @param null  $id
-     *
-     * @return null|Lead
-     *
-     * @deprecated since 2.12.2, to be removed in 3.0.0. Use $model->checkForDuplicateContact directly instead
+     * Creates a new lead or edits if one is found with same email.  You should make a call to /api/leads/list/fields in order to get a list of custom fields that will be accepted. The key should be the alias of the custom field. You can also pass in a ipAddress parameter if the IP of the lead is different than that of the originating request.
      */
-    protected function getExistingLead(array $parameters, $id = null)
+    public function newEntityAction()
     {
-        $model   = $this->getModel(self::MODEL_ID);
-        $contact = $id ? $model->getEntity($id) : null;
+        $existingLeads = $this->getExistingLeads();
+        if (!empty($existingLeads)) {
+            return parent::editEntityAction($existingLeads[0]->getId());
+        }
 
-        return $model->checkForDuplicateContact($parameters, $contact);
+        return parent::newEntityAction();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function editEntityAction($id)
+    {
+        $existingLeads = $this->getExistingLeads();
+        if (isset($existingLeads[0]) && $existingLeads[0] instanceof Lead) {
+            $entity = $this->model->getEntity($id);
+            if ($entity instanceof Lead && $existingLeads[0]->getId() != $entity->getId()) {
+                $this->model->mergeLeads($existingLeads[0], $entity, false);
+            }
+        }
+
+        return parent::editEntityAction($id);
+    }
+
+    /**
+     * Get existing duplicated contacts based on unique fields and the request data.
+     *
+     * @return array
+     */
+    protected function getExistingLeads()
+    {
+        // Check for an email to see if the lead already exists
+        $parameters          = $this->request->request->all();
+        $uniqueLeadFields    = $this->getModel('lead.field')->getUniqueIdentiferFields();
+        $uniqueLeadFieldData = [];
+
+        foreach ($parameters as $k => $v) {
+            if (array_key_exists($k, $uniqueLeadFields) && !empty($v)) {
+                $uniqueLeadFieldData[$k] = $v;
+            }
+        }
+
+        if (count($uniqueLeadFieldData)) {
+            return $this->get('doctrine.orm.entity_manager')->getRepository(
+                'MauticLeadBundle:Lead'
+            )->getLeadsByUniqueFields($uniqueLeadFieldData, null, 1);
+        }
+
+        return [];
     }
 
     /**
@@ -363,7 +392,7 @@ class LeadApiController extends CommonApiController
      *
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function getActivityAction($id)
+    public function getEventsAction($id)
     {
         $entity = $this->model->getEntity($id);
 
@@ -375,33 +404,27 @@ class LeadApiController extends CommonApiController
             return $this->accessDenied();
         }
 
-        return $this->getAllActivityAction($entity);
-    }
+        $filters = InputHelper::clean($this->request->get('filters', []));
 
-    /**
-     * Obtains a list of contact events.
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function getAllActivityAction($lead = null)
-    {
-        $canViewOwn    = $this->security->isGranted('lead:leads:viewown');
-        $canViewOthers = $this->security->isGranted('lead:leads:viewother');
-
-        if (!$canViewOthers && !$canViewOwn) {
-            return $this->accessDenied();
+        if (!isset($filters['search'])) {
+            $filters['search'] = '';
         }
 
-        $filters = $this->sanitizeEventFilter(InputHelper::clean($this->request->get('filters', [])));
-        $limit   = (int) $this->request->get('limit', 25);
-        $page    = (int) $this->request->get('page', 1);
-        $order   = InputHelper::clean($this->request->get('order', ['timestamp', 'DESC']));
+        if (!isset($filters['includeEvents'])) {
+            $filters['includeEvents'] = [];
+        }
 
-        list($events, $serializerGroups) = $this->model->getEngagements($lead, $filters, $order, $page, $limit, false);
+        if (!isset($filters['excludeEvents'])) {
+            $filters['excludeEvents'] = [];
+        }
 
-        $view    = $this->view($events);
-        $context = SerializationContext::create()->setGroups($serializerGroups);
-        $view->setSerializationContext($context);
+        $order = InputHelper::clean($this->request->get('order', [
+            'timestamp',
+            'DESC',
+        ]));
+        $page        = (int) $this->request->get('page', 1);
+        $engagements = $this->model->getEngagements($entity, $filters, $order, $page);
+        $view        = $this->view($engagements);
 
         return $this->handleView($view);
     }
@@ -428,7 +451,7 @@ class LeadApiController extends CommonApiController
 
         $channelId = (int) $this->request->request->get('channelId');
         if ($channelId) {
-            $channel = [$channel => $channelId];
+            $channel = [$channel, $channelId];
         }
         $reason   = (int) $this->request->request->get('reason');
         $comments = InputHelper::clean($this->request->request->get('comments'));
@@ -471,202 +494,62 @@ class LeadApiController extends CommonApiController
     }
 
     /**
-     * Add/Remove a UTM Tagset to/from the contact.
-     *
-     * @param int       $id
-     * @param string    $method
-     * @param array/int $data
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    protected function applyUtmTagsAction($id, $method, $data)
-    {
-        $entity = $this->model->getEntity((int) $id);
-
-        if ($entity === null) {
-            return $this->notFound();
-        }
-
-        if (!$this->checkEntityAccess($entity, 'edit')) {
-            return $this->accessDenied();
-        }
-
-        // calls add/remove method as appropriate
-        $result = $this->model->$method($entity, $data);
-
-        if ($result === false) {
-            return $this->badRequest();
-        }
-
-        if ('removeUtmTags' == $method) {
-            $view = $this->view(
-                [
-                    'recordFound'        => $result,
-                    $this->entityNameOne => $entity,
-                ]
-            );
-        } else {
-            $view = $this->view([$this->entityNameOne => $entity]);
-        }
-
-        return $this->handleView($view);
-    }
-
-    /**
-     * Adds a UTM Tagset to the contact.
-     *
-     * @param int $id
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function addUtmTagsAction($id)
-    {
-        return $this->applyUtmTagsAction($id, 'addUTMTags', $this->request->request->all());
-    }
-
-    /**
-     * Remove a UTM Tagset for the contact.
-     *
-     * @param int $id
-     * @param int $utmid
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function removeUtmTagsAction($id, $utmid)
-    {
-        return $this->applyUtmTagsAction($id, 'removeUtmTags', (int) $utmid);
-    }
-
-    /**
-     * Obtains a list of contact events.
-     *
-     * @deprecated 2.10.0 to be removed in 3.0
-     *
-     * @param $id
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function getEventsAction($id)
-    {
-        $entity = $this->model->getEntity($id);
-
-        if ($entity === null) {
-            return $this->notFound();
-        }
-
-        if (!$this->checkEntityAccess($entity, 'view')) {
-            return $this->accessDenied();
-        }
-
-        $filters = $this->sanitizeEventFilter(InputHelper::clean($this->request->get('filters', [])));
-        $order   = InputHelper::clean($this->request->get('order', ['timestamp', 'DESC']));
-        $page    = (int) $this->request->get('page', 1);
-        $events  = $this->model->getEngagements($entity, $filters, $order, $page);
-
-        return $this->handleView($this->view($events));
-    }
-
-    /**
-     * Creates new entity from provided params.
-     *
-     * @param array $params
-     *
-     * @return object
-     */
-    public function getNewEntity(array $params)
-    {
-        return $this->model->checkForDuplicateContact($params);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function prepareParametersForBinding($parameters, $entity, $action)
-    {
-        // Unset the tags from params to avoid a validation error
-        if (isset($parameters['tags'])) {
-            unset($parameters['tags']);
-        }
-
-        if (count($entity->getTags()) > 0) {
-            foreach ($entity->getTags() as $tag) {
-                $parameters['tags'][] = $tag->getId();
-            }
-        }
-
-        return $parameters;
-    }
-
-    /**
      * {@inheritdoc}
      *
-     * @param Lead   $entity
-     * @param array  $parameters
-     * @param        $form
-     * @param string $action
+     * @param \Mautic\LeadBundle\Entity\Lead &$entity
+     * @param                                $parameters
+     * @param                                $form
+     * @param string                         $action
      */
     protected function preSaveEntity(&$entity, $form, $parameters, $action = 'edit')
     {
-        if ('edit' === $action) {
-            // Merge existing duplicate contact based on unique fields if exist
-            // new endpoints will leverage getNewEntity in order to return the correct status codes
-            $entity = $this->model->checkForDuplicateContact($this->entityRequestParameters, $entity);
-        }
+        $originalParams = $this->request->request->all();
 
         if (isset($parameters['companies'])) {
             $this->model->modifyCompanies($entity, $parameters['companies']);
             unset($parameters['companies']);
         }
 
-        if (isset($parameters['owner'])) {
-            $owner = $this->getModel('user.user')->getEntity((int) $parameters['owner']);
-            $entity->setOwner($owner);
-            unset($parameters['owner']);
-        }
-
-        if (isset($parameters['stage'])) {
-            $stage = $this->getModel('stage.stage')->getEntity((int) $parameters['stage']);
-            $entity->setStage($stage);
-            unset($parameters['stage']);
-        }
-
-        if (isset($this->entityRequestParameters['tags'])) {
-            $this->model->modifyTags($entity, $this->entityRequestParameters['tags'], null, false);
-        }
-
         //Since the request can be from 3rd party, check for an IP address if included
-        if (isset($this->entityRequestParameters['ipAddress'])) {
-            $ipAddress = $this->get('mautic.helper.ip_lookup')->getIpAddress($this->entityRequestParameters['ipAddress']);
+        if (isset($originalParams['ipAddress'])) {
+            $ipAddress = $this->factory->getIpAddress($originalParams['ipAddress']);
 
             if (!$entity->getIpAddresses()->contains($ipAddress)) {
                 $entity->addIpAddress($ipAddress);
             }
 
-            unset($this->entityRequestParameters['ipAddress']);
+            unset($originalParams['ipAddress']);
+        }
+
+        // Check for tags
+        if (isset($originalParams['tags'])) {
+            $this->model->modifyTags($entity, $originalParams['tags']);
+            unset($originalParams['tags']);
+        }
+
+        // Contact parameters which can be updated apart form contact fields
+        $contactParams = ['points', 'color', 'owner'];
+
+        foreach ($contactParams as $contactParam) {
+            if (isset($parameters[$contactParam])) {
+                $entity->setPoints($parameters[$contactParam]);
+                unset($parameters[$contactParam]);
+            }
         }
 
         // Check for lastActive date
-        if (isset($this->entityRequestParameters['lastActive'])) {
-            $lastActive = new DateTimeHelper($this->entityRequestParameters['lastActive']);
+        if (isset($originalParams['lastActive'])) {
+            $lastActive = new DateTimeHelper($originalParams['lastActive']);
             $entity->setLastActive($lastActive->getDateTime());
-            unset($this->entityRequestParameters['lastActive']);
+            unset($parameters['lastActive']);
         }
 
-        // Batch DNC settings
         if (!empty($parameters['doNotContact']) && is_array($parameters['doNotContact'])) {
             foreach ($parameters['doNotContact'] as $dnc) {
                 $channel  = !empty($dnc['channel']) ? $dnc['channel'] : 'email';
                 $comments = !empty($dnc['comments']) ? $dnc['comments'] : '';
-
-                $reason = (int) ArrayHelper::getValue('reason', $dnc, DoNotContact::MANUAL);
-
-                if ($reason === DoNotContact::IS_CONTACTABLE) {
-                    // Remove DNC record
-                    $this->model->removeDncForLead($entity, $channel, false);
-                } else {
-                    // Add DNC record
-                    $this->model->addDncForLead($entity, $channel, $comments, $reason, false);
-                }
+                $reason   = !empty($dnc['reason']) ? $dnc['reason'] : DoNotContact::MANUAL;
+                $this->model->addDncForLead($entity, $channel, $comments, $reason, false);
             }
             unset($parameters['doNotContact']);
         }
@@ -689,34 +572,6 @@ class LeadApiController extends CommonApiController
             unset($parameters['frequencyRules']);
         }
 
-        $isPostOrPatch = 'POST' === $this->request->getMethod() || 'PATCH' === $this->request->getMethod();
-        $this->setCustomFieldValues($entity, $form, $parameters, $isPostOrPatch);
-    }
-
-    /**
-     * Helper method to be used in FrequencyRuleTrait.
-     *
-     * @param Form $form
-     *
-     * @return bool
-     */
-    protected function isFormCancelled($form = null)
-    {
-        return false;
-    }
-
-    /**
-     * Helper method to be used in FrequencyRuleTrait.
-     *
-     * @param Form  $form
-     * @param array $data
-     *
-     * @return bool
-     */
-    protected function isFormValid(Form $form, array $data = null)
-    {
-        $form->submit($data, 'PATCH' !== $this->request->getMethod());
-
-        return $form->isValid();
+        $this->setCustomFieldValues($entity, $form, $parameters);
     }
 }

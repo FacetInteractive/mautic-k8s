@@ -16,7 +16,6 @@ use Mautic\ApiBundle\Serializer\Driver\ApiMetadataDriver;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\EmailBundle\Entity\Email;
 use Mautic\LeadBundle\Entity\Lead;
-use Mautic\LeadBundle\Entity\LeadDevice;
 
 /**
  * Class Hit.
@@ -148,7 +147,7 @@ class Hit
      */
     private $query = [];
     /**
-     * @var LeadDevice
+     * @var \Mautic\LeadBundle\Entity\LeadDevice
      */
     private $device;
 
@@ -164,10 +163,7 @@ class Hit
             ->addIndex(['tracking_id'], 'page_hit_tracking_search')
             ->addIndex(['code'], 'page_hit_code_search')
             ->addIndex(['source', 'source_id'], 'page_hit_source_search')
-            ->addIndex(['date_hit', 'date_left'], 'date_hit_left_index');
-        // There should be a 128 char prefix index but it cannot be created here
-        // created in fixtures instead
-        //->addIndex(['url'], 'page_hit_url');
+            ->addIndex(['date_hit'], 'page_date_hit');
 
         $builder->addId();
 
@@ -282,7 +278,6 @@ class Hit
         $metadata->setGroupPrefix('hit')
             ->addProperties(
                 [
-                    'id',
                     'dateHit',
                     'dateLeft',
                     'page',
@@ -867,19 +862,19 @@ class Hit
     }
 
     /**
-     * @return LeadDevice
+     * @return array
      */
     public function getDeviceStat()
     {
-        return $this->device;
+        return $this->deviceStat;
     }
 
     /**
-     * @param LeadDevice $device
+     * @param array $device
      *
      * @return Hit
      */
-    public function setDeviceStat(LeadDevice $device)
+    public function setDeviceStat($device)
     {
         $this->device = $device;
 

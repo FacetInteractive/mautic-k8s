@@ -17,15 +17,9 @@
 
     <div class="col-xs-8">
         <h3>
-            <?php echo $bundle->getPrimaryDescription(); ?>
+            <?php echo $bundle->getDescription(); ?>
         </h3>
     </div>
 </div>
 
-<?php if ($bundle->hasSecondaryDescription()) : ?>
-<div class="row mt-lg">
-    <div class="col-xs-12">
-        <?php echo $bundle->getSecondaryDescription(); ?>
-    </div>
-</div>
-<?php endif; ?>
+

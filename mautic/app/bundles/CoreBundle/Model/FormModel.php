@@ -50,24 +50,10 @@ class FormModel extends AbstractCommonModel
     {
         if (method_exists($entity, 'getCheckedOut')) {
             $checkedOut = $entity->getCheckedOut();
-            if (!empty($checkedOut) && $checkedOut instanceof \DateTime) {
-                $checkedOutBy = $entity->getCheckedOutBy();
-                $maxLockTime  = $this->coreParametersHelper->getParameter('max_entity_lock_time', 0);
-
-                if ($maxLockTime != 0 && is_numeric($maxLockTime)) {
-                    $lockValidityDate = clone $checkedOut;
-                    $lockValidityDate->add(new \DateInterval('PT'.$maxLockTime.'S'));
-                } else {
-                    $lockValidityDate = false;
-                }
-
-                //is lock expired ?
-                if ($lockValidityDate !== false && (new \DateTime()) > $lockValidityDate) {
-                    return false;
-                }
-
+            if (!empty($checkedOut)) {
                 //is it checked out by the current user?
-                if (!empty($checkedOutBy) && ($checkedOutBy !== $this->userHelper->getUser()->getId())) {
+                $checkedOutBy = $entity->getCheckedOutBy();
+                if (!empty($checkedOutBy) && $checkedOutBy !== $this->userHelper->getUser()->getId()) {
                     return true;
                 }
             }
@@ -116,19 +102,6 @@ class FormModel extends AbstractCommonModel
     }
 
     /**
-     * Create/edit entity then detach to preserve RAM.
-     *
-     * @param      $entity
-     * @param bool $unlock
-     */
-    public function saveAndDetachEntity($entity, $unlock = true)
-    {
-        $this->saveEntity($entity, $unlock);
-
-        $this->em->detach($entity);
-    }
-
-    /**
      * Save an array of entities.
      *
      * @param array $entities
@@ -140,8 +113,7 @@ class FormModel extends AbstractCommonModel
     {
         //iterate over the results so the events are dispatched on each delete
         $batchSize = 20;
-        $i         = 0;
-        foreach ($entities as $entity) {
+        foreach ($entities as $k => $entity) {
             $isNew = $this->isNewEntity($entity);
 
             //set some defaults
@@ -149,7 +121,8 @@ class FormModel extends AbstractCommonModel
 
             $event = $this->dispatchEvent('pre_save', $entity, $isNew);
             $this->getRepository()->saveEntity($entity, false);
-            if (++$i % $batchSize === 0) {
+
+            if ((($k + 1) % $batchSize) === 0) {
                 $this->em->flush();
             }
         }
@@ -246,18 +219,7 @@ class FormModel extends AbstractCommonModel
             }
         } else {
             if (method_exists($entity, 'setDateModified')) {
-                $setDateModified = true;
-                if (method_exists($entity, 'getChanges')) {
-                    $changes = $entity->getChanges();
-                    if (empty($changes)) {
-                        $setDateModified = false;
-                    }
-                }
-                if ($setDateModified) {
-                    $dateModified = (defined('MAUTIC_DATE_MODIFIED_OVERRIDE')) ? \DateTime::createFromFormat('U', MAUTIC_DATE_MODIFIED_OVERRIDE)
-                        : new \DateTime();
-                    $entity->setDateModified($dateModified);
-                }
+                $entity->setDateModified(new \DateTime());
             }
 
             if ($this->userHelper->getUser() instanceof User) {
@@ -287,7 +249,6 @@ class FormModel extends AbstractCommonModel
         $id    = $entity->getId();
         $event = $this->dispatchEvent('pre_delete', $entity);
         $this->getRepository()->deleteEntity($entity);
-
         //set the id for use in events
         $entity->deletedId = $id;
         $this->dispatchEvent('post_delete', $entity, false, $event);
@@ -440,25 +401,5 @@ class FormModel extends AbstractCommonModel
         }
 
         return $alias;
-    }
-
-    /**
-     * Catch the exception in production and log the error.
-     * Throw the exception in the dev mode only.
-     */
-    protected function flushAndCatch()
-    {
-        try {
-            $this->em->flush();
-        } catch (\Exception $ex) {
-            if (MAUTIC_ENV === 'dev') {
-                throw $ex;
-            }
-
-            $this->logger->addError(
-                $ex->getMessage(),
-                ['exception' => $ex]
-            );
-        }
     }
 }

@@ -64,7 +64,7 @@ class ListChangeEvent extends Event
     }
 
     /**
-     * @return LeadList
+     * @return LeadList|List
      */
     public function getList()
     {

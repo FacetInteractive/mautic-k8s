@@ -11,6 +11,9 @@
 
 namespace Mautic\CoreBundle\Helper;
 
+/**
+ * Class DateTimeHelper.
+ */
 class DateTimeHelper
 {
     /**
@@ -39,14 +42,14 @@ class DateTimeHelper
     private $local;
 
     /**
-     * @var \DateTimeInterface
+     * @var \DateTime
      */
     private $datetime;
 
     /**
-     * @param \DateTimeInterface|string $string
-     * @param string                    $fromFormat Format the string is in
-     * @param string                    $timezone   Timezone the string is in
+     * @param string $string     Datetime string
+     * @param string $fromFormat Format the string is in
+     * @param string $timezone   Timezone the string is in
      */
     public function __construct($string = '', $fromFormat = 'Y-m-d H:i:s', $timezone = 'UTC')
     {
@@ -56,9 +59,9 @@ class DateTimeHelper
     /**
      * Sets date/time.
      *
-     * @param \DateTimeInterface|string $datetime
-     * @param string                    $fromFormat
-     * @param string                    $timezone
+     * @param \DateTime|string $datetime
+     * @param string           $fromFormat
+     * @param string           $timezone
      */
     public function setDateTime($datetime = '', $fromFormat = 'Y-m-d H:i:s', $timezone = 'local')
     {
@@ -72,11 +75,10 @@ class DateTimeHelper
         $this->timezone = $timezone;
 
         $this->utc   = new \DateTimeZone('UTC');
-        $this->local = new \DateTimeZone($timezone);
+        $this->local = new \DateTimeZone(date_default_timezone_get());
 
-        if ($datetime instanceof \DateTimeInterface) {
+        if ($datetime instanceof \DateTime) {
             $this->datetime = $datetime;
-            $this->timezone = $datetime->getTimezone()->getName();
             $this->string   = $this->datetime->format($fromFormat);
         } elseif (empty($datetime)) {
             $this->datetime = new \DateTime('now', new \DateTimeZone($this->timezone));
@@ -241,7 +243,7 @@ class DateTimeHelper
      * @param            $intervalString
      * @param bool|false $clone          If true, return a new \DateTime rather than update current one
      *
-     * @return \DateTimeInterface
+     * @return \DateTime
      */
     public function add($intervalString, $clone = false)
     {
@@ -263,7 +265,7 @@ class DateTimeHelper
      * @param            $intervalString
      * @param bool|false $clone          If true, return a new \DateTime rather than update current one
      *
-     * @return \DateTimeInterface
+     * @return \DateTime
      */
     public function sub($intervalString, $clone = false)
     {
@@ -280,46 +282,12 @@ class DateTimeHelper
     }
 
     /**
-     * Returns interval based on $interval number and $unit.
-     *
-     * @param int    $interval
-     * @param string $unit
-     *
-     * @return \DateInterval
-     *
-     * @throws \Exception
-     */
-    public function buildInterval($interval, $unit)
-    {
-        $possibleUnits = ['Y', 'M', 'D', 'I', 'H', 'S'];
-        $unit          = strtoupper($unit);
-
-        if (!in_array($unit, $possibleUnits)) {
-            throw new \InvalidArgumentException($unit.' is invalid unit for DateInterval');
-        }
-
-        switch ($unit) {
-            case 'I':
-                $spec = "PT{$interval}M";
-                break;
-            case 'H':
-            case 'S':
-                $spec = "PT{$interval}{$unit}";
-                break;
-            default:
-                $spec = "P{$interval}{$unit}";
-        }
-
-        return new \DateInterval($spec);
-    }
-
-    /**
      * Modify datetime.
      *
      * @param            $string
      * @param bool|false $clone  If true, return a new \DateTime rather than update current one
      *
-     * @return \DateTimeInterface
+     * @return \DateTime
      */
     public function modify($string, $clone = false)
     {
@@ -386,20 +354,5 @@ class DateTimeHelper
         }
 
         return $timezone;
-    }
-
-    /**
-     * @param string $unit
-     *
-     * @throws \InvalidArgumentException
-     */
-    public static function validateMysqlDateTimeUnit($unit)
-    {
-        $possibleUnits   = ['s', 'i', 'H', 'd', 'W', 'm', 'Y'];
-
-        if (!in_array($unit, $possibleUnits, true)) {
-            $possibleUnitsString = implode(', ', $possibleUnits);
-            throw new \InvalidArgumentException("Unit '$unit' is not supported. Use one of these: $possibleUnitsString");
-        }
     }
 }

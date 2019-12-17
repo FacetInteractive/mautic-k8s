@@ -36,13 +36,16 @@ class TriggerController extends FormController
             'point:triggers:edit',
             'point:triggers:delete',
             'point:triggers:publish',
+
         ], 'RETURN_ARRAY');
 
         if (!$permissions['point:triggers:view']) {
             return $this->accessDenied();
         }
 
-        $this->setListFilters();
+        if ($this->request->getMethod() == 'POST') {
+            $this->setListFilters();
+        }
 
         //set limits
         $limit = $this->get('session')->get('mautic.point.trigger.limit', $this->coreParametersHelper->getParameter('default_pagelimit'));

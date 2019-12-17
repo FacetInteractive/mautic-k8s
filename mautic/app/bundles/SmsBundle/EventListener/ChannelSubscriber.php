@@ -16,8 +16,8 @@ use Mautic\ChannelBundle\Event\ChannelEvent;
 use Mautic\ChannelBundle\Model\MessageModel;
 use Mautic\CoreBundle\EventListener\CommonSubscriber;
 use Mautic\LeadBundle\Model\LeadModel;
+use Mautic\PluginBundle\Helper\IntegrationHelper;
 use Mautic\ReportBundle\Model\ReportModel;
-use Mautic\SmsBundle\Sms\TransportChain;
 
 /**
  * Class ChannelSubscriber.
@@ -25,18 +25,18 @@ use Mautic\SmsBundle\Sms\TransportChain;
 class ChannelSubscriber extends CommonSubscriber
 {
     /**
-     * @var TransportChain
+     * @var IntegrationHelper
      */
-    protected $transportChain;
+    protected $integrationHelper;
 
     /**
      * ChannelSubscriber constructor.
      *
-     * @param TransportChain $transportChain
+     * @param IntegrationHelper $integrationHelper
      */
-    public function __construct(TransportChain $transportChain)
+    public function __construct(IntegrationHelper $integrationHelper)
     {
-        $this->transportChain = $transportChain;
+        $this->integrationHelper = $integrationHelper;
     }
 
     /**
@@ -54,7 +54,9 @@ class ChannelSubscriber extends CommonSubscriber
      */
     public function onAddChannel(ChannelEvent $event)
     {
-        if (count($this->transportChain->getEnabledTransports()) > 0) {
+        $integration = $this->integrationHelper->getIntegrationObject('Twilio');
+
+        if ($integration && $integration->getIntegrationSettings()->getIsPublished()) {
             $event->addChannel(
                 'sms',
                 [

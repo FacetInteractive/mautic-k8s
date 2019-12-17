@@ -19,7 +19,6 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
-use Symfony\Component\Translation\TranslatorInterface;
 use Symfony\Component\Validator\Constraints\File;
 
 /**
@@ -33,19 +32,13 @@ class ConfigType extends AbstractType
     protected $parameters;
 
     /**
-     * @var TranslatorInterface
-     */
-    protected $translator;
-
-    /**
      * ConfigType constructor.
      *
      * @param CoreParametersHelper $parametersHelper
      */
-    public function __construct(CoreParametersHelper $parametersHelper, TranslatorInterface $translator)
+    public function __construct(CoreParametersHelper $parametersHelper)
     {
         $this->parameters = $parametersHelper;
-        $this->translator = $translator;
     }
 
     /**
@@ -194,12 +187,10 @@ class ConfigType extends AbstractType
                 'label'      => 'mautic.user.config.form.saml.idp.default_role',
                 'label_attr' => ['class' => 'control-label'],
                 'attr'       => [
-                    'class'            => 'form-control',
-                    'data-placeholder' => $this->translator->trans('mautic.user.config.form.saml.idp.disable_creation'),
-                    'tooltip'          => 'mautic.user.config.form.saml.idp.default_role.tooltip',
+                    'class' => 'form-control',
                 ],
-                'required'    => false,
-                'empty_value' => '',
+                'required'    => true,
+                'empty_value' => false,
             ]
         );
     }

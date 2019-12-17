@@ -13,7 +13,6 @@ namespace Mautic\WebhookBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-use Mautic\ApiBundle\Serializer\Driver\ApiMetadataDriver;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 
 /**
@@ -25,27 +24,22 @@ class Event
      * @var int
      */
     private $id;
-
     /**
      * @var Webhook
      */
     private $webhook;
-
     /**
      * @var ArrayCollection
      */
     private $queues;
-
     /**
      * @var string
      */
-    private $eventType;
-
+    private $event_type;
     public function __construct()
     {
         $this->queues = new ArrayCollection();
     }
-
     /**
      * @param ORM\ClassMetadata $metadata
      */
@@ -53,46 +47,24 @@ class Event
     {
         $builder = new ClassMetadataBuilder($metadata);
         $builder->setTable('webhook_events')
-            ->setCustomRepositoryClass(EventRepository::class);
-
+            ->setCustomRepositoryClass('Mautic\WebhookBundle\Entity\EventRepository');
+        // id columns
         $builder->addId();
-
+        // M:1 for webhook
         $builder->createManyToOne('webhook', 'Webhook')
             ->inversedBy('events')
-            ->cascadeDetach()
-            ->cascadeMerge()
             ->addJoinColumn('webhook_id', 'id', false, false, 'CASCADE')
             ->build();
-
+        // 1:M for queues
         $builder->createOneToMany('queues', 'WebhookQueue')
             ->mappedBy('event')
-            ->cascadeDetach()
-            ->cascadeMerge()
-            ->fetchExtraLazy()
             ->build();
-
-        $builder->createField('eventType', 'string')
+        // event type field
+        $builder->createField('event_type', 'string')
             ->columnName('event_type')
             ->length(50)
             ->build();
     }
-
-    /**
-     * Prepares the metadata for API usage.
-     *
-     * @param $metadata
-     */
-    public static function loadApiMetadata(ApiMetadataDriver $metadata)
-    {
-        $metadata->setGroupPrefix('event')
-            ->addListProperties(
-                [
-                    'eventType',
-                ]
-            )
-            ->build();
-    }
-
     /**
      * @return mixed
      */
@@ -100,41 +72,44 @@ class Event
     {
         return $this->id;
     }
-
     /**
-     * @return Webhook
+     * @param mixed $id
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+    /**
+     * @return mixed
      */
     public function getWebhook()
     {
         return $this->webhook;
     }
-
     /**
-     * @param Webhook $webhook
-     *
-     * @return $this
+     * @param mixed $webhook
      */
-    public function setWebhook(Webhook $webhook)
+    public function setWebhook($webhook)
     {
         $this->webhook = $webhook;
 
         return $this;
     }
-
     /**
      * @return mixed
      */
     public function getEventType()
     {
-        return $this->eventType;
+        return $this->event_type;
     }
-
     /**
-     * @param mixed $eventType
+     * @param mixed $event_type
      */
-    public function setEventType($eventType)
+    public function setEventType($event_type)
     {
-        $this->eventType = $eventType;
+        $this->event_type = $event_type;
 
         return $this;
     }

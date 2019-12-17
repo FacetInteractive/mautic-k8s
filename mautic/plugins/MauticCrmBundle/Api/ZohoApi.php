@@ -6,21 +6,12 @@ use Mautic\PluginBundle\Exception\ApiErrorException;
 
 class ZohoApi extends CrmApi
 {
-    /**
-     * @param        $operation
-     * @param array  $parameters
-     * @param string $method
-     * @param string $moduleobject
-     * @param bool   $isJson
-     *
-     * @return mixed|string
-     *
-     * @throws ApiErrorException
-     */
-    protected function request($operation, array $parameters = [], $method = 'GET', $moduleobject = 'Leads', $isJson = true)
+    private $module = 'Leads';
+
+    protected function request($operation, $parameters = [], $method = 'GET')
     {
         $tokenData = $this->integration->getKeys();
-        $url       = sprintf('%s/%s/%s', $this->integration->getApiUrl($isJson), $moduleobject, $operation);
+        $url       = sprintf('%s/%s/%s', $this->integration->getApiUrl(), $this->module, $operation);
 
         $parameters = array_merge([
             'authtoken' => $tokenData['AUTHTOKEN'],
@@ -44,136 +35,25 @@ class ZohoApi extends CrmApi
     /**
      * List types.
      *
-     * @param string $object Zoho module name
-     *
      * @return mixed
      */
-    public function getLeadFields($object = 'Leads')
+    public function getLeadFields()
     {
-        if ($object == 'company') {
-            $object = 'Accounts'; // Zoho object name
-        }
-
-        return $this->request('getFields', [], 'GET', $object);
+        return $this->request('getFields');
     }
 
     /**
-     * @param        $data
-     * @param null   $lead
-     * @param string $object
+     * @param $data
      *
-     * @return mixed|string
+     * @return array
      */
-    public function createLead($data, $lead = null, $object = 'Leads')
+    public function createLead($data)
     {
         $parameters = [
             'xmlData'        => $data,
-            'duplicateCheck' => 2, // update if exists
-            'newFormat'      => 2, // To include fields with "null" values while inserting data from your CRM account
-            'version'        => 4, // This will trigger duplicate check functionality for multiple records.
+            'duplicateCheck' => 2, //update if exists
         ];
 
-        return $this->request('insertRecords', $parameters, 'POST', $object, false);
-    }
-
-    /**
-     * @param        $data
-     * @param null   $lead
-     * @param string $object
-     *
-     * @return mixed|string
-     */
-    public function updateLead($data, $lead = null, $object = 'Leads')
-    {
-        $parameters = [
-            'xmlData'   => $data,
-            'newFormat' => 2, // To include fields with "null" values while inserting data from your CRM account
-            'version'   => 4, // This will trigger duplicate check functionality for multiple records.
-        ];
-
-        return $this->request('updateRecords', $parameters, 'POST', $object, false);
-    }
-
-    /**
-     * gets Zoho leads.
-     *
-     * @param array     $params
-     * @param string    $object
-     * @param array|int $id
-     *
-     * @return mixed
-     */
-    public function getLeads(array $params, $object, $id = null)
-    {
-        if (!isset($params['selectColumns'])) {
-            $params['selectColumns'] = 'All';
-            $params['newFormat']     = 1;
-        }
-
-        if ($id) {
-            if (is_array($id)) {
-                $params['id'] = implode(';', $id);
-            } else {
-                $params['id'] = $id;
-            }
-
-            $data = $this->request('getRecordById', $params, 'GET', $object);
-        } else {
-            $data = $this->request('getRecords', $params, 'GET', $object);
-        }
-        if (isset($data['response'], $data['response']['result'])) {
-            $data = $data['response']['result'];
-        }
-
-        return $data;
-    }
-
-    /**
-     * gets Zoho companies.
-     *
-     * @param array  $params
-     * @param string $id
-     *
-     * @return mixed
-     */
-    public function getCompanies(array $params, $id = null)
-    {
-        if (!isset($params['selectColumns'])) {
-            $params['selectColumns'] = 'All';
-        }
-
-        if ($id) {
-            $params['id'] = $id;
-
-            $data = $this->request('getRecordById', $params, 'GET', 'Accounts');
-        } else {
-            $data = $this->request('getRecords', $params, 'GET', 'Accounts');
-        }
-
-        if (isset($data['response'], $data['response']['result'])) {
-            $data = $data['response']['result'];
-        }
-
-        return $data;
-    }
-
-    /**
-     * @param        $selectColumns
-     * @param        $searchColumn
-     * @param        $searchValue
-     * @param string $object
-     *
-     * @return mixed|string
-     */
-    public function getSearchRecords($selectColumns, $searchColumn, $searchValue, $object = 'Leads')
-    {
-        $parameters = [
-            'selectColumns' => 'All',
-            'searchColumn'  => $searchColumn, // search by email
-            'searchValue'   => $searchValue, // email value
-            'newFormat'     => 2,
-        ];
-
-        return $this->request('getSearchRecordsByPDC', $parameters, 'GET', $object, true);
+        return $this->request('insertRecords', $parameters, 'POST');
     }
 }

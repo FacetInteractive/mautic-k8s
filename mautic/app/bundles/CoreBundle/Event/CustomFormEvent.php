@@ -13,7 +13,6 @@ namespace Mautic\CoreBundle\Event;
 
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\Form\FormBuilderInterface;
 
 /**
  * Class CustomFormEvent.
@@ -21,12 +20,12 @@ use Symfony\Component\Form\FormBuilderInterface;
 class CustomFormEvent extends Event
 {
     /**
-     * @var string
+     * @var
      */
     protected $formName;
 
     /**
-     * @var string
+     * @var
      */
     protected $formType;
 
@@ -41,26 +40,18 @@ class CustomFormEvent extends Event
     protected $subscribers = [];
 
     /**
-     * @var FormBuilderInterface
-     */
-    private $formBuilder;
-
-    /**
      * CustomFormEvent constructor.
      *
-     * @param string               $formName
-     * @param string               $formType
-     * @param FormBuilderInterface $formBuilder
+     * @param $formName
      */
-    public function __construct($formName, $formType, FormBuilderInterface $formBuilder)
+    public function __construct($formName, $formType)
     {
-        $this->formName    = $formName;
-        $this->formType    = $formType;
-        $this->formBuilder = $formBuilder;
+        $this->formName = $formName;
+        $this->formType = $formType;
     }
 
     /**
-     * @return string
+     * @return mixed
      */
     public function getFormName()
     {
@@ -68,19 +59,11 @@ class CustomFormEvent extends Event
     }
 
     /**
-     * @return string
+     * @return mixed
      */
     public function getFormType()
     {
         return $this->formType;
-    }
-
-    /**
-     * @return FormBuilderInterface
-     */
-    public function getFormBuilder()
-    {
-        return $this->formBuilder;
     }
 
     /**

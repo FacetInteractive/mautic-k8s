@@ -11,7 +11,6 @@
 
 namespace Mautic\AssetBundle\Entity;
 
-use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Mautic\CoreBundle\Entity\CommonRepository;
 
@@ -27,7 +26,7 @@ class AssetRepository extends CommonRepository
      *
      * @return Paginator
      */
-    public function getEntities(array $args = [])
+    public function getEntities($args = [])
     {
         $q = $this
             ->createQueryBuilder('a')
@@ -75,12 +74,12 @@ class AssetRepository extends CommonRepository
     }
 
     /**
-     * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
-     * @param                                                              $filter
+     * @param QueryBuilder $q
+     * @param              $filter
      *
      * @return array
      */
-    protected function addCatchAllWhereClause($q, $filter)
+    protected function addCatchAllWhereClause(&$q, $filter)
     {
         return $this->addStandardCatchAllWhereClause($q, $filter, [
             'a.title',
@@ -89,12 +88,12 @@ class AssetRepository extends CommonRepository
     }
 
     /**
-     * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
-     * @param                                                              $filter
+     * @param QueryBuilder $q
+     * @param              $filter
      *
      * @return array
      */
-    protected function addSearchCommandWhereClause($q, $filter)
+    protected function addSearchCommandWhereClause(&$q, $filter)
     {
         list($expr, $parameters) = $this->addStandardSearchCommandWhereClause($q, $filter);
         if ($expr) {
@@ -185,8 +184,9 @@ class AssetRepository extends CommonRepository
         $q = $this->_em->getConnection()->createQueryBuilder();
         $q->select('sum(a.size) as total_size')
             ->from(MAUTIC_TABLE_PREFIX.'assets', 'a')
-            ->where('a.id IN (:assetIds)')
-            ->setParameter('assetIds', $assets, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY);
+            ->where(
+                $q->expr()->in('a.id', $assets)
+            );
 
         $result = $q->execute()->fetchAll();
 
@@ -211,24 +211,5 @@ class AssetRepository extends CommonRepository
         }
 
         $q->execute();
-    }
-
-    /**
-     * @param int $categoryId
-     *
-     * @return Asset
-     *
-     * @throws NoResultException
-     */
-    public function getLatestAssetForCategory($categoryId)
-    {
-        $q = $this->createQueryBuilder($this->getTableAlias());
-        $q->where($this->getTableAlias().'.category = :categoryId');
-        $q->andWhere($this->getTableAlias().'.isPublished = TRUE');
-        $q->setParameter('categoryId', $categoryId);
-        $q->orderBy($this->getTableAlias().'.dateAdded', 'DESC');
-        $q->setMaxResults(1);
-
-        return $q->getQuery()->getSingleResult();
     }
 }

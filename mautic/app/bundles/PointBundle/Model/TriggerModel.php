@@ -29,8 +29,6 @@ use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
  */
 class TriggerModel extends CommonFormModel
 {
-    protected $triggers = [];
-
     /**
      * @deprecated Remove in 2.0
      *
@@ -317,7 +315,7 @@ class TriggerModel extends CommonFormModel
      *
      * @return bool Was event triggered
      */
-    public function triggerEvent($event, Lead $lead = null, $force = false)
+    public function triggerEvent($event, Lead $lead = null,  $force = false)
     {
         //only trigger events for anonymous users
         if (!$force && !$this->security->isAnonymous()) {
@@ -347,55 +345,36 @@ class TriggerModel extends CommonFormModel
         }
 
         $settings = $availableEvents[$eventType];
-
-        if (isset($settings['callback']) && is_callable($settings['callback'])) {
-            return $this->invokeCallback($event, $lead, $settings);
-        } else {
-            /** @var TriggerEvent $triggerEvent */
-            $triggerEvent = $this->getEventRepository()->find($event['id']);
-
-            $triggerExecutedEvent = new Events\TriggerExecutedEvent($triggerEvent, $lead);
-            $event                = $this->dispatcher->dispatch($settings['eventName'], $triggerExecutedEvent);
-
-            return $event->getResult();
-        }
-    }
-
-    /**
-     * @param       $event
-     * @param Lead  $lead
-     * @param array $settings
-     *
-     * @return bool
-     */
-    private function invokeCallback($event, Lead $lead, array $settings)
-    {
-        $args = [
-          'event'   => $event,
-          'lead'    => $lead,
-          'factory' => $this->factory, // WHAT??
-          'config'  => $event['properties'],
+        $args     = [
+            'event'   => $event,
+            'lead'    => $lead,
+            'factory' => $this->factory, // WHAT??
+            'config'  => $event['properties'],
         ];
 
-        if (is_array($settings['callback'])) {
-            $reflection = new \ReflectionMethod($settings['callback'][0], $settings['callback'][1]);
-        } elseif (strpos($settings['callback'], '::') !== false) {
-            $parts      = explode('::', $settings['callback']);
-            $reflection = new \ReflectionMethod($parts[0], $parts[1]);
-        } else {
-            $reflection = new \ReflectionMethod(null, $settings['callback']);
-        }
-
-        $pass = [];
-        foreach ($reflection->getParameters() as $param) {
-            if (isset($args[$param->getName()])) {
-                $pass[] = $args[$param->getName()];
+        if (is_callable($settings['callback'])) {
+            if (is_array($settings['callback'])) {
+                $reflection = new \ReflectionMethod($settings['callback'][0], $settings['callback'][1]);
+            } elseif (strpos($settings['callback'], '::') !== false) {
+                $parts      = explode('::', $settings['callback']);
+                $reflection = new \ReflectionMethod($parts[0], $parts[1]);
             } else {
-                $pass[] = null;
+                $reflection = new \ReflectionMethod(null, $settings['callback']);
             }
+
+            $pass = [];
+            foreach ($reflection->getParameters() as $param) {
+                if (isset($args[$param->getName()])) {
+                    $pass[] = $args[$param->getName()];
+                } else {
+                    $pass[] = null;
+                }
+            }
+
+            return $reflection->invokeArgs($this, $pass);
         }
 
-        return $reflection->invokeArgs($this, $pass);
+        return false;
     }
 
     /**
@@ -451,11 +430,13 @@ class TriggerModel extends CommonFormModel
      */
     public function getColorForLeadPoints($points)
     {
-        if (!$this->triggers) {
-            $this->triggers = $this->getRepository()->getTriggerColors();
+        static $triggers;
+
+        if (!is_array($triggers)) {
+            $triggers = $this->getRepository()->getTriggerColors();
         }
 
-        foreach ($this->triggers as $trigger) {
+        foreach ($triggers as $trigger) {
             if ($points >= $trigger['points']) {
                 return $trigger['color'];
             }

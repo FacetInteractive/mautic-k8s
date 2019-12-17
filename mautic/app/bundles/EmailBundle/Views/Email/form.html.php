@@ -8,25 +8,12 @@
  *
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
-
-use Symfony\Component\Form\FormView;
-
 $view->extend('MauticCoreBundle:Default:content.html.php');
 $view['slots']->set('mauticContent', 'email');
 
 $dynamicContentPrototype = $form['dynamicContent']->vars['prototype'];
-
-if (empty($form['dynamicContent']->children[0]['filters']->vars['prototype'])) {
-    $filterBlockPrototype = null;
-} else {
-    $filterBlockPrototype = $form['dynamicContent']->children[0]['filters']->vars['prototype'];
-}
-
-if (empty($form['dynamicContent']->children[0]['filters']->children[0]['filters']->vars['prototype'])) {
-    $filterSelectPrototype = null;
-} else {
-    $filterSelectPrototype = $form['dynamicContent']->children[0]['filters']->children[0]['filters']->vars['prototype'];
-}
+$filterBlockPrototype    = $form['dynamicContent']->children[0]['filters']->vars['prototype'];
+$filterSelectPrototype   = $form['dynamicContent']->children[0]['filters']->children[0]['filters']->vars['prototype'];
 
 $variantParent = $email->getVariantParent();
 $isExisting    = $email->getId();
@@ -62,10 +49,6 @@ $attr = $form->vars['attr'];
 
 $isCodeMode = ($email->getTemplate() === 'mautic_code_mode');
 
-if (!isset($previewUrl)) {
-    $previewUrl = '';
-}
-
 ?>
 
 <?php echo $view['form']->start($form, ['attr' => $attr]); ?>
@@ -85,7 +68,7 @@ if (!isset($previewUrl)) {
                             <?php echo $view['translator']->trans('mautic.core.advanced'); ?>
                         </a>
                     </li>
-                    <li id="dynamic-content-tab" <?php echo (!$isCodeMode) ? 'class="hidden"' : ''; ?>>
+                    <li id="dynamic-content-tab" class="hidden">
                         <a href="#dynamic-content-container" role="tab" data-toggle="tab">
                             <?php echo $view['translator']->trans('mautic.core.dynamicContent'); ?>
                         </a>
@@ -110,24 +93,32 @@ if (!isset($previewUrl)) {
                         <div class="row">
                             <div class="col-md-6">
                                 <?php echo $view['form']->row($form['fromName']); ?>
-                                <?php echo $view['form']->row($form['fromAddress']); ?>
-                                <?php echo $view['form']->row($form['replyToAddress']); ?>
-                                <?php echo $view['form']->row($form['bccAddress']); ?>
-                                <?php echo $view['content']->getCustomContent('email.settings.advanced', $mauticTemplateVars); ?>
-                                <div>
-                                    <div class="pull-left">
-                                    <?php echo $view['form']->label($form['assetAttachments']); ?>
-                                    </div>
-                                    <div class="text-right pr-10">
-                                        <span class="label label-info" id="attachment-size"><?php echo $attachmentSize; ?></span>
-                                    </div>
-                                    <div class="clearfix"></div>
-                                    <?php echo $view['form']->widget($form['assetAttachments']); ?>
-                                </div>
-
                             </div>
                             <div class="col-md-6">
-                                <?php echo $view['form']->row($form['headers']); ?>
+                                <?php echo $view['form']->row($form['fromAddress']); ?>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <?php echo $view['form']->row($form['replyToAddress']); ?>
+                            </div>
+
+                            <div class="col-md-6">
+                                <?php echo $view['form']->row($form['bccAddress']); ?>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="pull-left">
+                                    <?php echo $view['form']->label($form['assetAttachments']); ?>
+                                </div>
+                                <div class="text-right pr-10">
+                                    <span class="label label-info" id="attachment-size"><?php echo $attachmentSize; ?></span>
+                                </div>
+                                <div class="clearfix"></div>
+                                <?php echo $view['form']->widget($form['assetAttachments']); ?>
                             </div>
                         </div>
 
@@ -146,6 +137,7 @@ if (!isset($previewUrl)) {
                             </div>
                         </div>
                     </div>
+
                     <div class="tab-pane fade bdr-w-0" id="dynamic-content-container">
                         <div class="row">
                             <div class="col-md-12">
@@ -208,18 +200,6 @@ if (!isset($previewUrl)) {
             <?php endif; ?>
 
             <?php echo $view['form']->row($form['unsubscribeForm']); ?>
-            <?php if (!(empty($permissions['page:preference_center:viewown']) &&
-                        empty($permissions['page:preference_center:viewother']))): ?>
-                <?php echo $view['form']->row($form['preferenceCenter']); ?>
-            <?php endif; ?>
-            <hr />
-            <h5><?php echo $view['translator']->trans('mautic.email.utm_tags'); ?></h5>
-            <br />
-            <?php
-            foreach ($form['utmTags'] as $i => $utmTag):
-                echo $view['form']->row($utmTag);
-            endforeach;
-            ?>
         </div>
         <div class="hide">
             <?php echo $view['form']->rest($form); ?>
@@ -231,12 +211,8 @@ if (!isset($previewUrl)) {
 <?php echo $view['form']->end($form); ?>
 
 <div id="dynamicContentPrototype" data-prototype="<?php echo $view->escape($view['form']->widget($dynamicContentPrototype)); ?>"></div>
-<?php if ($filterBlockPrototype instanceof FormView) : ?>
 <div id="filterBlockPrototype" data-prototype="<?php echo $view->escape($view['form']->widget($filterBlockPrototype)); ?>"></div>
-<?php endif; ?>
-<?php if ($filterSelectPrototype instanceof FormView) : ?>
 <div id="filterSelectPrototype" data-prototype="<?php echo $view->escape($view['form']->widget($filterSelectPrototype)); ?>"></div>
-<?php endif; ?>
 
 <div class="hide" id="templates">
     <?php foreach ($templates as $dataKey => $template): ?>
@@ -272,9 +248,7 @@ if (!isset($previewUrl)) {
     'slots'         => $slots,
     'sections'      => $sections,
     'objectId'      => $email->getSessionId(),
-    'previewUrl'    => $previewUrl,
-]);
-?>
+]); ?>
 
 <?php
 $type = $email->getEmailType();

@@ -11,33 +11,14 @@
 
 namespace Mautic\LeadBundle\Form\Type;
 
-use Doctrine\DBAL\Connection;
-use Mautic\LeadBundle\Entity\RegexTrait;
 use Mautic\LeadBundle\Helper\FormFieldHelper;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Translation\TranslatorInterface;
-use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 trait FilterTrait
 {
-    use RegexTrait;
-
-    /**
-     * @var Connection
-     */
-    protected $connection;
-
-    /**
-     * @param Connection $connection
-     */
-    public function setConnection(Connection $connection)
-    {
-        $this->connection = $connection;
-    }
-
     /**
      * @param                     $eventName
      * @param FormEvent           $event
@@ -60,24 +41,14 @@ trait FilterTrait
 
         $field = [];
 
-        if (isset($data['object']) && isset($options['fields'][$data['object']][$fieldName])) {
-            $field = $options['fields'][$data['object']][$fieldName];
+        if (isset($options['fields']['lead'][$fieldName])) {
+            $field = $options['fields']['lead'][$fieldName];
+        } elseif (isset($options['fields']['company'][$fieldName])) {
+            $field = $options['fields']['company'][$fieldName];
         }
 
         $customOptions = [];
         switch ($fieldType) {
-            case 'assets':
-                if (!isset($data['filter'])) {
-                    $data['filter'] = [];
-                } elseif (!is_array($data['filter'])) {
-                    $data['filter'] = [$data['filter']];
-                }
-
-                $customOptions['choices']                   = $options['assets'];
-                $customOptions['multiple']                  = true;
-                $customOptions['choice_translation_domain'] = false;
-                $type                                       = 'choice';
-                break;
             case 'leadlist':
                 if (!isset($data['filter'])) {
                     $data['filter'] = [];
@@ -95,18 +66,6 @@ trait FilterTrait
                 $customOptions['choice_translation_domain'] = false;
                 $type                                       = 'choice';
                 break;
-            case 'campaign':
-                if (!isset($data['filter'])) {
-                    $data['filter'] = [];
-                } elseif (!is_array($data['filter'])) {
-                    $data['filter'] = [$data['filter']];
-                }
-
-                $customOptions['choices']                   = $options['campaign'];
-                $customOptions['multiple']                  = true;
-                $customOptions['choice_translation_domain'] = false;
-                $type                                       = 'choice';
-                break;
             case 'lead_email_received':
                 if (!isset($data['filter'])) {
                     $data['filter'] = [];
@@ -118,39 +77,6 @@ trait FilterTrait
                 $customOptions['multiple']                  = true;
                 $customOptions['choice_translation_domain'] = false;
                 $type                                       = 'choice';
-                break;
-            case 'device_type':
-                if (!isset($data['filter'])) {
-                    $data['filter'] = [];
-                } elseif (!is_array($data['filter'])) {
-                    $data['filter'] = [$data['filter']];
-                }
-
-                $customOptions['choices']  = $options['deviceTypes'];
-                $customOptions['multiple'] = true;
-                $type                      = 'choice';
-                break;
-            case 'device_brand':
-                if (!isset($data['filter'])) {
-                    $data['filter'] = [];
-                } elseif (!is_array($data['filter'])) {
-                    $data['filter'] = [$data['filter']];
-                }
-
-                $customOptions['choices']  = $options['deviceBrands'];
-                $customOptions['multiple'] = true;
-                $type                      = 'choice';
-                break;
-            case 'device_os':
-                if (!isset($data['filter'])) {
-                    $data['filter'] = [];
-                } elseif (!is_array($data['filter'])) {
-                    $data['filter'] = [$data['filter']];
-                }
-
-                $customOptions['choices']  = $options['deviceOs'];
-                $customOptions['multiple'] = true;
-                $type                      = 'choice';
                 break;
             case 'tags':
                 if (!isset($data['filter'])) {
@@ -304,36 +230,16 @@ trait FilterTrait
                 break;
         }
 
-        $customOptions['constraints'] = [];
         if (in_array($data['operator'], ['empty', '!empty'])) {
             $attr['disabled'] = 'disabled';
         } elseif ($data['operator']) {
-            $customOptions['constraints'][] = new NotBlank(
-                [
-                    'message' => 'mautic.core.value.required',
-                ]
-            );
-
-            if (in_array($data['operator'], ['regexp', '!regexp']) && $this->connection) {
-                // Let's add a custom valdiator to test the regex
-                $customOptions['constraints'][] =
-                    new Callback(
-                        function ($regex, ExecutionContextInterface $context) {
-                            // Let's test the regex's syntax by making a fake query
-                            try {
-                                $qb = $this->connection->createQueryBuilder();
-                                $qb->select('l.id')
-                                    ->from(MAUTIC_TABLE_PREFIX.'leads', 'l')
-                                    ->where('l.id REGEXP :regex')
-                                    ->setParameter('regex', $this->prepareRegex($regex))
-                                    ->setMaxResults(1);
-                                $qb->execute()->fetchAll();
-                            } catch (\Exception $exception) {
-                                $context->buildViolation('mautic.core.regex.invalid')->addViolation();
-                            }
-                        }
-                    );
-            }
+            $customOptions['constraints'] = [
+                new NotBlank(
+                    [
+                        'message' => 'mautic.core.value.required',
+                    ]
+                ),
+            ];
         }
 
         // @todo implement in UI
@@ -351,7 +257,7 @@ trait FilterTrait
                 ]
             );
         } else {
-            if (!empty($customOptions['constraints'])) {
+            if (isset($customOptions['constraints']) && is_array($customOptions['constraints'])) {
                 foreach ($customOptions['constraints'] as $i => $constraint) {
                     if (get_class($constraint) === 'NotBlank') {
                         array_splice($customOptions['constraints'], $i, 1);
@@ -367,8 +273,7 @@ trait FilterTrait
                         'attr'           => $attr,
                         'data'           => isset($data['filter']) ? $data['filter'] : '',
                         'error_bubbling' => false,
-                    ],
-                    $customOptions
+                    ], $customOptions
                 )
             );
         }

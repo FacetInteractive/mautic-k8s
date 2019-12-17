@@ -35,17 +35,9 @@ $formId = $form->getId();
                 echo $view->render('MauticCoreBundle:Helper:tableheader.html.php', [
                     'sessionVar' => 'formresult.'.$formId,
                     'orderBy'    => 's.id',
-                    'text'       => 'mautic.form.report.submission.id',
+                    'text'       => 'mautic.core.id',
                     'class'      => 'col-formresult-id',
                     'filterBy'   => 's.id',
-                ]);
-
-                echo $view->render('MauticCoreBundle:Helper:tableheader.html.php', [
-                    'sessionVar' => 'formresult.'.$formId,
-                    'orderBy'    => 's.lead_id',
-                    'text'       => 'mautic.lead.report.contact_id',
-                    'class'      => 'col-formresult-lead-id',
-                    'filterBy'   => 's.lead_id',
                 ]);
 
                 echo $view->render('MauticCoreBundle:Helper:tableheader.html.php', [
@@ -108,27 +100,24 @@ $formId = $form->getId();
                 </td>
                 <?php endif; ?>
 
-                <td><?php echo $view->escape($item['id']); ?></td>
+                <td><?php echo $item['id']; ?></td>
                 <td>
-                    <?php if (!empty($item['leadId'])): ?>
-                    <a href="<?php echo $view['router']->path('mautic_contact_action', ['objectAction' => 'view', 'objectId' => $item['leadId']]); ?>" data-toggle="ajax">
-                        <?php echo $view->escape($item['leadId']); ?>
+                    <?php if (!empty($item['lead']['id'])): ?>
+                    <a href="<?php echo $view['router']->path('mautic_contact_action', ['objectAction' => 'view', 'objectId' => $item['lead']['id']]); ?>" data-toggle="ajax">
+                        <?php echo $view['date']->toFull($item['dateSubmitted']); ?>
                     </a>
+                    <?php else: ?>
+                    <?php echo $view['date']->toFull($item['dateSubmitted']); ?>
                     <?php endif; ?>
                 </td>
-                <td><?php echo $view['date']->toFull($item['dateSubmitted'], 'UTC'); ?></td>
-                <td><?php echo $view->escape($item['ipAddress']); ?></td>
-                <?php foreach ($item['results'] as $key => $r): ?>
+                <td><?php echo $item['ipAddress']['ipAddress']; ?></td>
+                <?php foreach ($item['results'] as $r): ?>
                     <?php $isTextarea = $r['type'] === 'textarea'; ?>
                     <td <?php echo $isTextarea ? 'class="long-text"' : ''; ?>>
                         <?php if ($isTextarea) : ?>
-                            <?php echo $view->escape(nl2br($r['value'])); ?>
-                        <?php elseif ($r['type'] === 'file') : ?>
-                            <a href="<?php echo $view['router']->path('mautic_form_file_download', ['submissionId' => $item['id'], 'field' => $key]); ?>">
-                                <?php echo $view->escape($r['value']); ?>
-                            </a>
+                            <?php echo nl2br($r['value']); ?>
                         <?php else : ?>
-                            <?php echo $view->escape($r['value']); ?>
+                            <?php echo $r['value']; ?>
                         <?php endif; ?>
                     </td>
                 <?php endforeach; ?>

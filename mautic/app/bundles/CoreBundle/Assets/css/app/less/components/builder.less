@@ -41,18 +41,22 @@
   top: 0;
   bottom: 0;
   right: 0;
-  width: 30%;
+  width: 525px;
   height: 100%;
   padding: 15px;
   background-color: #d5d4d4;
   overflow-y: auto;
+
+  .btn-close-builder {
+    width: 100%;
+  }
 }
 
 .builder-content {
   position: fixed;
   left: 0;
   top: 0;
-  width: 70%;
+  right: 525px;
   height: 100%;
 }
 
@@ -63,6 +67,10 @@
   }
   .builder-content {
     width: 50%;
+  }
+  .btn-close-builder {
+    width: 150px;
+    float: right;
   }
 }
 
@@ -82,6 +90,10 @@
   padding: 15px;
   background-color: #d5d4d4;
   overflow-y: auto;
+
+  .btn-close-builder {
+    width: 100%;
+  }
 }
 
 .builder-content-slot {
@@ -95,6 +107,10 @@
   }
   .builder-content-slot {
     width: 50%;
+  }
+  .btn-close-builder {
+    width: 150px;
+    float: right;
   }
 }
 
@@ -164,7 +180,6 @@ li.CodeMirror-hint-active {
     }
     .builder-content {
       right: 0;
-      width: 100%;
     }
     .builder-panel-top {
       position: relative;

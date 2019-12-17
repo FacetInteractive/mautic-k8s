@@ -36,32 +36,17 @@ if ((!empty($properties['empty_value']) || empty($field['defaultValue']) && empt
 HTML;
 endif;
 
-$optionBuilder = function (array $list, $emptyOptionHtml = '') use (&$optionBuilder, $field, $view) {
-    $html = $emptyOptionHtml;
-    foreach ($list as $listValue => $listLabel):
-        if (is_array($listLabel)) {
-            // This is an option group
-            $html .= <<<HTML
+$options = (!empty($emptyOption)) ? [$emptyOption] : [];
 
-                    <optgroup label="$listValue">
-                    {$optionBuilder($listLabel)}
-                    </optgroup>
+foreach ($list as $listValue => $listLabel):
+$selected  = ($listValue === $field['defaultValue']) ? ' selected="selected"' : '';
+$options[] = <<<HTML
 
-HTML;
-
-            continue;
-        }
-
-    $selected  = ($listValue === $field['defaultValue']) ? ' selected="selected"' : '';
-    $html .= <<<HTML
                     <option value="{$view->escape($listValue)}"{$selected}>{$view->escape($listLabel)}</option>
 HTML;
-    endforeach;
+endforeach;
 
-    return $html;
-};
-
-$optionsHtml = $optionBuilder($list, $emptyOption);
+$optionsHtml = implode('', $options);
 $html        = <<<HTML
 
             <div $containerAttr>{$label}{$help}

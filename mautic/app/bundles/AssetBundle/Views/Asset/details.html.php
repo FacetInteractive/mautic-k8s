@@ -151,16 +151,11 @@ $view['slots']->set(
             <!--/ stats -->
         </div>
 
-        <?php echo $view['content']->getCustomContent('details.stats.graph.below', $mauticTemplateVars); ?>
-
         <!-- start: tab-content -->
         <div class="tab-content pa-md preview-detail">
             <?php echo $view->render(
                 'MauticAssetBundle:Asset:preview.html.php',
-                ['activeAsset' => $activeAsset, 'assetDownloadUrl' => $view['router']->generate(
-                    'mautic_asset_action',
-                    ['objectAction' => 'preview', 'objectId' => $activeAsset->getId()]
-                )]
+                ['activeAsset' => $activeAsset, 'assetDownloadUrl' => $assetDownloadUrl]
             ); ?>
         </div>
         <!--/ end: tab-content -->
@@ -177,7 +172,7 @@ $view['slots']->set(
             <div class="panel-body pt-xs">
                 <div class="input-group">
                     <input onclick="this.setSelectionRange(0, this.value.length);" type="text" class="form-control"
-                           readonly value="<?php echo $view->escape($assetDownloadUrl); ?>"/>
+                           readonly value="<?php echo $assetDownloadUrl; ?>"/>
                 <span class="input-group-btn">
                     <button class="btn btn-default btn-nospin"
                             onclick="window.open('<?php echo $assetDownloadUrl; ?>', '_blank');">
@@ -195,6 +190,6 @@ $view['slots']->set(
         <?php echo $view->render('MauticCoreBundle:Helper:recentactivity.html.php', ['logs' => $logs]); ?>
     </div>
     <!--/ right section -->
-    <input name="entityId" id="entityId" type="hidden" value="<?php echo $view->escape($activeAsset->getId()); ?>"/>
+    <input name="entityId" id="entityId" type="hidden" value="<?php echo $activeAsset->getId(); ?>"/>
 </div>
 <!--/ end: box layout -->

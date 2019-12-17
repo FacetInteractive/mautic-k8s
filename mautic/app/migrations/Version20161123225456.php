@@ -14,7 +14,6 @@ namespace Mautic\Migrations;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Schema\Schema;
 use Mautic\CoreBundle\Doctrine\AbstractMauticMigration;
-use Mautic\CoreBundle\Helper\Serializer;
 
 /**
  * Auto-generated Migration: Please modify to your needs!
@@ -40,7 +39,7 @@ class Version20161123225456 extends AbstractMauticMigration
         if (count($booleanFields)) {
             $fields = [];
             foreach ($booleanFields as $key => $field) {
-                $fields[$field['alias']] = Serializer::decode($field['properties']);
+                $fields[$field['alias']] = unserialize($field['properties']);
             }
 
             $this->fixEmails($qb, $fields);
@@ -81,7 +80,7 @@ class Version20161123225456 extends AbstractMauticMigration
         if (count($emails)) {
             foreach ($emails as $email) {
                 $update         = false;
-                $dynamicContent = Serializer::decode($email['dynamic_content']);
+                $dynamicContent = unserialize($email['dynamic_content']);
                 foreach ($dynamicContent as &$dc) {
                     foreach ($dc['filters'] as &$filter) {
                         foreach ($filter['filters'] as &$checkMe) {
@@ -119,7 +118,7 @@ class Version20161123225456 extends AbstractMauticMigration
         if (count($segments)) {
             foreach ($segments as $segment) {
                 $update  = false;
-                $filters = Serializer::decode($segment['filters']);
+                $filters = unserialize($segment['filters']);
                 foreach ($filters as &$filter) {
                     $this->fixField($filter, $update, $fields);
                 }
@@ -158,10 +157,10 @@ class Version20161123225456 extends AbstractMauticMigration
     {
         if ($checkMe['field'] && array_key_exists($checkMe['field'], $fields)) {
             // Boolean field found so check to see if the label was used
-            if ($fields[$checkMe['field']]['no'] === $checkMe['filter']) {
+            if ($checkMe['filter'] === $fields[$checkMe['field']]['no']) {
                 $update            = true;
                 $checkMe['filter'] = 0;
-            } elseif ($fields[$checkMe['field']]['yes'] === $checkMe['filter']) {
+            } elseif ($checkMe['filter'] === $fields[$checkMe['field']]['yes']) {
                 $update            = true;
                 $checkMe['filter'] = 1;
             }

@@ -15,14 +15,12 @@ use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\LockHandler;
 
 abstract class ModeratedCommand extends ContainerAwareCommand
 {
-    const MODE_LOCK   = 'lock';
-    const MODE_PID    = 'pid';
-    const MODE_FLOCK  = 'flock';
+    const MODE_LOCK = 'lock';
+    const MODE_PID  = 'pid';
 
     protected $checkFile;
     protected $moderationKey;
@@ -32,9 +30,6 @@ abstract class ModeratedCommand extends ContainerAwareCommand
     protected $lockExpiration = false;
     protected $lockHandler;
     protected $lockFile;
-    private $bypassLocking;
-
-    private $flockHandle;
 
     /* @var OutputInterface $output */
     protected $output;
@@ -46,20 +41,12 @@ abstract class ModeratedCommand extends ContainerAwareCommand
     {
         $this
             ->addOption('--force', '-f', InputOption::VALUE_NONE, 'Force execution even if another process is assumed running.')
-            ->addOption('--bypass-locking', null, InputOption::VALUE_NONE, 'Bypass locking.')
             ->addOption(
                 '--timeout',
                 '-t',
                 InputOption::VALUE_REQUIRED,
                 'If getmypid() is disabled on this system, lock files will be used. This option will assume the process is dead afer the specified number of seconds and will execute anyway. This is disabled by default.',
                 false
-            )
-            ->addOption(
-                '--lock_mode',
-                '-x',
-                InputOption::VALUE_REQUIRED,
-                'Allowed value are "pid" , "file_lock" or "flock". By default, lock will try with pid, if not available will use file system',
-                'pid'
             );
     }
 
@@ -73,19 +60,6 @@ abstract class ModeratedCommand extends ContainerAwareCommand
     {
         $this->output         = $output;
         $this->lockExpiration = $input->getOption('timeout');
-        $this->bypassLocking  = $input->getOption('bypass-locking');
-        $lockMode             = $input->getOption('lock_mode');
-
-        if (!in_array($lockMode, ['pid', 'file_lock', 'flock'])) {
-            $output->writeln('<error>Unknown locking method specified.</error>');
-
-            return false;
-        }
-
-        // If bypass locking, then don't bother locking
-        if ($this->bypassLocking) {
-            return true;
-        }
 
         // Allow multiple runs of the same command if executing different IDs, etc
         $this->moderationKey = $this->getName().$moderationKey;
@@ -108,7 +82,7 @@ abstract class ModeratedCommand extends ContainerAwareCommand
         );
 
         // Check if the command is currently running
-        if (!$this->checkStatus($input->getOption('force'), $lockMode)) {
+        if (!$this->checkStatus($input->getOption('force'))) {
             $output->writeln('<error>Script in progress. Can force execution by using --force.</error>');
 
             return false;
@@ -122,15 +96,8 @@ abstract class ModeratedCommand extends ContainerAwareCommand
      */
     protected function completeRun()
     {
-        if ($this->bypassLocking) {
-            return;
-        }
-
         if (self::MODE_LOCK == $this->moderationMode) {
             $this->lockHandler->release();
-        }
-        if (self::MODE_FLOCK == $this->moderationMode) {
-            fclose($this->flockHandle);
         }
 
         // Attempt to keep things tidy
@@ -140,15 +107,14 @@ abstract class ModeratedCommand extends ContainerAwareCommand
     /**
      * Determine the moderation mode avaiable to this system. Default is to use a lock file.
      *
-     * @param bool   $force
-     * @param string $lockMode
+     * @param bool $force
      *
      * @return bool
      */
-    private function checkStatus($force = false, $lockMode = null)
+    private function checkStatus($force = false)
     {
         // getmypid may be disabled and posix_getpgid is not available on Windows machines
-        if ((is_null($lockMode) || $lockMode === 'pid') && function_exists('getmypid') && function_exists('posix_getpgid')) {
+        if (function_exists('getmypid') && function_exists('posix_getpgid')) {
             $disabled = explode(',', ini_get('disable_functions'));
             if (!in_array('getmypid', $disabled) && !in_array('posix_getpgid', $disabled)) {
                 $this->moderationMode = self::MODE_PID;
@@ -183,39 +149,8 @@ abstract class ModeratedCommand extends ContainerAwareCommand
 
                 return true;
             }
-        } elseif ($lockMode === self::MODE_FLOCK && !$force) {
-            $this->moderationMode = self::MODE_FLOCK;
-            $error                = null;
-            // Silence error reporting
-            set_error_handler(function ($errno, $msg) use (&$error) {
-                $error = $msg;
-            });
-
-            if (!$this->flockHandle = fopen($this->lockFile, 'r+') ?: fopen($this->lockFile, 'r')) {
-                if ($this->flockHandle = fopen($this->lockFile, 'x')) {
-                    chmod($this->lockFile, 0666);
-                } elseif (!$this->flockHandle = fopen($this->lockFile, 'r+') ?: fopen($this->lockFile, 'r')) {
-                    usleep(100);
-                    $this->flockHandle = fopen($this->lockFile, 'r+') ?: fopen($this->lockFile, 'r');
-                }
-            }
-
-            restore_error_handler();
-
-            if (!$this->flockHandle) {
-                throw new IOException($error, 0, null, $this->lockFile);
-            }
-            if (!flock($this->flockHandle, LOCK_EX | LOCK_NB)) {
-                fclose($this->flockHandle);
-                $this->flockHandle = null;
-
-                return false;
-            }
-
-            return true;
         }
 
-        // in anycase, fallback on file system
         // Accessing PID commands is not available so use a simple lock file mechanism
         $lockHandler = $this->lockHandler = new LockHandler($this->moderationKey, $this->runDirectory);
 

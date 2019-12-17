@@ -98,24 +98,13 @@ class TranslationLoader extends ArrayLoader implements LoaderInterface
      * @param $catalogue
      * @param $locale
      * @param $file
-     *
-     * @throws \Exception
      */
     private function loadTranslations($catalogue, $locale, $file)
     {
         $iniFile  = $file->getRealpath();
-        $content  = file_get_contents($iniFile);
-        $messages = parse_ini_string($content, true);
-        if (false === $messages) {
-            // The translation file is corrupt
-            if ('dev' === MAUTIC_ENV) {
-                throw new \Exception($iniFile.' is corrupted');
-            }
+        $messages = parse_ini_file($iniFile, true);
+        $domain   = substr($file->getFilename(), 0, -4);
 
-            return;
-        }
-
-        $domain        = substr($file->getFilename(), 0, -4);
         $thisCatalogue = parent::load($messages, $locale, $domain);
         $catalogue->addCatalogue($thisCatalogue);
     }

@@ -21,19 +21,14 @@ use Mautic\WebhookBundle\Entity\WebhookQueue;
 class WebhookQueueEvent extends CommonEvent
 {
     /**
-     * @var Webhook
-     */
-    protected $webhook;
-
-    /**
      * @param WebhookQueue $webhookQueue
      * @param Webhook      $webhook
      * @param bool         $isNew
      */
-    public function __construct(WebhookQueue $webhookQueue, Webhook $webhook, $isNew = false)
+    public function __construct(WebhookQueue &$webhookQueue, Webhook $webhook,  $isNew = false)
     {
-        $this->entity  = $webhookQueue;
-        $this->webhook = $webhook;
+        $this->entity  = &$webhookQueue;
+        $this->webhook = &$webhook;
         $this->isNew   = $isNew;
     }
 
@@ -44,7 +39,7 @@ class WebhookQueueEvent extends CommonEvent
      */
     public function getWebhookQueue()
     {
-        return $this->entity;
+        return $this->getWebhookQueue();
     }
 
     /**
@@ -64,7 +59,7 @@ class WebhookQueueEvent extends CommonEvent
      */
     public function getWebhook()
     {
-        return $this->webhook;
+        return $this->getWebhook();
     }
 
     /**

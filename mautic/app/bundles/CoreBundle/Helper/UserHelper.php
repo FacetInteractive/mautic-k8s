@@ -53,7 +53,8 @@ class UserHelper
                 return null;
             }
 
-            $user = new User(true);
+            $user          = new User();
+            $user->isGuest = true;
         }
 
         return $user;

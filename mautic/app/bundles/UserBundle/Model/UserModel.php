@@ -14,11 +14,8 @@ namespace Mautic\UserBundle\Model;
 use Mautic\CoreBundle\Model\FormModel;
 use Mautic\EmailBundle\Helper\MailHelper;
 use Mautic\UserBundle\Entity\User;
-use Mautic\UserBundle\Entity\UserToken;
-use Mautic\UserBundle\Enum\UserTokenAuthorizator;
 use Mautic\UserBundle\Event\StatusChangeEvent;
 use Mautic\UserBundle\Event\UserEvent;
-use Mautic\UserBundle\Model\UserToken\UserTokenServiceInterface;
 use Mautic\UserBundle\UserEvents;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -34,23 +31,9 @@ class UserModel extends FormModel
      */
     protected $mailHelper;
 
-    /**
-     * @var UserTokenServiceInterface
-     */
-    private $userTokenService;
-
-    /**
-     * UserModel constructor.
-     *
-     * @param MailHelper                $mailHelper
-     * @param UserTokenServiceInterface $userTokenService
-     */
-    public function __construct(
-        MailHelper $mailHelper,
-        UserTokenServiceInterface $userTokenService
-    ) {
-        $this->mailHelper          = $mailHelper;
-        $this->userTokenService    = $userTokenService;
+    public function __construct(MailHelper $mailHelper)
+    {
+        $this->mailHelper = $mailHelper;
     }
 
     /**
@@ -72,7 +55,7 @@ class UserModel extends FormModel
      */
     public function getRepository()
     {
-        return $this->em->getRepository(User::class);
+        return $this->em->getRepository('MauticUserBundle:User');
     }
 
     /**
@@ -95,21 +78,6 @@ class UserModel extends FormModel
         }
 
         parent::saveEntity($entity, $unlock);
-    }
-
-    /**
-     * Get a list of users for an autocomplete input.
-     *
-     * @param string $search
-     * @param int    $limit
-     * @param int    $start
-     * @param array  $permissionLimiter
-     *
-     * @return array
-     */
-    public function getUserList($search = '', $limit = 10, $start = 0, $permissionLimiter = [])
-    {
-        return $this->getRepository()->getUserList($search, $limit, $start, $permissionLimiter);
     }
 
     /**
@@ -174,21 +142,6 @@ class UserModel extends FormModel
         }
 
         return $entity;
-    }
-
-    /**
-     * @return User
-     */
-    public function getSystemAdministrator()
-    {
-        $adminRole = $this->em->getRepository('MauticUserBundle:Role')->findOneBy(['isAdmin' => true]);
-
-        return $this->getRepository()->findOneBy(
-            [
-                'role'        => $adminRole,
-                'isPublished' => true,
-            ]
-        );
     }
 
     /**
@@ -277,17 +230,16 @@ class UserModel extends FormModel
     /**
      * @param User $user
      *
-     * @return UserToken
+     * @return string
      */
     protected function getResetToken(User $user)
     {
-        $userToken = new UserToken();
-        $userToken->setUser($user)
-            ->setAuthorizator(UserTokenAuthorizator::RESET_PASSWORD_AUTHORIZATOR)
-            ->setExpiration((new \DateTime())->add(new \DateInterval('PT24H')))
-            ->setOneTimeOnly();
+        /** @var \DateTime $lastLogin */
+        $lastLogin = $user->getLastLogin();
 
-        return $this->userTokenService->generateSecret($userToken, 64);
+        $dateTime = ($lastLogin instanceof \DateTime) ? $lastLogin->format('Y-m-d H:i:s') : null;
+
+        return hash('sha256', $user->getUsername().$user->getEmail().$dateTime);
     }
 
     /**
@@ -298,32 +250,20 @@ class UserModel extends FormModel
      */
     public function confirmResetToken(User $user, $token)
     {
-        $userToken = new UserToken();
-        $userToken->setUser($user)
-            ->setAuthorizator(UserTokenAuthorizator::RESET_PASSWORD_AUTHORIZATOR)
-            ->setSecret($token);
+        $resetToken = $this->getResetToken($user);
 
-        return $this->userTokenService->verify($userToken);
+        return hash_equals($token, $resetToken);
     }
 
     /**
      * @param User $user
-     *
-     * @throws \RuntimeException
      */
     public function sendResetEmail(User $user)
     {
         $mailer = $this->mailHelper->getMailer();
 
         $resetToken = $this->getResetToken($user);
-        $this->em->persist($resetToken);
-        try {
-            $this->em->flush();
-        } catch (\Exception $exception) {
-            $this->logger->addError($exception->getMessage());
-            throw new \RuntimeException();
-        }
-        $resetLink  = $this->router->generate('mautic_user_passwordresetconfirm', ['token' => $resetToken->getSecret()], true);
+        $resetLink  = $this->router->generate('mautic_user_passwordresetconfirm', ['token' => $resetToken], true);
 
         $mailer->setTo([$user->getEmail() => $user->getName()]);
         $mailer->setSubject($this->translator->trans('mautic.user.user.passwordreset.subject'));
@@ -396,15 +336,5 @@ class UserModel extends FormModel
                 }
             }
         }
-    }
-
-    /**
-     * Return list of Users for formType Choice.
-     *
-     * @return array
-     */
-    public function getOwnerListChoices()
-    {
-        return $this->getRepository()->getOwnerListChoices();
     }
 }

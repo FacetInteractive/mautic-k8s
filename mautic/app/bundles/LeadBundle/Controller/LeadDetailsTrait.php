@@ -11,10 +11,8 @@
 
 namespace Mautic\LeadBundle\Controller;
 
-use Mautic\CoreBundle\Entity\AuditLogRepository;
 use Mautic\CoreBundle\Helper\Chart\ChartQuery;
 use Mautic\CoreBundle\Helper\Chart\LineChart;
-use Mautic\CoreBundle\Model\AuditLogModel;
 use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Model\LeadModel;
 
@@ -34,7 +32,7 @@ trait LeadDetailsTrait
 
         if (null == $filters) {
             $filters = $session->get(
-                'mautic.plugin.timeline.filters',
+                'mautic.gmail.timeline.filters',
                 [
                     'search'        => '',
                     'includeEvents' => [],
@@ -44,14 +42,14 @@ trait LeadDetailsTrait
         }
 
         if (null == $orderBy) {
-            if (!$session->has('mautic.plugin.timeline.orderby')) {
-                $session->set('mautic.plugin.timeline.orderby', 'timestamp');
-                $session->set('mautic.plugin.timeline.orderbydir', 'DESC');
+            if (!$session->has('mautic.gmail.timeline.orderby')) {
+                $session->set('mautic.gmail.timeline.orderby', 'timestamp');
+                $session->set('mautic.gmail.timeline.orderbydir', 'DESC');
             }
 
             $orderBy = [
-                $session->get('mautic.plugin.timeline.orderby'),
-                $session->get('mautic.plugin.timeline.orderbydir'),
+                $session->get('mautic.gmail.timeline.orderby'),
+                $session->get('mautic.gmail.timeline.orderbydir'),
             ];
         }
 
@@ -99,36 +97,6 @@ trait LeadDetailsTrait
         $result['total'] = count($result['events']);
 
         return $result;
-    }
-
-    /**
-     * Makes sure that the event filter array is in the right format.
-     *
-     * @param mixed $filters
-     *
-     * @return array
-     *
-     * @throws InvalidArgumentException if not an array
-     */
-    public function sanitizeEventFilter($filters)
-    {
-        if (!is_array($filters)) {
-            throw new \InvalidArgumentException('filters parameter must be an array');
-        }
-
-        if (!isset($filters['search'])) {
-            $filters['search'] = '';
-        }
-
-        if (!isset($filters['includeEvents'])) {
-            $filters['includeEvents'] = [];
-        }
-
-        if (!isset($filters['excludeEvents'])) {
-            $filters['excludeEvents'] = [];
-        }
-
-        return $filters;
     }
 
     /**
@@ -207,85 +175,10 @@ trait LeadDetailsTrait
         $engagements = $model->getEngagementCount($lead, $fromDate, $toDate, 'm', $chartQuery);
         $lineChart->setDataset($translator->trans('mautic.lead.graph.line.all_engagements'), $engagements['byUnit']);
 
-        $pointStats = $chartQuery->fetchSumTimeData('lead_points_change_log', 'date_added', ['lead_id' => $lead->getId()], 'delta');
+        $pointStats = $chartQuery->fetchTimeData('lead_points_change_log', 'date_added', ['lead_id' => $lead->getId()]);
         $lineChart->setDataset($translator->trans('mautic.lead.graph.line.points'), $pointStats);
 
         return $lineChart->render();
-    }
-
-    /**
-     * @param Lead       $lead
-     * @param array|null $filters
-     * @param array|null $orderBy
-     * @param int        $page
-     * @param int        $limit
-     *
-     * @return array
-     */
-    protected function getAuditlogs(Lead $lead, array $filters = null, array $orderBy = null, $page = 1, $limit = 25)
-    {
-        $session = $this->get('session');
-
-        if (null == $filters) {
-            $filters = $session->get(
-                'mautic.lead.'.$lead->getId().'.auditlog.filters',
-                [
-                    'search'        => '',
-                    'includeEvents' => [],
-                    'excludeEvents' => [],
-                ]
-            );
-        }
-
-        if (null == $orderBy) {
-            if (!$session->has('mautic.lead.'.$lead->getId().'.auditlog.orderby')) {
-                $session->set('mautic.lead.'.$lead->getId().'.auditlog.orderby', 'al.dateAdded');
-                $session->set('mautic.lead.'.$lead->getId().'.auditlog.orderbydir', 'DESC');
-            }
-
-            $orderBy = [
-                $session->get('mautic.lead.'.$lead->getId().'.auditlog.orderby'),
-                $session->get('mautic.lead.'.$lead->getId().'.auditlog.orderbydir'),
-            ];
-        }
-
-        // Audit Log
-        /** @var AuditLogModel $auditlogModel */
-        $auditlogModel = $this->getModel('core.auditLog');
-        /** @var AuditLogRepository $repo */
-        $repo     = $auditlogModel->getRepository();
-        $logCount = $repo->getAuditLogsCount($lead, $filters);
-        $logs     = $repo->getAuditLogs($lead, $filters, $orderBy, $page, $limit);
-
-        $logEvents = array_map(function ($l) {
-            return [
-                'eventType'       => $l['action'],
-                'eventLabel'      => $l['userName'],
-                'timestamp'       => $l['dateAdded'],
-                'details'         => $l['details'],
-                'contentTemplate' => 'MauticLeadBundle:Auditlog:details.html.php',
-            ];
-        }, $logs);
-
-        $types = [
-            'delete'     => $this->translator->trans('mautic.lead.event.delete'),
-            'create'     => $this->translator->trans('mautic.lead.event.create'),
-            'identified' => $this->translator->trans('mautic.lead.event.identified'),
-            'ipadded'    => $this->translator->trans('mautic.lead.event.ipadded'),
-            'merge'      => $this->translator->trans('mautic.lead.event.merge'),
-            'update'     => $this->translator->trans('mautic.lead.event.update'),
-        ];
-
-        return [
-            'events'   => $logEvents,
-            'filters'  => $filters,
-            'order'    => $orderBy,
-            'types'    => $types,
-            'total'    => $logCount,
-            'page'     => $page,
-            'limit'    => $limit,
-            'maxPages' => ceil($logCount / $limit),
-        ];
     }
 
     /**

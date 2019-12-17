@@ -25,6 +25,9 @@ class UntrackableUrlsEvent extends Event
         '{webview_url}',
         '{unsubscribe_url}',
         '{trackable=(.*?)}',
+        // Ignore lead fields with URLs for tracking since each is unique
+        '^{leadfield=(.*?)}',
+        '^{contactfield=(.*?)}',
     ];
 
     /**
@@ -49,7 +52,7 @@ class UntrackableUrlsEvent extends Event
      */
     public function addNonTrackable($url)
     {
-        $this->doNotTrack[] = $url;
+        $this->doNotTrack[$url] = true;
     }
 
     /**

@@ -141,27 +141,24 @@ class Company extends FormEntity implements CustomFieldEntityInterface
     {
         $builder = new ClassMetadataBuilder($metadata);
         $builder->setTable('companies')
-            ->setCustomRepositoryClass('Mautic\LeadBundle\Entity\CompanyRepository');
+                ->setCustomRepositoryClass('Mautic\LeadBundle\Entity\CompanyRepository');
 
         $builder->createField('id', 'integer')
-            ->isPrimaryKey()
-            ->generatedValue()
-            ->build();
+                ->isPrimaryKey()
+                ->generatedValue()
+                ->build();
 
         $builder->createField('socialCache', 'array')
-            ->columnName('social_cache')
-            ->nullable()
-            ->build();
+                ->columnName('social_cache')
+                ->nullable()
+                ->build();
 
         $builder->createManyToOne('owner', 'Mautic\UserBundle\Entity\User')
-            ->cascadeDetach()
-            ->cascadeMerge()
-            ->addJoinColumn('owner_id', 'id', true, false, 'SET NULL')
-            ->build();
+                ->addJoinColumn('owner_id', 'id', true, false, 'SET NULL')
+                ->build();
 
         $builder->createField('score', 'integer')
-            ->nullable()
-            ->build();
+                ->build();
 
         self::loadFixedFieldMetadata(
             $builder,
@@ -240,7 +237,7 @@ class Company extends FormEntity implements CustomFieldEntityInterface
                 ];
             }
         } else {
-            parent::isChanged($prop, $val);
+            $this->changes[$prop] = [$current, $val];
         }
     }
 

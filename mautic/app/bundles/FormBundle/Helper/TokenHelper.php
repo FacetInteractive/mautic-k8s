@@ -11,7 +11,6 @@
 
 namespace Mautic\FormBundle\Helper;
 
-use Mautic\CoreBundle\Security\Permissions\CorePermissions;
 use Mautic\FormBundle\Model\FormModel;
 
 /**
@@ -20,25 +19,18 @@ use Mautic\FormBundle\Model\FormModel;
 class TokenHelper
 {
     /**
-     * @var FormModel
+     * @var
      */
     protected $formModel;
 
     /**
-     * @var CorePermissions
-     */
-    protected $security;
-
-    /**
      * TokenHelper constructor.
      *
-     * @param FormModel       $model
-     * @param CorePermissions $security
+     * @param FormModel $model
      */
-    public function __construct(FormModel $formModel, CorePermissions $security)
+    public function __construct(FormModel $formModel)
     {
         $this->formModel = $formModel;
-        $this->security  = $security;
     }
 
     /**
@@ -73,6 +65,10 @@ class TokenHelper
                         '';
 
                     //pouplate get parameters
+                    //priority populate value order by: query string (parameters) -> with lead
+                    if (!$form->getInKioskMode()) {
+                        $this->formModel->populateValuesWithLead($form, $formHtml);
+                    }
                     $this->formModel->populateValuesWithGetParameters($form, $formHtml);
 
                     $tokens[$token] = $formHtml;

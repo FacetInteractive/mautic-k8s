@@ -13,24 +13,19 @@ namespace Mautic\EmailBundle\Controller;
 
 use Mautic\CoreBundle\Controller\BuilderControllerTrait;
 use Mautic\CoreBundle\Controller\FormController;
-use Mautic\CoreBundle\Controller\FormErrorMessagesTrait;
 use Mautic\CoreBundle\Helper\EmojiHelper;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\EmailBundle\Entity\Email;
 use Mautic\EmailBundle\Form\Type\ExampleSendType;
-use Mautic\LeadBundle\Controller\EntityContactsTrait;
 use Mautic\LeadBundle\Model\ListModel;
 use MauticPlugin\MauticCitrixBundle\Helper\CitrixHelper;
 use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormError;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class EmailController extends FormController
 {
     use BuilderControllerTrait;
-    use FormErrorMessagesTrait;
-    use EntityContactsTrait;
 
     /**
      * @param int $page
@@ -61,7 +56,9 @@ class EmailController extends FormController
             return $this->accessDenied();
         }
 
-        $this->setListFilters();
+        if ($this->request->getMethod() == 'POST') {
+            $this->setListFilters();
+        }
 
         $session = $this->get('session');
 
@@ -372,6 +369,37 @@ class EmailController extends FormController
         //get related translations
         list($translationParent, $translationChildren) = $email->getTranslations();
 
+        // Prepare stats for bargraph
+        if ($chartStatsSource = $this->request->query->get('stats', false)) {
+            $includeVariants = ('all' == $chartStatsSource);
+        } else {
+            $includeVariants = (($email->isVariant() && $parent === $email) || ($email->isTranslation() && $translationParent === $email));
+        }
+
+        if ($email->getEmailType() == 'template') {
+            $stats = $model->getEmailGeneralStats(
+                $email,
+                $includeVariants,
+                null,
+                new \DateTime($dateRangeForm->get('date_from')->getData()),
+                new \DateTime($dateRangeForm->get('date_to')->getData())
+            );
+        } else {
+            $stats = $model->getEmailListStats(
+                $email,
+                $includeVariants,
+                new \DateTime($dateRangeForm->get('date_from')->getData()),
+                new \DateTime($dateRangeForm->get('date_to')->getData())
+            );
+        }
+
+        $statsDevices = $model->getEmailDeviceStats(
+            $email,
+            $includeVariants,
+            new \DateTime($dateRangeForm->get('date_from')->getData()),
+            new \DateTime($dateRangeForm->get('date_to')->getData())
+        );
+
         // Audit Log
         $logs = $this->getModel('core.auditLog')->getLogForObject('email', $email->getId(), $email->getDateAdded());
 
@@ -389,6 +417,9 @@ class EmailController extends FormController
                 ),
                 'viewParameters' => [
                     'email'        => $email,
+                    'stats'        => $stats,
+                    'statsDevices' => $statsDevices,
+                    'showAllStats' => $includeVariants,
                     'trackables'   => $trackableLinks,
                     'pending'      => $model->getPendingLeads($email, null, true),
                     'logs'         => $logs,
@@ -424,14 +455,6 @@ class EmailController extends FormController
                         ['objectId' => $email->getId()],
                         true
                     ),
-                    'contacts' => $this->forward(
-                        'MauticEmailBundle:Email:contacts',
-                        [
-                            'objectId'   => $email->getId(),
-                            'page'       => $this->get('session')->get('mautic.email.contact.page', 1),
-                            'ignoreAjax' => true,
-                        ]
-                    )->getContent(),
                     'dateRangeForm' => $dateRangeForm->createView(),
                 ],
                 'contentTemplate' => 'MauticEmailBundle:Email:details.html.php',
@@ -566,22 +589,6 @@ class EmailController extends FormController
         $slotTypes   = $model->getBuilderComponents($entity, 'slotTypes');
         $sections    = $model->getBuilderComponents($entity, 'sections');
         $sectionForm = $this->get('form.factory')->create('builder_section');
-        $routeParams = [
-            'objectAction' => 'new',
-        ];
-        if ($updateSelect) {
-            $routeParams['updateSelect'] = $updateSelect;
-            $routeParams['contentOnly']  = 1;
-        }
-
-        //set some permissions
-        $permissions = $this->get('mautic.security')->isGranted(
-            [
-                'page:preference_center:viewown',
-                'page:preference_center:viewother',
-            ],
-            'RETURN_ARRAY'
-        );
 
         return $this->delegateView(
             [
@@ -595,15 +602,18 @@ class EmailController extends FormController
                     'builderAssets' => trim(preg_replace('/\s+/', ' ', $this->getAssetsForBuilder())), // strip new lines
                     'sectionForm'   => $sectionForm->createView(),
                     'updateSelect'  => $updateSelect,
-                    'permissions'   => $permissions,
                 ],
                 'contentTemplate' => 'MauticEmailBundle:Email:form.html.php',
                 'passthroughVars' => [
-                    'activeLink'      => '#mautic_email_index',
-                    'mauticContent'   => 'email',
-                    'updateSelect'    => $updateSelect,
-                    'route'           => $this->generateUrl('mautic_email_action', $routeParams),
-                    'validationError' => $this->getFormErrorForBuilder($form),
+                    'activeLink'    => '#mautic_email_index',
+                    'mauticContent' => 'email',
+                    'updateSelect'  => $updateSelect,
+                    'route'         => $this->generateUrl(
+                        'mautic_email_action',
+                        [
+                            'objectAction' => 'new',
+                        ]
+                    ),
                 ],
             ]
         );
@@ -781,23 +791,6 @@ class EmailController extends FormController
         $slotTypes   = $model->getBuilderComponents($entity, 'slotTypes');
         $sections    = $model->getBuilderComponents($entity, 'sections');
         $sectionForm = $this->get('form.factory')->create('builder_section');
-        $routeParams = [
-            'objectAction' => 'edit',
-            'objectId'     => $entity->getId(),
-        ];
-        if ($updateSelect) {
-            $routeParams['updateSelect'] = $updateSelect;
-            $routeParams['contentOnly']  = 1;
-        }
-
-        //set some permissions
-        $permissions = $this->get('mautic.security')->isGranted(
-            [
-                'page:preference_center:viewown',
-                'page:preference_center:viewother',
-            ],
-            'RETURN_ARRAY'
-        );
 
         return $this->delegateView(
             [
@@ -812,20 +805,19 @@ class EmailController extends FormController
                     'attachmentSize'     => $attachmentSize,
                     'builderAssets'      => trim(preg_replace('/\s+/', ' ', $this->getAssetsForBuilder())), // strip new lines
                     'sectionForm'        => $sectionForm->createView(),
-                    'permissions'        => $permissions,
-                    'previewUrl'         => $this->generateUrl(
-                        'mautic_email_preview',
-                        ['objectId' => $entity->getId()],
-                        true
-                    ),
                 ],
                 'contentTemplate' => 'MauticEmailBundle:Email:form.html.php',
                 'passthroughVars' => [
-                    'activeLink'      => '#mautic_email_index',
-                    'mauticContent'   => 'email',
-                    'updateSelect'    => InputHelper::clean($this->request->query->get('updateSelect')),
-                    'route'           => $this->generateUrl('mautic_email_action', $routeParams),
-                    'validationError' => $this->getFormErrorForBuilder($form),
+                    'activeLink'    => '#mautic_email_index',
+                    'mauticContent' => 'email',
+                    'updateSelect'  => InputHelper::clean($this->request->query->get('updateSelect')),
+                    'route'         => $this->generateUrl(
+                        'mautic_email_action',
+                        [
+                            'objectAction' => 'edit',
+                            'objectId'     => $entity->getId(),
+                        ]
+                    ),
                 ],
             ]
         );
@@ -1031,6 +1023,12 @@ class EmailController extends FormController
 
             $clone = clone $entity;
 
+            //reset
+            $clone->clearStats();
+            $clone->setSentCount(0);
+            $clone->setRevision(0);
+            $clone->setVariantSentCount(0);
+            $clone->setVariantStartDate(null);
             $clone->setIsPublished(false);
             $clone->setEmailType($emailType);
             $clone->setVariantParent($entity);
@@ -1125,7 +1123,7 @@ class EmailController extends FormController
         /** @var \Mautic\EmailBundle\Model\EmailModel $model */
         $model   = $this->getModel('email');
         $entity  = $model->getEntity($objectId);
-        $session = $this->container->get('session');
+        $session = $this->get('session');
         $page    = $session->get('mautic.email.page', 1);
 
         //set the return URL
@@ -1157,29 +1155,7 @@ class EmailController extends FormController
                     ]
                 )
             );
-        }
-
-        if (!$entity->isPublished()) {
-            return $this->postActionRedirect(
-                array_merge(
-                    $postActionVars,
-                    [
-                        'flashes' => [
-                            [
-                                'type'    => 'error',
-                                'msg'     => 'mautic.email.error.send.unpublished',
-                                'msgVars' => [
-                                    '%id%'   => $objectId,
-                                    '%name%' => $entity->getName(),
-                                ],
-                            ],
-                        ],
-                    ]
-                )
-            );
-        }
-
-        if ($entity->getEmailType() == 'template'
+        } elseif ($entity->getEmailType() == 'template'
             || !$this->get('mautic.security')->hasEntityAccess(
                 'email:emails:viewown',
                 'email:emails:viewother',
@@ -1198,7 +1174,6 @@ class EmailController extends FormController
                 ]
             ));
         }
-
         if ($translationParent = $entity->getTranslationParent()) {
             return $this->redirect($this->generateUrl('mautic_email_action',
                 [
@@ -1206,6 +1181,28 @@ class EmailController extends FormController
                     'objectId'     => $translationParent->getId(),
                 ]
             ));
+        }
+
+        // Make sure email and category are published
+        $category     = $entity->getCategory();
+        $catPublished = (!empty($category)) ? $category->isPublished() : true;
+        $published    = $entity->isPublished();
+
+        if (!$catPublished || !$published) {
+            return $this->postActionRedirect(
+                array_merge(
+                    $postActionVars,
+                    [
+                        'flashes' => [
+                            [
+                                'type'    => 'error',
+                                'msg'     => 'mautic.email.error.send',
+                                'msgVars' => ['%name%' => $entity->getName()],
+                            ],
+                        ],
+                    ]
+                )
+            );
         }
 
         $action   = $this->generateUrl('mautic_email_action', ['objectAction' => 'send', 'objectId' => $objectId]);
@@ -1585,24 +1582,5 @@ class EmailController extends FormController
 
         // everything is ok
         return true;
-    }
-
-    /**
-     * @param     $objectId
-     * @param int $page
-     *
-     * @return JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
-     */
-    public function contactsAction($objectId, $page = 1)
-    {
-        return $this->generateContactsGrid(
-            $objectId,
-            $page,
-            ['email:emails:viewown', 'email:emails:viewother'],
-            'email',
-            'email_stats',
-            'email',
-            'email_id'
-        );
     }
 }

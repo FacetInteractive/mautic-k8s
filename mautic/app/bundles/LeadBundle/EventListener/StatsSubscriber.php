@@ -12,7 +12,7 @@
 namespace Mautic\LeadBundle\EventListener;
 
 use Doctrine\ORM\EntityManager;
-use Mautic\CoreBundle\EventListener\CommonStatsSubscriber;
+use Mautic\CoreBundle\EventListener\StatsSubscriber as CommonStatsSubscriber;
 
 /**
  * Class StatsSubscriber.
@@ -40,7 +40,6 @@ class StatsSubscriber extends CommonStatsSubscriber
                 'MauticLeadBundle:CompanyLead',
                 'MauticLeadBundle:LeadCategory',
                 'MauticLeadBundle:LeadDevice',
-                'MauticLeadBundle:LeadEventLog',
                 'MauticLeadBundle:ListLead',
                 'MauticLeadBundle:DoNotContact',
                 'MauticLeadBundle:FrequencyRule',

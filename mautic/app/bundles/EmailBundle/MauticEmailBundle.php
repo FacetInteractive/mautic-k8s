@@ -11,9 +11,6 @@
 
 namespace Mautic\EmailBundle;
 
-use Mautic\EmailBundle\DependencyInjection\Compiler\EmailTransportPass;
-use Mautic\EmailBundle\DependencyInjection\Compiler\RealTransportCompiler;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 /**
@@ -21,14 +18,4 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  */
 class MauticEmailBundle extends Bundle
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function build(ContainerBuilder $container)
-    {
-        parent::build($container);
-
-        $container->addCompilerPass(new RealTransportCompiler());
-        $container->addCompilerPass(new EmailTransportPass());
-    }
 }

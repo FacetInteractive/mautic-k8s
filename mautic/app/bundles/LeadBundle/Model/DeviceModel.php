@@ -12,8 +12,8 @@
 namespace Mautic\LeadBundle\Model;
 
 use Mautic\CoreBundle\Model\FormModel;
+use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Entity\LeadDevice;
-use Mautic\LeadBundle\Entity\LeadDeviceRepository;
 use Mautic\LeadBundle\Event\LeadDeviceEvent;
 use Mautic\LeadBundle\LeadEvents;
 use Symfony\Component\EventDispatcher\Event;
@@ -26,29 +26,13 @@ use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 class DeviceModel extends FormModel
 {
     /**
-     * @var LeadDeviceRepository
-     */
-    private $leadDeviceRepository;
-
-    /**
-     * DeviceModel constructor.
-     *
-     * @param LeadDeviceRepository $leadDeviceRepository
-     */
-    public function __construct(
-        LeadDeviceRepository $leadDeviceRepository
-    ) {
-        $this->leadDeviceRepository = $leadDeviceRepository;
-    }
-
-    /**
      * {@inheritdoc}
      *
-     * @return LeadDeviceRepository
+     * @return string
      */
     public function getRepository()
     {
-        return $this->leadDeviceRepository;
+        return $this->em->getRepository('MauticLeadBundle:LeadDevice');
     }
 
     /**

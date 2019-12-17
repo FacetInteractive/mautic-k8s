@@ -11,7 +11,6 @@
 
 namespace Mautic\LeadBundle\Controller\Api;
 
-use FOS\RestBundle\Util\Codes;
 use Mautic\ApiBundle\Controller\CommonApiController;
 use Mautic\LeadBundle\Entity\LeadField;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
@@ -21,11 +20,6 @@ use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
  */
 class FieldApiController extends CommonApiController
 {
-    /**
-     * Can have value of 'contact' or 'company'.
-     *
-     * @var string
-     */
     protected $fieldObject;
 
     public function initialize(FilterControllerEvent $event)
@@ -50,24 +44,6 @@ class FieldApiController extends CommonApiController
         ];
 
         parent::initialize($event);
-    }
-
-    /**
-     * Sanitizes and returns an array of where statements from the request.
-     *
-     * @return array
-     */
-    protected function getWhereFromRequest()
-    {
-        $where = parent::getWhereFromRequest();
-
-        $where[] = [
-            'col'  => 'object',
-            'expr' => 'eq',
-            'val'  => $this->fieldObject,
-        ];
-
-        return $where;
     }
 
     /**

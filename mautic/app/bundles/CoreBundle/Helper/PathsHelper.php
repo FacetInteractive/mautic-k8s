@@ -71,8 +71,8 @@ class PathsHelper
     /**
      * PathsHelper constructor.
      *
-     * @param UserHelper           $userHelper
-     * @param CoreParametersHelper $coreParametersHelper
+     * @param CoreParametersHelper
+     * @param UserHelper $userHelper
      */
     public function __construct(UserHelper $userHelper, CoreParametersHelper $coreParametersHelper)
     {
@@ -82,7 +82,7 @@ class PathsHelper
         $this->imagePath              = $this->removeTrailingSlash($coreParametersHelper->getParameter('image_path'));
         $this->dashboardImportDir     = $this->removeTrailingSlash($coreParametersHelper->getParameter('dashboard_import_dir'));
         $this->temporaryDir           = $this->removeTrailingSlash($coreParametersHelper->getParameter('tmp_path'));
-        $this->dashboardUserImportDir = $this->removeTrailingSlash($coreParametersHelper->getParameter('dashboard_import_user_dir'));
+        $this->dashboardImportUserDir = $this->removeTrailingSlash($coreParametersHelper->getParameter('dashboard_import_user_dir'));
         $this->kernelCacheDir         = $this->removeTrailingSlash($coreParametersHelper->getParameter('kernel.cache_dir'));
         $this->kernelLogsDir          = $this->removeTrailingSlash($coreParametersHelper->getParameter('kernel.logs_dir'));
     }
@@ -116,8 +116,8 @@ class PathsHelper
                 } elseif ('logs' === $name) {
                     return $this->kernelLogsDir;
                 } else {
-                    if (!is_dir($this->temporaryDir) && !file_exists($this->temporaryDir) && is_writable($this->temporaryDir)) {
-                        mkdir($this->temporaryDir, 0755, true);
+                    if (!is_dir($this->temporaryDir) && !file_exists($this->temporaryDir)) {
+                        mkdir($this->temporaryDir, 0755);
                     }
 
                     return $this->temporaryDir;
@@ -142,7 +142,8 @@ class PathsHelper
 
                 $userPath .= '/'.$this->user->getId();
 
-                if (!is_dir($userPath) && !file_exists($userPath) && is_writable($userPath)) {
+                // @todo check is_writable
+                if (!is_dir($userPath) && !file_exists($userPath)) {
                     mkdir($userPath, 0755);
                 }
 
@@ -162,9 +163,7 @@ class PathsHelper
         if ($fullPath) {
             $rootPath = (!empty($this->paths[$name.'_root'])) ? $this->paths[$name.'_root'] : $this->paths['root'];
 
-            if (strpos($path, $rootPath) === false) {
-                return $rootPath.'/'.$path;
-            }
+            return $rootPath.'/'.$path;
         }
 
         return $path;

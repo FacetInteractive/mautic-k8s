@@ -106,7 +106,7 @@ $hasFeatureErrors =
         <?php if (count($form['apiKeys']) && !empty($callbackUrl)): ?>
             <div class="well well-sm">
                 <?php echo $view['translator']->trans('mautic.integration.callbackuri'); ?><br/>
-                <input type="text" readonly onclick="this.setSelectionRange(0, this.value.length);" value="<?php echo $view->escape($callbackUrl); ?>" class="form-control"/>
+                <input type="text" readonly onclick="this.setSelectionRange(0, this.value.length);" value="<?php echo $callbackUrl; ?>" class="form-control"/>
             </div>
         <?php endif; ?>
         <?php if (isset($form['authButton'])): ?>
@@ -120,17 +120,6 @@ $hasFeatureErrors =
                 </div>
             </div>
         <?php endif; ?>
-        <?php if (isset($formNotes['custom'])):
-            if (is_string($formNotes['custom'])):
-                echo $formNotes['custom'];
-            elseif (!empty(isset($formNotes['custom']['template']))):
-                $template = $formNotes['custom']['template'];
-                $params   = isset($formNotes['custom']['parameters']) ? $formNotes['custom']['parameters'] : [];
-
-                echo $this->render($template, $params);
-            endif;
-        endif;
-        ?>
     </div>
 
     <?php if ($hasSupportedFeatures || $hasFeatureSettings): ?>
@@ -152,7 +141,7 @@ $hasFeatureErrors =
     <?php endif; ?>
     <?php if ($hasCompanyFields): ?>
     <div class="tab-pane fade <?php if (isset($activeTab) && $activeTab == 'companyFieldsContainer'): echo 'in active'; endif; ?> bdr-w-0" id="company-fields-container">
-        <h4 class="mb-sm"><?php echo $view['translator']->trans('mautic.integration.companyfield_matches'); ?></h4>
+        <h4 class="mb-sm"><?php echo $view['translator']->trans('mautic.integration.comapanyfield_matches'); ?></h4>
         <?php echo $companyFieldHtml; ?>
     </div>
     <?php endif; ?>

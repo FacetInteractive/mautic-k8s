@@ -11,8 +11,6 @@
 
 namespace Mautic\UserBundle\Security\Firewall;
 
-use Mautic\UserBundle\Entity\PermissionRepository;
-use Mautic\UserBundle\Entity\User;
 use Mautic\UserBundle\Security\Authentication\AuthenticationHandler;
 use Mautic\UserBundle\Security\Authentication\Token\PluginToken;
 use Psr\Log\LoggerInterface;
@@ -62,18 +60,12 @@ class AuthenticationListener implements ListenerInterface
     protected $dispatcher;
 
     /**
-     * @var PermissionRepository
-     */
-    protected $permissionRepository;
-
-    /**
      * @param AuthenticationHandler          $authenticationHandler
      * @param TokenStorageInterface          $tokenStorage
      * @param AuthenticationManagerInterface $authenticationManager
      * @param LoggerInterface                $logger
      * @param EventDispatcherInterface       $dispatcher
      * @param                                $providerKey
-     * @param PermissionRepository           $permissionRepository
      */
     public function __construct(
         AuthenticationHandler $authenticationHandler,
@@ -81,8 +73,7 @@ class AuthenticationListener implements ListenerInterface
         AuthenticationManagerInterface $authenticationManager,
         LoggerInterface $logger,
         EventDispatcherInterface $dispatcher,
-        $providerKey,
-        PermissionRepository $permissionRepository
+        $providerKey
     ) {
         $this->tokenStorage          = $tokenStorage;
         $this->authenticationManager = $authenticationManager;
@@ -90,7 +81,6 @@ class AuthenticationListener implements ListenerInterface
         $this->authenticationHandler = $authenticationHandler;
         $this->logger                = $logger;
         $this->dispatcher            = $dispatcher;
-        $this->permissionRepository  = $permissionRepository;
     }
 
     /**
@@ -99,8 +89,6 @@ class AuthenticationListener implements ListenerInterface
     public function handle(GetResponseEvent $event)
     {
         if (null !== $this->tokenStorage->getToken()) {
-            $this->setActivePermissionsOnAuthToken();
-
             return;
         }
 
@@ -115,8 +103,6 @@ class AuthenticationListener implements ListenerInterface
 
                 if ($authToken->isAuthenticated()) {
                     $this->tokenStorage->setToken($authToken);
-
-                    $this->setActivePermissionsOnAuthToken();
 
                     if ('api' != $this->providerKey) {
                         $response = $this->onSuccess($request, $authToken, $response);
@@ -187,24 +173,5 @@ class AuthenticationListener implements ListenerInterface
         }
 
         return $response;
-    }
-
-    /**
-     * Set the active permissions on the current user.
-     */
-    private function setActivePermissionsOnAuthToken()
-    {
-        $token = $this->tokenStorage->getToken();
-        $user  = $token->getUser();
-
-        if (!$user->isAdmin() && empty($user->getActivePermissions())) {
-            $activePermissions = $this->permissionRepository->getPermissionsByRole($user->getRole());
-
-            $user->setActivePermissions($activePermissions);
-        }
-
-        $token->setUser($user);
-
-        $this->tokenStorage->setToken($token);
     }
 }

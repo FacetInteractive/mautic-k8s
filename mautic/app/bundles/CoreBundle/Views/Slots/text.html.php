@@ -9,4 +9,5 @@
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
 ?>
-<span><?php echo $view['translator']->trans('mautic.core.slot.label.text.insert'); ?></span>
+
+<span>Insert text here</span>

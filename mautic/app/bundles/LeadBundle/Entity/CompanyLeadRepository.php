@@ -21,26 +21,23 @@ class CompanyLeadRepository extends CommonRepository
     /**
      * @param CompanyLead[] $entities
      */
-    public function saveEntities($entities, $new = true)
+    public function saveEntities($entities)
     {
         // Get a list of contacts and set primary to 0
-        if ($new) {
-            $contacts = [];
-            foreach ($entities as $entity) {
-                $contactId            = $entity->getLead()->getId();
-                $contacts[$contactId] = $contactId;
-                $entity->setPrimary(true);
-            }
-            if ($contactId) {
-                $qb = $this->getEntityManager()->getConnection()->createQueryBuilder()
-                    ->update(MAUTIC_TABLE_PREFIX.'companies_leads')
-                    ->set('is_primary', 0);
-
-                $qb->where(
-                    $qb->expr()->in('lead_id', $contacts)
-                )->execute();
-            }
+        $contacts = [];
+        foreach ($entities as $entity) {
+            $contactId            = $entity->getLead()->getId();
+            $contacts[$contactId] = $contactId;
+            $entity->setPrimary(true);
         }
+
+        $qb = $this->getEntityManager()->getConnection()->createQueryBuilder()
+            ->update(MAUTIC_TABLE_PREFIX.'companies_leads')
+            ->set('is_primary', 0);
+
+        $qb->where(
+            $qb->expr()->in('lead_id', $contactId)
+        )->execute();
 
         return parent::saveEntities($entities);
     }
@@ -57,7 +54,7 @@ class CompanyLeadRepository extends CommonRepository
     {
         $q = $this->_em->getConnection()->createQueryBuilder();
 
-        $q->select('cl.company_id, cl.date_added as date_associated, cl.is_primary, comp.*')
+        $q->select('cl.company_id, cl.date_added as date_associated, cl.is_primary, comp.companyname, comp.companyemail, comp.companyphone, comp.companycity, comp.companycountry, comp.companywebsite, comp.score, comp.date_added')
             ->from(MAUTIC_TABLE_PREFIX.'companies_leads', 'cl')
             ->join('cl', MAUTIC_TABLE_PREFIX.'companies', 'comp', 'comp.id = cl.company_id')
         ->where('cl.lead_id = :leadId')
@@ -68,7 +65,7 @@ class CompanyLeadRepository extends CommonRepository
         )->setParameter('false', false, 'boolean');
 
         if ($companyId) {
-            $q->andWhere(
+            $q->where(
                 $q->expr()->eq('cl.company_id', ':companyId')
             )->setParameter('companyId', $companyId);
         }
@@ -156,33 +153,5 @@ class CompanyLeadRepository extends CommonRepository
         $companies = $qb->getQuery()->execute();
 
         return $companies;
-    }
-
-    /**
-     * Updates leads company name If company name changed and company is primary.
-     *
-     * @param Company $company
-     */
-    public function updateLeadsPrimaryCompanyName(Company $company)
-    {
-        if ($company->isNew() || empty($company->getChanges()['fields']['companyname'])) {
-            return;
-        }
-        $q = $this->getEntityManager()->getConnection()->createQueryBuilder();
-        $q->select('cl.lead_id')
-            ->from(MAUTIC_TABLE_PREFIX.'companies_leads', 'cl');
-        $q->where($q->expr()->eq('cl.company_id', ':companyId'))
-            ->setParameter(':companyId', $company->getId())
-            ->andWhere('cl.is_primary = 1');
-        $leadIds = $q->execute()->fetchColumn();
-        if (!empty($leadIds)) {
-            $this->getEntityManager()->getConnection()->createQueryBuilder()
-            ->update(MAUTIC_TABLE_PREFIX.'leads')
-            ->set('company', ':company')
-            ->setParameter(':company', $company->getName())
-            ->where(
-                $q->expr()->in('id', $leadIds)
-            )->execute();
-        }
     }
 }

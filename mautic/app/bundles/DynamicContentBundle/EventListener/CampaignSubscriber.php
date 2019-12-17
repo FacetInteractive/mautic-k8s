@@ -106,14 +106,13 @@ class CampaignSubscriber extends CommonSubscriber
                 'formTheme'       => 'MauticDynamicContentBundle:FormTheme\DynamicContentDecisionList',
                 'channel'         => 'dynamicContent',
                 'channelIdField'  => 'dynamicContent',
+
             ]
         );
     }
 
     /**
      * @param CampaignExecutionEvent $event
-     *
-     * @return bool|CampaignExecutionEvent
      */
     public function onCampaignTriggerDecision(CampaignExecutionEvent $event)
     {
@@ -121,25 +120,20 @@ class CampaignSubscriber extends CommonSubscriber
         $eventDetails = $event->getEventDetails();
         $lead         = $event->getLead();
 
-        // stop
-        if ($eventConfig['dwc_slot_name'] !== $eventDetails) {
-            $event->setResult(false);
+        if ($eventConfig['dwc_slot_name'] === $eventDetails) {
+            $defaultDwc = $this->dynamicContentModel->getRepository()->getEntity($eventConfig['dynamicContent']);
 
-            return false;
+            if ($defaultDwc instanceof DynamicContent) {
+                // Set the default content in case none of the actions return data
+                $this->dynamicContentModel->setSlotContentForLead($defaultDwc, $lead, $eventDetails);
+            }
+
+            $this->session->set('dwc.slot_name.lead.'.$lead->getId(), $eventDetails);
+
+            $event->stopPropagation();
+
+            return $event->setResult(true);
         }
-
-        $defaultDwc = $this->dynamicContentModel->getRepository()->getEntity($eventConfig['dynamicContent']);
-
-        if ($defaultDwc instanceof DynamicContent) {
-            // Set the default content in case none of the actions return data
-            $this->dynamicContentModel->setSlotContentForLead($defaultDwc, $lead, $eventDetails);
-        }
-
-        $this->session->set('dwc.slot_name.lead.'.$lead->getId(), $eventDetails);
-
-        $event->stopPropagation();
-
-        return $event->setResult(true);
     }
 
     /**

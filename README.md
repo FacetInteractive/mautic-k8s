@@ -1,6 +1,6 @@
 # Docker Mautic setup
 
-Includes PHP FPM 7.1, Mautic 2.15.3, Nginx, PHPMyAdmin and MySQL stacks consolidated into a docker-compose for both local and production use.
+Includes PHP FPM 7.0, Facet's Mautic code base, Nginx, PHPMyAdmin and MySQL stacks consolidated into a docker-compose for both local and production use.
 
 The production docker compose uses Traefik as a web proxy.
 
@@ -12,15 +12,25 @@ The production docker compose uses Traefik as a web proxy.
     cp .env.dist .env
     ```
 
+2. Copy over DB dump into the `db-init` directory.
 
-2. Build/run containers with (with and without detached mode)
+
+3. Build/run containers with (with and without detached mode)
 
     ```bash
     $ docker-compose -f docker-compose-local.yml build
     $ docker-compose -f docker-compose-local.yml up -d
     ```
 
-3. Give appropriate permissions for cache and logs directories.
+4. Run composer.
+
+    ```bash
+    $ docker-compose -f docker-compose-local.yml run php composer install
+    ```
+
+
+
+5. Give appropriate permissions for cache and logs directories.
 
     ```bash
     $ docker-compose -f docker-compose-local.yml run php chown -R www-data:www-data app/cache
@@ -34,26 +44,19 @@ The production docker compose uses Traefik as a web proxy.
 	$ docker-compose -f docker-compose-local.yml run php app/console cache:warmup
 	```
 
-5. Create local.php and give it appropriate permissions.
+5. Update admin user password and reset it to `secret`.
 
-    ```bash
-    $ docker-compose -f docker-compose-local.yml run php touch app/config/local.php
-    $ docker-compose -f docker-compose-local.yml run php chown -R www-data:www-data app/config/local.php
+    ```sql
+	UPDATE users SET password = "$2a$04$LrQYZmEMFi7GghF0EIv4FOdNv8bFcnlXM9Bta0eb8BWLLlRwcKrUm" where id = 1;
     ```
 
 6. App can be accessed at "http://localhost:8080". Mautic will be installed in this step.
 
 
-
-7. After the DB is setup, cp local.php.env to local.php.
-
-    ```bash
-    $ docker-compose -f docker-compose-local.yml run php cp app/config/local.php.env app/config/local.php
-    ```
-
 ## TODOs
 
-- Make local.php more in tune with app specific settings.
+- ~~Make local.php more in tune with app specific settings.~~
+- Update this mautic to latest stable version.
 - Explore separate caching tier like Redis.
 - Send logs to stdout.
 - Separate containers for running cronjobs.

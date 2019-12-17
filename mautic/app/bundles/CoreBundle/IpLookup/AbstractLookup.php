@@ -28,11 +28,6 @@ abstract class AbstractLookup
     public $extra        = '';
 
     /**
-     * @var Http|null
-     */
-    protected $connector;
-
-    /**
      * @var string IP Address
      */
     protected $ip;
@@ -111,17 +106,14 @@ abstract class AbstractLookup
      */
     public function getDetails()
     {
-        return [
-            'city'         => $this->city,
-            'region'       => $this->region,
-            'zipcode'      => $this->zipcode,
-            'country'      => $this->country,
-            'latitude'     => $this->latitude,
-            'longitude'    => $this->longitude,
-            'isp'          => $this->isp,
-            'organization' => $this->organization,
-            'timezone'     => $this->timezone,
-            'extra'        => $this->extra,
-        ];
+        $reflect = new \ReflectionClass($this);
+        $props   = $reflect->getProperties(\ReflectionProperty::IS_PUBLIC);
+
+        $details = [];
+        foreach ($props as $prop) {
+            $details[$prop->getName()] = $prop->getValue($this);
+        }
+
+        return $details;
     }
 }

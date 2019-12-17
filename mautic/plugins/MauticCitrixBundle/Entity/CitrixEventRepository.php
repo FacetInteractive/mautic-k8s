@@ -11,14 +11,12 @@
 
 namespace MauticPlugin\MauticCitrixBundle\Entity;
 
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Mautic\CoreBundle\Entity\CommonRepository;
-use Mautic\LeadBundle\Entity\TimelineTrait;
 
 class CitrixEventRepository extends CommonRepository
 {
-    use TimelineTrait;
-
     /**
      * Fetch the base event data from the database.
      *
@@ -54,50 +52,6 @@ class CitrixEventRepository extends CommonRepository
     }
 
     /**
-     * @param       $product
-     * @param null  $leadId
-     * @param array $options
-     *
-     * @return array
-     */
-    public function getEventsForTimeline($product, $leadId = null, array $options = [])
-    {
-        $eventType = null;
-        if (is_array($product)) {
-            list($product, $eventType) = $product;
-        }
-
-        $query = $this->getEntityManager()->getConnection()->createQueryBuilder()
-            ->from(MAUTIC_TABLE_PREFIX.'plugin_citrix_events', 'c')
-            ->select('c.*');
-
-        $query->where(
-            $query->expr()->eq('c.product', ':product')
-        )
-            ->setParameter('product', $product);
-
-        if ($eventType) {
-            $query->andWhere(
-                $query->expr()->eq('c.event_type', ':type')
-            )
-                ->setParameter('type', $eventType);
-        }
-
-        if ($leadId) {
-            $query->andWhere('c.lead_id = '.(int) $leadId);
-        }
-
-        if (isset($options['search']) && $options['search']) {
-            $query->andWhere($query->expr()->orX(
-                $query->expr()->like('c.event_name', $query->expr()->literal('%'.$options['search'].'%')),
-                $query->expr()->like('c.product', $query->expr()->literal('%'.$options['search'].'%'))
-            ));
-        }
-
-        return $this->getTimelineResults($query, $options, 'c.event_name', 'c.event_date', [], ['event_date']);
-    }
-
-    /**
      * @param string $product
      * @param string $email
      *
@@ -120,7 +74,7 @@ class CitrixEventRepository extends CommonRepository
      *
      * @return Paginator
      */
-    public function getEntities(array $args = [])
+    public function getEntities($args = [])
     {
         $alias = $this->getTableAlias();
 
@@ -135,23 +89,23 @@ class CitrixEventRepository extends CommonRepository
     }
 
     /**
-     * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
-     * @param                                                              $filter
+     * @param QueryBuilder $q
+     * @param mixed        $filter
      *
      * @return array
      */
-    protected function addCatchAllWhereClause($q, $filter)
+    protected function addCatchAllWhereClause(&$q, $filter)
     {
         return $this->addStandardCatchAllWhereClause($q, $filter, ['c.product', 'c.email', 'c.eventType', 'c.eventName']);
     }
 
     /**
-     * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
-     * @param                                                              $filter
+     * @param QueryBuilder $q
+     * @param mixed        $filter
      *
      * @return array
      */
-    protected function addSearchCommandWhereClause($q, $filter)
+    protected function addSearchCommandWhereClause(&$q, $filter)
     {
         return $this->addStandardSearchCommandWhereClause($q, $filter);
     }

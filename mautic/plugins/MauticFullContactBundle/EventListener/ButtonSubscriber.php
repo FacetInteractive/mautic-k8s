@@ -32,6 +32,8 @@ class ButtonSubscriber extends CommonSubscriber
      */
     public function __construct(IntegrationHelper $helper)
     {
+        parent::__construct();
+
         $this->helper = $helper;
     }
 

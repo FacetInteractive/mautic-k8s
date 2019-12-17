@@ -15,6 +15,7 @@ use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\CoreBundle\Form\DataTransformer\IdToEntityModelTransformer;
 use Mautic\CoreBundle\Form\EventListener\CleanFormSubscriber;
 use Mautic\CoreBundle\Form\EventListener\FormExitSubscriber;
+use Mautic\LeadBundle\Entity\Lead;
 use Mautic\LeadBundle\Model\CompanyModel;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -48,6 +49,7 @@ class LeadType extends AbstractType
      */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        $builder->addEventSubscriber(new CleanFormSubscriber());
         $builder->addEventSubscriber(new FormExitSubscriber('lead.lead', $options));
 
         if (!$options['isShortForm']) {
@@ -105,8 +107,7 @@ class LeadType extends AbstractType
             );
         }
 
-        $cleaningRules          = $this->getFormFields($builder, $options);
-        $cleaningRules['email'] = 'email';
+        $this->getFormFields($builder, $options);
 
         $builder->add(
             'tags',
@@ -126,7 +127,7 @@ class LeadType extends AbstractType
         $companies       = $companyLeadRepo->getCompaniesByLeadId($options['data']->getId());
         $leadCompanies   = [];
         foreach ($companies as $company) {
-            $leadCompanies[(string) $company['company_id']] = (string) $company['company_id'];
+            $leadCompanies[$company['company_id']] = $company['company_id'];
         }
 
         $builder->add(
@@ -198,8 +199,6 @@ class LeadType extends AbstractType
                 ]
             );
         }
-
-        $builder->addEventSubscriber(new CleanFormSubscriber($cleaningRules));
 
         if (!empty($options['action'])) {
             $builder->setAction($options['action']);

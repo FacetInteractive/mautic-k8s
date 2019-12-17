@@ -15,7 +15,6 @@ use Mautic\CoreBundle\CoreEvents;
 use Mautic\CoreBundle\Event\BuildJsEvent;
 use Mautic\CoreBundle\EventListener\CommonSubscriber;
 use Mautic\NotificationBundle\Helper\NotificationHelper;
-use Mautic\PluginBundle\Helper\IntegrationHelper;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 /**
@@ -29,20 +28,13 @@ class BuildJsSubscriber extends CommonSubscriber
     protected $notificationHelper;
 
     /**
-     * @var IntegrationHelper
-     */
-    protected $integrationHelper;
-
-    /**
-     * BuildJsSubscriber constructor.
+     * PageSubscriber constructor.
      *
      * @param NotificationHelper $notificationHelper
-     * @param IntegrationHelper  $integrationHelper
      */
-    public function __construct(NotificationHelper $notificationHelper, IntegrationHelper $integrationHelper)
+    public function __construct(NotificationHelper $notificationHelper)
     {
         $this->notificationHelper = $notificationHelper;
-        $this->integrationHelper  = $integrationHelper;
     }
 
     /**
@@ -60,12 +52,6 @@ class BuildJsSubscriber extends CommonSubscriber
      */
     public function onBuildJs(BuildJsEvent $event)
     {
-        $integration = $this->integrationHelper->getIntegrationObject('OneSignal');
-
-        if (!$integration || $integration->getIntegrationSettings()->getIsPublished() === false) {
-            return;
-        }
-
         $subscribeUrl   = $this->router->generate('mautic_notification_popup', [], UrlGeneratorInterface::ABSOLUTE_URL);
         $subscribeTitle = 'Subscribe To Notifications';
         $width          = 450;

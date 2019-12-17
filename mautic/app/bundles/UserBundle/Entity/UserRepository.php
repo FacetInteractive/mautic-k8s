@@ -122,7 +122,7 @@ class UserRepository extends CommonRepository
      *
      * @return Paginator
      */
-    public function getEntities(array $args = [])
+    public function getEntities($args = [])
     {
         $q = $this
             ->createQueryBuilder('u')
@@ -203,31 +203,6 @@ class UserRepository extends CommonRepository
     }
 
     /**
-     * Return list of Users for formType Choice.
-     *
-     * @return array
-     */
-    public function getOwnerListChoices()
-    {
-        $q = $this->createQueryBuilder('u');
-
-        $q->select('partial u.{id, firstName, lastName}');
-
-        $q->andWhere('u.isPublished = true')
-            ->orderBy('u.firstName, u.lastName');
-
-        $users = $q->getQuery()->getResult();
-
-        $result = [];
-        /** @var User $user */
-        foreach ($users as $user) {
-            $result[$user->getId()] = $user->getName(true);
-        }
-
-        return $result;
-    }
-
-    /**
      * @param string $search
      * @param int    $limit
      * @param int    $start
@@ -260,7 +235,7 @@ class UserRepository extends CommonRepository
     /**
      * {@inheritdoc}
      */
-    protected function addCatchAllWhereClause($q, $filter)
+    protected function addCatchAllWhereClause(&$q, $filter)
     {
         return $this->addStandardCatchAllWhereClause(
             $q,
@@ -279,7 +254,7 @@ class UserRepository extends CommonRepository
     /**
      * {@inheritdoc}
      */
-    protected function addSearchCommandWhereClause($q, $filter)
+    protected function addSearchCommandWhereClause(&$q, $filter)
     {
         $command                 = $filter->command;
         $unique                  = $this->generateRandomParameterName();

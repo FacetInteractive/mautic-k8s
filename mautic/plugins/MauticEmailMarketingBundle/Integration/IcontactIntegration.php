@@ -191,7 +191,7 @@ class IcontactIntegration extends EmailAbstractIntegration
             $leadFields = [];
             foreach ($fields as $f) {
                 $leadFields[$f] = [
-                    'label'    => $this->translator->trans('mautic.icontact.field.'.$f),
+                    'label'    => $this->factory->getTranslator()->trans('mautic.icontact.field.'.$f),
                     'type'     => 'string',
                     'required' => ($f == 'email') ? true : false,
                 ];
@@ -214,10 +214,7 @@ class IcontactIntegration extends EmailAbstractIntegration
     }
 
     /**
-     * @param \Mautic\LeadBundle\Entity\Lead $lead
-     * @param array                          $config
-     *
-     * @return bool
+     * @param $lead
      */
     public function pushLead($lead, $config = [])
     {

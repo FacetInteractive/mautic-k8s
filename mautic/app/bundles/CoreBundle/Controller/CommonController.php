@@ -13,14 +13,11 @@ namespace Mautic\CoreBundle\Controller;
 
 use Exporter\Handler;
 use Exporter\Source\ArraySourceIterator;
-use Exporter\Source\IteratorSourceIterator;
 use Exporter\Writer\CsvWriter;
 use Exporter\Writer\XlsWriter;
 use Mautic\CoreBundle\Factory\MauticFactory;
 use Mautic\CoreBundle\Helper\CoreParametersHelper;
-use Mautic\CoreBundle\Helper\DataExporterHelper;
 use Mautic\CoreBundle\Helper\InputHelper;
-use Mautic\CoreBundle\Helper\TrailingSlashHelper;
 use Mautic\CoreBundle\Model\AbstractCommonModel;
 use Mautic\UserBundle\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -207,10 +204,6 @@ class CommonController extends Controller implements MauticController
             $args['viewParameters']['currentRoute'] = $args['passthroughVars']['route'];
         }
 
-        if (!isset($args['passthroughVars']['inBuilder']) && $inBuilder = $this->request->get('inBuilder')) {
-            $args['passthroughVars']['inBuilder'] = (bool) $inBuilder;
-        }
-
         if (!isset($args['viewParameters']['mauticContent'])) {
             if (isset($args['passthroughVars']['mauticContent'])) {
                 $mauticContent = $args['passthroughVars']['mauticContent'];
@@ -259,10 +252,12 @@ class CommonController extends Controller implements MauticController
      */
     public function removeTrailingSlashAction(Request $request)
     {
-        /** @var TrailingSlashHelper $trailingSlashHelper */
-        $trailingSlashHelper = $this->get('mautic.helper.trailing_slash');
+        $pathInfo   = $request->getPathInfo();
+        $requestUri = $request->getRequestUri();
 
-        return $this->redirect($trailingSlashHelper->getSafeRedirectUrl($request), 301);
+        $url = str_replace($pathInfo, rtrim($pathInfo, ' /'), $requestUri);
+
+        return $this->redirect($url, 301);
     }
 
     /**
@@ -557,38 +552,40 @@ class CommonController extends Controller implements MauticController
         }
         $name = 'mautic.'.$name;
 
-        if ($this->request->query->has('orderby')) {
-            $orderBy = InputHelper::clean($this->request->query->get('orderby'), true);
-            $dir     = $session->get("$name.orderbydir", 'ASC');
-            $dir     = ($dir == 'ASC') ? 'DESC' : 'ASC';
-            $session->set("$name.orderby", $orderBy);
-            $session->set("$name.orderbydir", $dir);
-        }
-
-        if ($this->request->query->has('limit')) {
-            $limit = InputHelper::int($this->request->query->get('limit'));
-            $session->set("$name.limit", $limit);
-        }
-
-        if ($this->request->query->has('filterby')) {
-            $filter  = InputHelper::clean($this->request->query->get('filterby'), true);
-            $value   = InputHelper::clean($this->request->query->get('value'), true);
-            $filters = $session->get("$name.filters", []);
-
-            if ($value == '') {
-                if (isset($filters[$filter])) {
-                    unset($filters[$filter]);
-                }
-            } else {
-                $filters[$filter] = [
-                    'column' => $filter,
-                    'expr'   => 'like',
-                    'value'  => $value,
-                    'strict' => false,
-                ];
+        if (!empty($name)) {
+            if ($this->request->query->has('orderby')) {
+                $orderBy = InputHelper::clean($this->request->query->get('orderby'), true);
+                $dir     = $session->get("$name.orderbydir", 'ASC');
+                $dir     = ($dir == 'ASC') ? 'DESC' : 'ASC';
+                $session->set("$name.orderby", $orderBy);
+                $session->set("$name.orderbydir", $dir);
             }
 
-            $session->set("$name.filters", $filters);
+            if ($this->request->query->has('limit')) {
+                $limit = InputHelper::int($this->request->query->get('limit'));
+                $session->set("$name.limit", $limit);
+            }
+
+            if ($this->request->query->has('filterby')) {
+                $filter  = InputHelper::clean($this->request->query->get('filterby'), true);
+                $value   = InputHelper::clean($this->request->query->get('value'), true);
+                $filters = $session->get("$name.filters", []);
+
+                if ($value == '') {
+                    if (isset($filters[$filter])) {
+                        unset($filters[$filter]);
+                    }
+                } else {
+                    $filters[$filter] = [
+                        'column' => $filter,
+                        'expr'   => 'like',
+                        'value'  => $value,
+                        'strict' => false,
+                    ];
+                }
+
+                $session->set("$name.filters", $filters);
+            }
         }
     }
 
@@ -620,7 +617,7 @@ class CommonController extends Controller implements MauticController
         /** @var \Mautic\CoreBundle\Model\NotificationModel $model */
         $model = $this->getModel('core.notification');
 
-        list($notifications, $showNewIndicator, $updateMessage) = $model->getNotificationContent($afterId, false, 200);
+        list($notifications, $showNewIndicator, $updateMessage) = $model->getNotificationContent($afterId);
 
         $lastNotification = reset($notifications);
 
@@ -780,27 +777,21 @@ class CommonController extends Controller implements MauticController
      *
      * @return StreamedResponse
      */
-    public function exportResultsAs($toExport, $type, $filename)
+    public function exportResultsAs(array $toExport, $type, $filename)
     {
         if (!in_array($type, ['csv', 'xlsx'])) {
             throw new \InvalidArgumentException($this->translator->trans('mautic.error.invalid.export.type', ['%type%' => $type]));
         }
 
-        if ($toExport instanceof \Iterator) {
-            $sourceIterator = new IteratorSourceIterator($toExport);
-        } else {
-            $sourceIterator = new ArraySourceIterator($toExport);
-        }
+        $dateFormat     = $this->coreParametersHelper->getParameter('date_format_dateonly');
+        $dateFormat     = str_replace('--', '-', preg_replace('/[^a-zA-Z]/', '-', $dateFormat));
+        $sourceIterator = new ArraySourceIterator($toExport);
+        $writer         = $type === 'xlsx' ? new XlsWriter('php://output') : new CsvWriter('php://output');
+        $contentType    = $type === 'xlsx' ? 'application/vnd.ms-excel' : 'text/csv';
+        $filename       = strtolower($filename.'_'.((new \DateTime())->format($dateFormat)).'.'.$type);
 
-        $dateFormat  = $this->coreParametersHelper->getParameter('date_format_dateonly');
-        $dateFormat  = str_replace('--', '-', preg_replace('/[^a-zA-Z]/', '-', $dateFormat));
-        $writer      = $type === 'xlsx' ? new XlsWriter('php://output') : new CsvWriter('php://output');
-        $contentType = $type === 'xlsx' ? 'application/vnd.ms-excel' : 'text/csv';
-        $filename    = strtolower($filename.'_'.((new \DateTime())->format($dateFormat)).'.'.$type);
-        $handler     = Handler::create($sourceIterator, $writer);
-
-        return new StreamedResponse(function () use ($handler) {
-            $handler->export();
+        return new StreamedResponse(function () use ($sourceIterator, $writer) {
+            Handler::create($sourceIterator, $writer)->export();
         }, 200, ['Content-Type' => $contentType, 'Content-Disposition' => sprintf('attachment; filename=%s', $filename)]);
     }
 
@@ -812,14 +803,49 @@ class CommonController extends Controller implements MauticController
      * @param AbstractCommonModel $model
      * @param array               $args
      * @param callable|null       $resultsCallback
-     * @param int|null            $start
      *
      * @return array
      */
-    protected function getDataForExport(AbstractCommonModel $model, array $args, callable $resultsCallback = null, $start = 0)
+    protected function getDataForExport(AbstractCommonModel $model, array $args, callable $resultsCallback = null)
     {
-        $data = new DataExporterHelper();
+        $args['limit'] = $args['limit'] < 200 ? 200 : $args['limit'];
+        $args['start'] = 0;
 
-        return $data->getDataForExport($start, $model, $args, $resultsCallback);
+        $results    = $model->getEntities($args);
+        $count      = $results['count'];
+        $items      = $results['results'];
+        $iterations = ceil($count / $args['limit']);
+        $loop       = 1;
+
+        // Max of 50 iterations for 10K result export
+        if ($iterations > 50) {
+            $iterations = 50;
+        }
+
+        $toExport = [];
+
+        unset($args['withTotalCount']);
+
+        while ($loop <= $iterations) {
+            if (is_callable($resultsCallback)) {
+                foreach ($items as $item) {
+                    $toExport[] = $resultsCallback($item);
+                }
+            } else {
+                foreach ($items as $item) {
+                    $toExport[] = (array) $item;
+                }
+            }
+
+            $args['start'] = $loop * $args['limit'];
+
+            $items = $model->getEntities($args);
+
+            $this->getDoctrine()->getManager()->clear();
+
+            ++$loop;
+        }
+
+        return $toExport;
     }
 }

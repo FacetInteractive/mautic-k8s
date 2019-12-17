@@ -27,10 +27,6 @@ class PointEventHelper
      */
     public static function validateEmail($eventDetails, $action)
     {
-        if (null === $eventDetails) {
-            return false;
-        }
-
         $emailId = $eventDetails->getId();
 
         if (isset($action['properties']['emails'])) {
@@ -49,8 +45,6 @@ class PointEventHelper
      * @param               $event
      * @param Lead          $lead
      * @param MauticFactory $factory
-     *
-     * @return bool
      */
     public static function sendEmail($event, Lead $lead, MauticFactory $factory)
     {
@@ -70,13 +64,9 @@ class PointEventHelper
                 $leadCredentials       = $leadModel->flattenFields($leadFields);
                 $leadCredentials['id'] = $lead->getId();
 
-                $options   = ['source' => ['trigger', $event['id']]];
-                $emailSent = $model->sendEmail($email, $leadCredentials, $options);
-
-                return is_array($emailSent) ? false : true;
+                $options = ['source' => ['trigger', $event['id']]];
+                $model->sendEmail($email, $leadCredentials, $options);
             }
         }
-
-        return false;
     }
 }
