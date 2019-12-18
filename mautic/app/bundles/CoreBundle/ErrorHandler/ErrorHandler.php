@@ -10,7 +10,6 @@
  */
 
 namespace Mautic\CoreBundle\ErrorHandler {
-
     use Mautic\CoreBundle\Exception\DatabaseConnectionException;
     use Mautic\CoreBundle\Exception\ErrorHandlerException;
     use Psr\Log\LoggerInterface;
@@ -127,6 +126,11 @@ namespace Mautic\CoreBundle\ErrorHandler {
          */
         public static function getHandler()
         {
+            if (!self::$handler) {
+                // Handler has not been created so likely coming in through browser-kit client for tests
+                self::register('prod');
+            }
+
             return self::$handler;
         }
 
@@ -209,6 +213,8 @@ namespace Mautic\CoreBundle\ErrorHandler {
             if ($returnContent) {
                 return $content;
             }
+
+            http_response_code(500);
 
             if (!empty($GLOBALS['MAUTIC_AJAX_DIRECT_RENDER'])) {
                 header('Content-Type: application/json');
@@ -413,11 +419,6 @@ namespace Mautic\CoreBundle\ErrorHandler {
          */
         protected function log($logLevel, $message, $context = [], $debugTrace = null)
         {
-            if ('dev' !== self::$environment) {
-                // Don't clutter the logs
-                $context = [];
-            }
-
             $message = strip_tags($message);
             if ($this->logger) {
                 if (LogLevel::DEBUG === $logLevel) {
@@ -428,7 +429,7 @@ namespace Mautic\CoreBundle\ErrorHandler {
                     if ($this->debugLogger) {
                         if ($debugTrace) {
                             // Just a snippet
-                            $context['trace'] = array_slice($debugTrace, 1, 5);
+                            $context['trace'] = array_slice($debugTrace, 0, 50);
                         }
                         $this->debugLogger->log($logLevel, $message, $context);
                     }
@@ -575,7 +576,6 @@ namespace Mautic\CoreBundle\ErrorHandler {
 }
 
 namespace {
-
     use Mautic\CoreBundle\ErrorHandler\ErrorHandler;
 
     if (!function_exists('debugIt')) {
@@ -589,6 +589,26 @@ namespace {
                     ErrorHandler::logDebugEntry($log, (empty($context)) ? [] : $context);
                 }
             }
+        }
+
+        // Call this at each point of interest, passing a descriptive string
+        function prof_flag($str)
+        {
+            global $prof_timing, $prof_names;
+            $prof_timing[] = microtime(true);
+            $prof_names[]  = $str;
+        }
+
+        // Call this when you're done and want to see the results
+        function prof_print()
+        {
+            global $prof_timing, $prof_names;
+            $size = count($prof_timing);
+            for ($i=0; $i < $size - 1; ++$i) {
+                echo "<b>{$prof_names[$i]}</b><br>";
+                echo sprintf('&nbsp;&nbsp;&nbsp;%f<br>', $prof_timing[$i + 1] - $prof_timing[$i]);
+            }
+            echo "<b>{$prof_names[$size - 1]}</b><br>";
         }
     }
 }

@@ -11,7 +11,6 @@
 
 namespace Mautic\CoreBundle\Helper;
 
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -23,6 +22,7 @@ class CookieHelper
     private $domain   = null;
     private $secure   = false;
     private $httponly = false;
+    private $request  = null;
 
     /**
      * CookieHelper constructor.
@@ -47,6 +47,21 @@ class CookieHelper
     }
 
     /**
+     * @param string $key
+     * @param mixed  $default
+     *
+     * @return mixed
+     */
+    public function getCookie($key, $default = null)
+    {
+        if ($this->request === null) {
+            return $default;
+        }
+
+        return $this->request->cookies->get($key, $default);
+    }
+
+    /**
      * @param      $name
      * @param      $value
      * @param int  $expire
@@ -57,14 +72,14 @@ class CookieHelper
      */
     public function setCookie($name, $value, $expire = 1800, $path = null, $domain = null, $secure = null, $httponly = null)
     {
-        if ($this->request == null) {
+        if ($this->request == null || (defined('MAUTIC_TEST_ENV') && MAUTIC_TEST_ENV)) {
             return true;
         }
 
         setcookie(
             $name,
             $value,
-            ($expire) ? time() + $expire : null,
+            ($expire) ? (int) (time() + $expire) : null,
             ($path == null) ? $this->path : $path,
             ($domain == null) ? $this->domain : $domain,
             ($secure == null) ? $this->secure : $secure,

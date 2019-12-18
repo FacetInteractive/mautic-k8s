@@ -14,6 +14,8 @@ namespace Mautic\CoreBundle\Doctrine\Mapping;
 use Doctrine\ORM\Mapping\Builder\ClassMetadataBuilder as OrmClassMetadataBuilder;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Mautic\CategoryBundle\Entity\Category;
+use Mautic\CoreBundle\Entity\IpAddress;
 
 /**
  * Class ClassMetadataBuilder.
@@ -132,6 +134,20 @@ class ClassMetadataBuilder extends OrmClassMetadataBuilder
     }
 
     /**
+     * Add UUID as Id.
+     *
+     * @return $this
+     */
+    public function addUuid()
+    {
+        $this->createField('id', 'guid')
+            ->makePrimaryKey()
+            ->build();
+
+        return $this;
+    }
+
+    /**
      * Add id, name, and description columns.
      *
      * @param string $nameColumn
@@ -164,7 +180,9 @@ class ClassMetadataBuilder extends OrmClassMetadataBuilder
      */
     public function addCategory()
     {
-        $this->createManyToOne('category', 'Mautic\CategoryBundle\Entity\Category')
+        $this->createManyToOne('category', Category::class)
+            ->cascadeMerge()
+            ->cascadeDetach()
             ->addJoinColumn('category_id', 'id', true, false, 'SET NULL')
             ->build();
 
@@ -281,9 +299,10 @@ class ClassMetadataBuilder extends OrmClassMetadataBuilder
      */
     public function addIpAddress($nullable = false)
     {
-        $this->createManyToOne('ipAddress', 'Mautic\CoreBundle\Entity\IpAddress')
+        $this->createManyToOne('ipAddress', IpAddress::class)
             ->cascadePersist()
             ->cascadeMerge()
+            ->cascadeDetach()
             ->addJoinColumn('ip_id', 'id', $nullable)
             ->build();
 
@@ -293,9 +312,9 @@ class ClassMetadataBuilder extends OrmClassMetadataBuilder
     /**
      * Add a nullable field.
      *
-     * @param        $name
-     * @param string $type
-     * @param null   $columnName
+     * @param string      $name
+     * @param string      $type
+     * @param string|null $columnName
      *
      * @return $this
      */

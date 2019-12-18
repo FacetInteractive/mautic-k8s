@@ -69,7 +69,10 @@ $view['slots']->set('mauticContent', 'asset');
 		    	<div class="col-md-6">
 		    		<div class="row">
 				    	<div class="form-group col-xs-12 preview">
-				    		<?php echo $view->render('MauticAssetBundle:Asset:preview.html.php', ['activeAsset' => $activeAsset, 'assetDownloadUrl' => $assetDownloadUrl]); ?>
+				    		<?php echo $view->render('MauticAssetBundle:Asset:preview.html.php', ['activeAsset' => $activeAsset, 'assetDownloadUrl' => $view['router']->generate(
+                                'mautic_asset_action',
+                                ['objectAction' => 'preview', 'objectId' => $activeAsset->getId()]
+                            )]); ?>
 			    		</div>
 		    		</div>
 		    	</div>
@@ -97,6 +100,7 @@ $view['slots']->set('mauticContent', 'asset');
                 echo $view['form']->row($form['isPublished']);
                 echo $view['form']->row($form['publishUp']);
                 echo $view['form']->row($form['publishDown']);
+                echo $view['form']->row($form['disallow']);
             ?>
 		</div>
 	</div>

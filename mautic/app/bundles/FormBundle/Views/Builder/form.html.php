@@ -8,20 +8,49 @@
  *
  * @license     GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
-$formName = '_'.$form->generateFormName();
+$formName = '_'.$form->generateFormName().(isset($suffix) ? $suffix : '');
 if (!isset($fields)) {
     $fields = $form->getFields();
 }
 $pageCount = 1;
+
+if (!isset($inBuilder)) {
+    $inBuilder = false;
+}
+
+if (!isset($action)) {
+    $action = $view['router']->url('mautic_form_postresults', ['formId' => $form->getId()]);
+}
+
+if (!isset($theme)) {
+    $theme = '';
+}
+
+if (!isset($contactFields)) {
+    $contactFields = $companyFields = [];
+}
+
+if (!isset($style)) {
+    $style = '';
+}
+
+if (!isset($isAjax)) {
+    $isAjax = true;
+}
+
+if (!isset($submissions)) {
+    $submissions = null;
+}
+
+if (!isset($lead)) {
+    $lead = null;
+}
 ?>
 
 <?php echo $style; ?>
 
 <div id="mauticform_wrapper<?php echo $formName ?>" class="mauticform_wrapper">
-    <form autocomplete="false" role="form" method="post" action="<?php echo $view['router']->url(
-        'mautic_form_postresults',
-        ['formId' => $form->getId()]
-    ); ?>" id="mauticform<?php echo $formName ?>" data-mautic-form="<?php echo ltrim($formName, '_') ?>">
+    <form autocomplete="false" role="form" method="post" action="<?php echo  $action; ?>" id="mauticform<?php echo $formName ?>" <?php if ($isAjax): ?> data-mautic-form="<?php echo ltrim($formName, '_') ?>"<?php endif; ?> enctype="multipart/form-data" <?php echo $form->getFormAttributes(); ?>>
         <div class="mauticform-error" id="mauticform<?php echo $formName ?>_error"></div>
         <div class="mauticform-message" id="mauticform<?php echo $formName ?>_message"></div>
         <div class="mauticform-innerform">
@@ -45,6 +74,9 @@ $pageCount = 1;
 
                         $template = $params['template'];
                     else:
+                        if (!$f->getShowWhenValueExists() && $f->getLeadField() && $f->getIsAutoFill() && $lead && !empty($lead->getFieldValue($f->getLeadField()))) {
+                            $f->setType('hidden');
+                        }
                         $template = 'MauticFormBundle:Field:'.$f->getType().'.html.php';
                     endif;
 
@@ -56,6 +88,8 @@ $pageCount = 1;
                             'formName'      => $formName,
                             'fieldPage'     => ($pageCount - 1), // current page,
                             'contactFields' => $contactFields,
+                            'companyFields' => $companyFields,
+                            'inBuilder'     => $inBuilder,
                         ]
                     );
                 endif;
@@ -70,8 +104,10 @@ $pageCount = 1;
             ?>
         </div>
 
-        <input type="hidden" name="mauticform[formId]" id="mauticform<?php echo $formName ?>_id" value="<?php echo $form->getId(); ?>"/>
+        <input type="hidden" name="mauticform[formId]" id="mauticform<?php echo $formName ?>_id" value="<?php echo $view->escape($form->getId()); ?>"/>
         <input type="hidden" name="mauticform[return]" id="mauticform<?php echo $formName ?>_return" value=""/>
-        <input type="hidden" name="mauticform[formName]" id="mauticform<?php echo $formName ?>_name" value="<?php echo ltrim($formName, '_'); ?>"/>
+        <input type="hidden" name="mauticform[formName]" id="mauticform<?php echo $formName ?>_name" value="<?php echo $view->escape(ltrim($formName, '_')); ?>"/>
+
+        <?php echo (isset($formExtra)) ? $formExtra : ''; ?>
 </form>
 </div>

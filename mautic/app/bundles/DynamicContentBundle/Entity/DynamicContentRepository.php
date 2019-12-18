@@ -13,6 +13,7 @@ namespace Mautic\DynamicContentBundle\Entity;
 
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Mautic\CoreBundle\Entity\CommonRepository;
+use Mautic\CoreBundle\Helper\Serializer;
 
 /**
  * DynamicContentRepository.
@@ -26,7 +27,7 @@ class DynamicContentRepository extends CommonRepository
      *
      * @return Paginator
      */
-    public function getEntities($args = [])
+    public function getEntities(array $args = [])
     {
         $q = $this->_em
             ->createQueryBuilder()
@@ -43,12 +44,12 @@ class DynamicContentRepository extends CommonRepository
     }
 
     /**
-     * @param QueryBuilder $q
-     * @param              $filter
+     * @param \Doctrine\ORM\QueryBuilder|\Doctrine\DBAL\Query\QueryBuilder $q
+     * @param                                                              $filter
      *
      * @return array
      */
-    protected function addSearchCommandWhereClause(&$q, $filter)
+    protected function addSearchCommandWhereClause($q, $filter)
     {
         list($expr, $parameters) = $this->addStandardSearchCommandWhereClause($q, $filter);
         if ($expr) {
@@ -152,10 +153,11 @@ class DynamicContentRepository extends CommonRepository
      * @param bool   $viewOther
      * @param bool   $topLevel
      * @param array  $ignoreIds
+     * @param string $where
      *
      * @return array
      */
-    public function getDynamicContentList($search = '', $limit = 10, $start = 0, $viewOther = false, $topLevel = false, $ignoreIds = [])
+    public function getDynamicContentList($search = '', $limit = 10, $start = 0, $viewOther = false, $topLevel = false, $ignoreIds = [], $where = null)
     {
         $q = $this->createQueryBuilder('e');
         $q->select('partial e.{id, name, language}');
@@ -188,6 +190,10 @@ class DynamicContentRepository extends CommonRepository
                 ->setParameter('dwc_ids', $ignoreIds);
         }
 
+        if ($where) {
+            $q->andWhere($where);
+        }
+
         $q->orderBy('e.name');
 
         if (!empty($limit)) {
@@ -218,7 +224,7 @@ class DynamicContentRepository extends CommonRepository
         $result = $qb->execute()->fetchAll();
 
         foreach ($result as $item) {
-            $properties = unserialize($item['properties']);
+            $properties = Serializer::decode($item['properties']);
 
             if (isset($properties['dynamicContent'])) {
                 $dwc = $this->getEntity($properties['dynamicContent']);

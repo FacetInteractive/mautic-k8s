@@ -15,6 +15,7 @@ use Doctrine\DBAL\Migrations\SkipMigrationException;
 use Doctrine\DBAL\Schema\Schema;
 use Mautic\CoreBundle\Doctrine\AbstractMauticMigration;
 use Mautic\CoreBundle\Helper\DateTimeHelper;
+use Mautic\CoreBundle\Helper\Serializer;
 use Mautic\FormBundle\Entity\Action;
 use Mautic\PageBundle\Entity\Redirect;
 
@@ -57,7 +58,7 @@ class Version20150521000000 extends AbstractMauticMigration
         $results = $q->execute()->fetchAll();
 
         foreach ($results as $r) {
-            $properties = unserialize($r['properties']);
+            $properties = Serializer::decode($r['properties']);
             if (is_array($properties) && !empty($properties['message'])) {
                 $this->connection->update(MAUTIC_TABLE_PREFIX.'forms',
                     [
@@ -115,7 +116,7 @@ class Version20150521000000 extends AbstractMauticMigration
         $deleteActions    = [];
         foreach ($actions as $action) {
             try {
-                $properties = unserialize($action['properties']);
+                $properties = Serializer::decode($action['properties']);
 
                 foreach ($properties['mappedFields'] as $leadFieldId => $formFieldId) {
                     if (!empty($formFieldId)) {
@@ -318,8 +319,7 @@ class Version20150521000000 extends AbstractMauticMigration
             $persistListEmails = $persistTemplateEmails = $variants = [];
 
             // Clone since the ID may be in a bunch of serialized properties then convert new to a list based email
-            while (($row = $emails->next()) !== false) {
-
+            while (false !== ($row = $emails->next())) {
                 /** @var \Mautic\EmailBundle\Entity\Email $templateEmail */
                 $templateEmail = reset($row);
                 $id            = $templateEmail->getId();
@@ -521,7 +521,7 @@ class Version20150521000000 extends AbstractMauticMigration
         $this->addSql('ALTER TABLE '.$this->prefix.'forms ADD COLUMN render_style bool DEFAULT NULL');
 
         $this->addSql(
-            'CREATE TABLE '.$this->prefix.'email_assets_xref (email_id INT NOT NULL, asset_id INT NOT NULL, INDEX '.$this->generatePropertyName('email_assets_xref', 'idx', ['email_id']).'  (email_id), INDEX '.$this->generatePropertyName('email_assets_xref', 'idx', ['asset_id']).'  (asset_id), PRIMARY KEY(email_id, asset_id)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB'
+            'CREATE TABLE IF NOT EXISTS '.$this->prefix.'email_assets_xref (email_id INT NOT NULL, asset_id INT NOT NULL, INDEX '.$this->generatePropertyName('email_assets_xref', 'idx', ['email_id']).'  (email_id), INDEX '.$this->generatePropertyName('email_assets_xref', 'idx', ['asset_id']).'  (asset_id), PRIMARY KEY(email_id, asset_id)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB'
         );
         $this->addSql('ALTER TABLE '.$this->prefix.'email_assets_xref ADD CONSTRAINT '.$this->generatePropertyName('email_assets_xref', 'fk', ['email_id']).'  FOREIGN KEY (email_id) REFERENCES '.$this->prefix.'emails (id)');
         $this->addSql('ALTER TABLE '.$this->prefix.'email_assets_xref ADD CONSTRAINT '.$this->generatePropertyName('email_assets_xref', 'fk', ['asset_id']).'  FOREIGN KEY (asset_id) REFERENCES '.$this->prefix.'assets (id)');
@@ -557,7 +557,7 @@ class Version20150521000000 extends AbstractMauticMigration
 
         $this->addSql('ALTER TABLE '.$this->prefix.'forms ADD form_type VARCHAR(255) DEFAULT NULL');
 
-        $this->addSql('CREATE TABLE '.$this->prefix.'campaign_form_xref (campaign_id INT NOT NULL, form_id INT NOT NULL, INDEX '.$this->generatePropertyName('campaign_form_xref', 'idx', ['campaign_id']).' (campaign_id), INDEX '.$this->generatePropertyName('campaign_form_xref', 'idx', ['form_id']).' (form_id), PRIMARY KEY(campaign_id, form_id)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB');
+        $this->addSql('CREATE TABLE IF NOT EXISTS '.$this->prefix.'campaign_form_xref (campaign_id INT NOT NULL, form_id INT NOT NULL, INDEX '.$this->generatePropertyName('campaign_form_xref', 'idx', ['campaign_id']).' (campaign_id), INDEX '.$this->generatePropertyName('campaign_form_xref', 'idx', ['form_id']).' (form_id), PRIMARY KEY(campaign_id, form_id)) DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE = InnoDB');
         $this->addSql('ALTER TABLE '.$this->prefix.'campaign_form_xref ADD CONSTRAINT '.$this->generatePropertyName('campaign_form_xref', 'fk', ['campaign_id']).' FOREIGN KEY (campaign_id) REFERENCES '.$this->prefix.'campaigns (id) ON DELETE CASCADE');
         $this->addSql('ALTER TABLE '.$this->prefix.'campaign_form_xref ADD CONSTRAINT '.$this->generatePropertyName('campaign_form_xref', 'fk', ['form_id']).' FOREIGN KEY (form_id) REFERENCES '.$this->prefix.'forms (id) ON DELETE CASCADE');
     }

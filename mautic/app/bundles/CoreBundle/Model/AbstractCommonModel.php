@@ -15,12 +15,16 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Mautic\CoreBundle\Entity\CommonRepository;
 use Mautic\CoreBundle\Factory\MauticFactory;
+use Mautic\CoreBundle\Helper\ClickthroughHelper;
+use Mautic\CoreBundle\Helper\CoreParametersHelper;
 use Mautic\CoreBundle\Helper\UserHelper;
 use Mautic\CoreBundle\Security\Permissions\CorePermissions;
+use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Routing\Router;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Intl\Intl;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Translation\TranslatorInterface;
 
 /**
@@ -78,9 +82,14 @@ abstract class AbstractCommonModel
     protected $userHelper;
 
     /**
-     * @var LoggerInterface
+     * @var Logger
      */
     protected $logger;
+
+    /**
+     * @var CoreParametersHelper
+     */
+    protected $coreParametersHelper;
 
     /**
      * @param EntityManager $em
@@ -138,6 +147,16 @@ abstract class AbstractCommonModel
     public function setUserHelper(UserHelper $userHelper)
     {
         $this->userHelper = $userHelper;
+    }
+
+    /**
+     * Initialize the CoreParameters parameter.
+     *
+     * @param CoreParametersHelper $coreParametersHelper
+     */
+    public function setCoreParametersHelper(CoreParametersHelper $coreParametersHelper)
+    {
+        $this->coreParametersHelper = $coreParametersHelper;
     }
 
     /**
@@ -240,7 +259,7 @@ abstract class AbstractCommonModel
      */
     public function encodeArrayForUrl($array)
     {
-        return urlencode(base64_encode(serialize($array)));
+        return ClickthroughHelper::encodeArrayForUrl((array) $array);
     }
 
     /**
@@ -253,14 +272,7 @@ abstract class AbstractCommonModel
      */
     public function decodeArrayFromUrl($string, $urlDecode = true)
     {
-        $raw     = $urlDecode ? urldecode($string) : $string;
-        $decoded = base64_decode($raw);
-
-        if (strpos(strtolower($decoded), 'a') !== 0) {
-            throw new \InvalidArgumentException(sprintf('The string %s is not a serialized array.', $decoded));
-        }
-
-        return unserialize($decoded);
+        return ClickthroughHelper::decodeArrayFromUrl($string, $urlDecode);
     }
 
     /**
@@ -268,12 +280,15 @@ abstract class AbstractCommonModel
      * @param array $routeParams
      * @param bool  $absolute
      * @param array $clickthrough
+     * @param array $utmTags
      *
      * @return string
      */
-    public function buildUrl($route, $routeParams = [], $absolute = true, $clickthrough = [])
+    public function buildUrl($route, $routeParams = [], $absolute = true, $clickthrough = [], $utmTags = [])
     {
-        $url = $this->router->generate($route, $routeParams, $absolute);
+        $referenceType = ($absolute) ? UrlGeneratorInterface::ABSOLUTE_URL : UrlGeneratorInterface::ABSOLUTE_PATH;
+        $url           = $this->router->generate($route, $routeParams, $referenceType);
+
         $url .= (!empty($clickthrough)) ? '?ct='.$this->encodeArrayForUrl($clickthrough) : '';
 
         return $url;

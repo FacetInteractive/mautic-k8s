@@ -12,6 +12,7 @@
 namespace Mautic\FormBundle\Helper;
 
 use Mautic\CoreBundle\Helper\AbstractFormFieldHelper;
+use Mautic\FormBundle\Entity\Field;
 use Symfony\Component\Translation\TranslatorInterface;
 use Symfony\Component\Validator\Constraints\Blank;
 use Symfony\Component\Validator\Constraints\Email;
@@ -75,6 +76,7 @@ class FormFieldHelper extends AbstractFormFieldHelper
                 Url::class => ['message' => 'mautic.form.submission.url.invalid'],
             ],
         ],
+        'file' => [],
     ];
 
     /**
@@ -144,9 +146,9 @@ class FormFieldHelper extends AbstractFormFieldHelper
     }
 
     /**
-     * @param      $type
-     * @param      $value
-     * @param null $f
+     * @param       $type
+     * @param       $value
+     * @param Field $f
      *
      * @return array
      */
@@ -210,14 +212,14 @@ class FormFieldHelper extends AbstractFormFieldHelper
             case 'email':
             case 'hidden':
                 if (preg_match('/<input(.*?)id="mauticform_input_'.$formName.'_'.$alias.'"(.*?)value="(.*?)"(.*?)\/>/i', $formHtml, $match)) {
-                    $replace = '<input'.$match[1].'id="mauticform_input_'.$formName.'_'.$alias.'"'.$match[2].'value="'.urldecode($value).'"'
+                    $replace = '<input'.$match[1].'id="mauticform_input_'.$formName.'_'.$alias.'"'.$match[2].'value="'.$this->sanitizeValue($value).'"'
                         .$match[4].'/>';
                     $formHtml = str_replace($match[0], $replace, $formHtml);
                 }
                 break;
             case 'textarea':
                 if (preg_match('/<textarea(.*?)id="mauticform_input_'.$formName.'_'.$alias.'"(.*?)>(.*?)<\/textarea>/i', $formHtml, $match)) {
-                    $replace  = '<textarea'.$match[1].'id="mauticform_input_'.$formName.'_'.$alias.'"'.$match[2].'>'.urldecode($value).'</textarea>';
+                    $replace  = '<textarea'.$match[1].'id="mauticform_input_'.$formName.'_'.$alias.'"'.$match[2].'>'.$this->sanitizeValue($value).'</textarea>';
                     $formHtml = str_replace($match[0], $replace, $formHtml);
                 }
                 break;
@@ -229,26 +231,57 @@ class FormFieldHelper extends AbstractFormFieldHelper
                 }
 
                 foreach ($value as $val) {
-                    $val = urldecode($val);
+                    $val = $this->sanitizeValue($val);
                     if (preg_match(
-                        '/<input(.*?)id="mauticform_checkboxgrp_checkbox(.*?)"(.*?)value="'.$val.'"(.*?)\/>/i',
+                        '/<input(.*?)id="mauticform_checkboxgrp_checkbox_'.$alias.'(.*?)"(.*?)value="'.$val.'"(.*?)\/>/i',
                         $formHtml,
                         $match
                     )) {
-                        $replace = '<input'.$match[1].'id="mauticform_checkboxgrp_checkbox'.$match[2].'"'.$match[3].'value="'.$val.'"'
+                        $replace = '<input'.$match[1].'id="mauticform_checkboxgrp_checkbox_'.$alias.$match[2].'"'.$match[3].'value="'.$val.'"'
                             .$match[4].' checked />';
                         $formHtml = str_replace($match[0], $replace, $formHtml);
                     }
                 }
                 break;
             case 'radiogrp':
-                $value = urldecode($value);
-                if (preg_match('/<input(.*?)id="mauticform_radiogrp_radio(.*?)"(.*?)value="'.$value.'"(.*?)\/>/i', $formHtml, $match)) {
-                    $replace = '<input'.$match[1].'id="mauticform_radiogrp_radio'.$match[2].'"'.$match[3].'value="'.$value.'"'.$match[4]
+                $value = $this->sanitizeValue($value);
+                if (preg_match('/<input(.*?)id="mauticform_radiogrp_radio_'.$alias.'(.*?)"(.*?)value="'.$value.'"(.*?)\/>/i', $formHtml, $match)) {
+                    $replace = '<input'.$match[1].'id="mauticform_radiogrp_radio_'.$alias.$match[2].'"'.$match[3].'value="'.$value.'"'.$match[4]
                         .' checked />';
                     $formHtml = str_replace($match[0], $replace, $formHtml);
                 }
                 break;
+            case 'select':
+            case 'country':
+                $regex = '/<select\s*id="mauticform_input_'.$formName.'_'.$alias.'"(.*?)<\/select>/is';
+                if (preg_match($regex, $formHtml, $match)) {
+                    $origText = $match[0];
+                    $replace  = str_replace(
+                        '<option value="'.$this->sanitizeValue($value).'">',
+                        '<option value="'.$this->sanitizeValue($value).'" selected="selected">',
+                        $origText
+                    );
+                    $formHtml = str_replace($origText, $replace, $formHtml);
+                }
+
+                break;
         }
+    }
+
+    /**
+     * @param string $value
+     *
+     * @return string
+     */
+    public function sanitizeValue($value)
+    {
+        $valueType = gettype($value);
+        $value     = str_replace(['"', '>', '<'], ['&quot;', '&gt;', '&lt;'], strip_tags(urldecode($value)));
+        // for boolean expect 0 or 1
+        if ($valueType === 'boolean') {
+            return (int) $value;
+        }
+
+        return $value;
     }
 }

@@ -243,6 +243,7 @@ class FormEntity extends CommonEntity
      */
     public function setDateModified($dateModified)
     {
+        $this->isChanged('dateModified', $dateModified);
         $this->dateModified = $dateModified;
 
         return $this;
@@ -386,9 +387,9 @@ class FormEntity extends CommonEntity
      */
     public function setIsPublished($isPublished)
     {
-        $this->isChanged('isPublished', $isPublished);
+        $this->isChanged('isPublished', (bool) $isPublished);
 
-        $this->isPublished = $isPublished;
+        $this->isPublished = (bool) $isPublished;
 
         return $this;
     }
@@ -483,25 +484,37 @@ class FormEntity extends CommonEntity
 
     /**
      * @param mixed $createdByUser
+     *
+     * @return $this
      */
     public function setCreatedByUser($createdByUser)
     {
         $this->createdByUser = $createdByUser;
+
+        return $this;
     }
 
     /**
      * @param mixed $modifiedByUser
+     *
+     * @return $this
      */
     public function setModifiedByUser($modifiedByUser)
     {
         $this->modifiedByUser = $modifiedByUser;
+
+        return $this;
     }
 
     /**
      * @param mixed $checkedOutByUser
+     *
+     * @return $this
      */
     public function setCheckedOutByUser($checkedOutByUser)
     {
         $this->checkedOutByUser = $checkedOutByUser;
+
+        return $this;
     }
 }

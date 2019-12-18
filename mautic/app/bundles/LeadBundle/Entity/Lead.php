@@ -17,17 +17,21 @@ use Mautic\ApiBundle\Serializer\Driver\ApiMetadataDriver;
 use Mautic\CoreBundle\Doctrine\Mapping\ClassMetadataBuilder;
 use Mautic\CoreBundle\Entity\FormEntity;
 use Mautic\CoreBundle\Entity\IpAddress;
+use Mautic\LeadBundle\DataObject\LeadManipulator;
 use Mautic\LeadBundle\Model\FieldModel;
 use Mautic\NotificationBundle\Entity\PushID;
 use Mautic\StageBundle\Entity\Stage;
 use Mautic\UserBundle\Entity\User;
 
-/**
- * Class Lead.
- */
 class Lead extends FormEntity implements CustomFieldEntityInterface
 {
     use CustomFieldEntityTrait;
+
+    const FIELD_ALIAS     = '';
+    const POINTS_ADD      = 'plus';
+    const POINTS_SUBTRACT = 'minus';
+    const POINTS_MULTIPLY = 'times';
+    const POINTS_DIVIDE   = 'divide';
 
     /**
      * Used to determine social identity.
@@ -127,9 +131,24 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
     private $points = 0;
 
     /**
+     * @var array
+     */
+    private $pointChanges = [];
+
+    /**
+     * @var int|null
+     */
+    private $updatedPoints = null;
+
+    /**
      * @var ArrayCollection
      */
     private $pointsChangeLog;
+
+    /**
+     * @var null
+     */
+    private $actualPoints = null;
 
     /**
      * @var ArrayCollection
@@ -150,6 +169,11 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
      * @var ArrayCollection
      */
     private $pushIds;
+
+    /**
+     * @var ArrayCollection
+     */
+    private $eventLog;
 
     /**
      * @var \DateTime
@@ -174,6 +198,11 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
     private $color;
 
     /**
+     * @var LeadManipulator
+     */
+    private $manipulator = null;
+
+    /**
      * Sets if the IP was just created by LeadModel::getCurrentLead().
      *
      * @var bool
@@ -193,7 +222,7 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
     /**
      * @var string
      */
-    private $preferredProfileImage;
+    private $preferredProfileImage = 'gravatar';
 
     /**
      * @var bool
@@ -237,13 +266,11 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
      */
     private $channelRules = [];
 
-    /**
-     * Constructor.
-     */
     public function __construct()
     {
         $this->ipAddresses      = new ArrayCollection();
         $this->pushIds          = new ArrayCollection();
+        $this->eventLog         = new ArrayCollection();
         $this->doNotContact     = new ArrayCollection();
         $this->pointsChangeLog  = new ArrayCollection();
         $this->tags             = new ArrayCollection();
@@ -260,137 +287,153 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
         $builder = new ClassMetadataBuilder($metadata);
 
         $builder->setTable('leads')
-                ->setCustomRepositoryClass('Mautic\LeadBundle\Entity\LeadRepository')
-                ->addLifecycleEvent('checkDateIdentified', 'preUpdate')
-                ->addLifecycleEvent('checkDateIdentified', 'prePersist')
-                ->addLifecycleEvent('checkAttributionDate', 'preUpdate')
-                ->addLifecycleEvent('checkAttributionDate', 'prePersist')
-                ->addIndex(['date_added'], 'lead_date_added');
+            ->setCustomRepositoryClass('Mautic\LeadBundle\Entity\LeadRepository')
+            ->addLifecycleEvent('checkDateIdentified', 'preUpdate')
+            ->addLifecycleEvent('checkDateIdentified', 'prePersist')
+            ->addLifecycleEvent('checkAttributionDate', 'preUpdate')
+            ->addLifecycleEvent('checkAttributionDate', 'prePersist')
+            ->addLifecycleEvent('checkDateAdded', 'prePersist')
+            ->addIndex(['date_added'], 'lead_date_added')
+            ->addIndex(['date_identified'], 'date_identified');
 
         $builder->createField('id', 'integer')
-                ->isPrimaryKey()
-                ->generatedValue()
-                ->build();
+            ->makePrimaryKey()
+            ->generatedValue()
+            ->build();
 
         $builder->createManyToOne('owner', 'Mautic\UserBundle\Entity\User')
-                ->addJoinColumn('owner_id', 'id', true, false, 'SET NULL')
-                ->build();
+            ->fetchLazy()
+            ->addJoinColumn('owner_id', 'id', true, false, 'SET NULL')
+            ->build();
 
         $builder->createField('points', 'integer')
-                ->build();
+            ->build();
 
         $builder->createOneToMany('pointsChangeLog', 'PointsChangeLog')
-                ->orphanRemoval()
-                ->setOrderBy(['dateAdded' => 'DESC'])
-                ->mappedBy('lead')
-                ->cascadeAll()
-                ->fetchExtraLazy()
-                ->build();
+            ->orphanRemoval()
+            ->setOrderBy(['dateAdded' => 'DESC'])
+            ->mappedBy('lead')
+            ->cascadeAll()
+            ->fetchExtraLazy()
+            ->build();
 
         $builder->createOneToMany('companyChangeLog', 'CompanyChangeLog')
-                ->orphanRemoval()
-                ->setOrderBy(['dateAdded' => 'DESC'])
-                ->mappedBy('lead')
-                ->cascadeAll()
-                ->fetchExtraLazy()
-                ->build();
+            ->orphanRemoval()
+            ->setOrderBy(['dateAdded' => 'DESC'])
+            ->mappedBy('lead')
+            ->cascadeAll()
+            ->fetchExtraLazy()
+            ->build();
 
         $builder->createOneToMany('doNotContact', 'Mautic\LeadBundle\Entity\DoNotContact')
-                ->orphanRemoval()
-                ->mappedBy('lead')
-                ->cascadePersist()
-                ->fetchExtraLazy()
-                ->build();
+            ->orphanRemoval()
+            ->mappedBy('lead')
+            ->cascadePersist()
+            ->cascadeDetach()
+            ->cascadeMerge()
+            ->fetchExtraLazy()
+            ->build();
 
         $builder->createManyToMany('ipAddresses', 'Mautic\CoreBundle\Entity\IpAddress')
-                ->setJoinTable('lead_ips_xref')
-                ->addInverseJoinColumn('ip_id', 'id', false)
-                ->addJoinColumn('lead_id', 'id', false, false, 'CASCADE')
-                ->setIndexBy('ipAddress')
-                ->cascadeMerge()
-                ->cascadePersist()
-                ->cascadeDetach()
-                ->build();
+            ->setJoinTable('lead_ips_xref')
+            ->addInverseJoinColumn('ip_id', 'id', false)
+            ->addJoinColumn('lead_id', 'id', false, false, 'CASCADE')
+            ->setIndexBy('ipAddress')
+            ->cascadeDetach()
+            ->cascadeMerge()
+            ->cascadePersist()
+            ->build();
 
         $builder->createOneToMany('pushIds', 'Mautic\NotificationBundle\Entity\PushID')
-                ->orphanRemoval()
-                ->mappedBy('lead')
-                ->cascadeAll()
-                ->fetchExtraLazy()
-                ->build();
+            ->orphanRemoval()
+            ->mappedBy('lead')
+            ->cascadeAll()
+            ->fetchExtraLazy()
+            ->build();
+
+        $builder->createOneToMany('eventLog', LeadEventLog::class)
+            ->mappedBy('lead')
+            ->cascadePersist()
+            ->cascadeMerge()
+            ->cascadeDetach()
+            ->fetchExtraLazy()
+            ->build();
 
         $builder->createField('lastActive', 'datetime')
-                ->columnName('last_active')
-                ->nullable()
-                ->build();
+            ->columnName('last_active')
+            ->nullable()
+            ->build();
 
         $builder->createField('internal', 'array')
-                ->nullable()
-                ->build();
+            ->nullable()
+            ->build();
 
         $builder->createField('socialCache', 'array')
-                ->columnName('social_cache')
-                ->nullable()
-                ->build();
+            ->columnName('social_cache')
+            ->nullable()
+            ->build();
 
         $builder->createField('dateIdentified', 'datetime')
-                ->columnName('date_identified')
-                ->nullable()
-                ->build();
+            ->columnName('date_identified')
+            ->nullable()
+            ->build();
 
         $builder->createOneToMany('notes', 'LeadNote')
-                ->orphanRemoval()
-                ->setOrderBy(['dateAdded' => 'DESC'])
-                ->mappedBy('lead')
-                ->fetchExtraLazy()
-                ->build();
+            ->orphanRemoval()
+            ->setOrderBy(['dateAdded' => 'DESC'])
+            ->mappedBy('lead')
+            ->cascadeDetach()
+            ->cascadeMerge()
+            ->fetchExtraLazy()
+            ->build();
 
         $builder->createField('preferredProfileImage', 'string')
-                ->columnName('preferred_profile_image')
-                ->nullable()
-                ->build();
+            ->columnName('preferred_profile_image')
+            ->nullable()
+            ->build();
 
         $builder->createManyToMany('tags', 'Mautic\LeadBundle\Entity\Tag')
-                ->setJoinTable('lead_tags_xref')
-                ->addInverseJoinColumn('tag_id', 'id', false)
-                ->addJoinColumn('lead_id', 'id', false, false, 'CASCADE')
-                ->setOrderBy(['tag' => 'ASC'])
-                ->setIndexBy('tag')
-                ->fetchLazy()
-                ->cascadeMerge()
-                ->cascadePersist()
-                ->cascadeDetach()
-                ->build();
+            ->setJoinTable('lead_tags_xref')
+            ->addInverseJoinColumn('tag_id', 'id', false)
+            ->addJoinColumn('lead_id', 'id', false, false, 'CASCADE')
+            ->setOrderBy(['tag' => 'ASC'])
+            ->setIndexBy('tag')
+            ->fetchLazy()
+            ->cascadeMerge()
+            ->cascadePersist()
+            ->cascadeDetach()
+            ->build();
 
         $builder->createManyToOne('stage', 'Mautic\StageBundle\Entity\Stage')
-                ->cascadePersist()
-                ->cascadeMerge()
-                ->addJoinColumn('stage_id', 'id', true, false, 'SET NULL')
-                ->build();
+            ->cascadePersist()
+            ->cascadeMerge()
+            ->cascadeDetach()
+            ->addJoinColumn('stage_id', 'id', true, false, 'SET NULL')
+            ->build();
 
         $builder->createOneToMany('stageChangeLog', 'StagesChangeLog')
-                ->orphanRemoval()
-                ->setOrderBy(['dateAdded' => 'DESC'])
-                ->mappedBy('lead')
-                ->cascadeAll()
-                ->fetchExtraLazy()
-                ->build();
+            ->orphanRemoval()
+            ->setOrderBy(['dateAdded' => 'DESC'])
+            ->mappedBy('lead')
+            ->cascadeAll()
+            ->fetchExtraLazy()
+            ->build();
 
         $builder->createOneToMany('utmtags', 'Mautic\LeadBundle\Entity\UtmTag')
-                ->orphanRemoval()
-                ->mappedBy('lead')
-                ->cascadeAll()
-                ->fetchExtraLazy()
-                ->build();
+            ->orphanRemoval()
+            ->mappedBy('lead')
+            ->cascadeAll()
+            ->fetchExtraLazy()
+            ->build();
 
         $builder->createOneToMany('frequencyRules', 'Mautic\LeadBundle\Entity\FrequencyRule')
-                ->orphanRemoval()
-                ->setIndexBy('channel')
-                ->setOrderBy(['dateAdded' => 'DESC'])
-                ->mappedBy('lead')
-                ->cascadeAll()
-                ->fetchExtraLazy()
-                ->build();
+            ->orphanRemoval()
+            ->setIndexBy('channel')
+            ->setOrderBy(['dateAdded' => 'DESC'])
+            ->mappedBy('lead')
+            ->cascadeAll()
+            ->fetchExtraLazy()
+            ->build();
 
         self::loadFixedFieldMetadata(
             $builder,
@@ -447,29 +490,29 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
                 ]
             )
             ->setGroupPrefix('lead')
-                 ->addListProperties(
-                     [
-                         'id',
-                         'points',
-                         'color',
-                         'fields',
-                     ]
-                 )
-                 ->addProperties(
-                     [
-                         'lastActive',
-                         'owner',
-                         'ipAddresses',
-                         'tags',
-                         'utmtags',
-                         'stage',
-                         'dateIdentified',
-                         'preferredProfileImage',
-                         'doNotContact',
-                         'frequencyRules',
-                     ]
-                 )
-                 ->build();
+            ->addListProperties(
+                [
+                    'id',
+                    'points',
+                    'color',
+                    'fields',
+                ]
+            )
+            ->addProperties(
+                [
+                    'lastActive',
+                    'owner',
+                    'ipAddresses',
+                    'tags',
+                    'utmtags',
+                    'stage',
+                    'dateIdentified',
+                    'preferredProfileImage',
+                    'doNotContact',
+                    'frequencyRules',
+                ]
+            )
+            ->build();
     }
 
     /**
@@ -480,7 +523,7 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
     protected function isChanged($prop, $val, $oldValue = null)
     {
         $getter  = 'get'.ucfirst($prop);
-        $current = ($oldValue) ? $oldValue : $this->$getter();
+        $current = $oldValue !== null ? $oldValue : $this->$getter();
         if ($prop == 'owner') {
             if ($current && !$val) {
                 $this->changes['owner'] = [$current->getId(), $val];
@@ -490,7 +533,13 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
                 $this->changes['owner'] = [$current->getId(), $val->getId()];
             }
         } elseif ($prop == 'ipAddresses') {
-            $this->changes['ipAddresses'] = ['', $val->getIpAddress()];
+            $this->changes['ipAddresses'] = ['', $val->getIpAddress()]; // Kept for BC. Not a good way to track changes on a collection
+
+            if (empty($this->changes['ipAddressList'])) {
+                $this->changes['ipAddressList'] = [];
+            }
+
+            $this->changes['ipAddressList'][$val->getIpAddress()] = $val;
         } elseif ($prop == 'tags') {
             if ($val instanceof Tag) {
                 $this->changes['tags']['added'][] = $val->getTag();
@@ -758,34 +807,66 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
     }
 
     /**
+     * Point changes are tracked and will be persisted as a direct DB query to avoid PHP memory overwrites with concurrent requests
+     * The risk in this is that the $changes['points'] may not be accurate but at least no points are lost.
+     *
      * @param int    $points
      * @param string $operator
      *
      * @return Lead
      */
-    public function adjustPoints($points, $operator = 'plus')
+    public function adjustPoints($points, $operator = self::POINTS_ADD)
     {
-        $oldPoints = $this->points;
+        if (!$points = (int) $points) {
+            return $this;
+        }
+
+        // Use $updatedPoints in an attempt to keep track in the $changes log although this may not be accurate if the DB updates the points rather
+        // than PHP memory
+        if (null == $this->updatedPoints) {
+            $this->updatedPoints = $this->points;
+        }
+        $oldPoints = $this->updatedPoints;
+
         switch ($operator) {
-            case 'plus':
-                $this->points += $points;
+            case self::POINTS_ADD:
+                $this->updatedPoints += $points;
+                $operator = '+';
                 break;
-            case 'minus':
-                $this->points -= $points;
+            case self::POINTS_SUBTRACT:
+                $this->updatedPoints -= $points;
+                $operator = '-';
                 break;
-            case 'times':
-                $this->points *= $points;
+            case self::POINTS_MULTIPLY:
+                $this->updatedPoints *= $points;
+                $operator = '*';
                 break;
-            case 'divide':
-                $this->points /= $points;
+            case self::POINTS_DIVIDE:
+                $this->updatedPoints /= $points;
+                $operator = '/';
                 break;
             default:
                 throw new \UnexpectedValueException('Invalid operator');
         }
 
-        $this->isChanged('points', (int) $this->points, (int) $oldPoints);
+        // Keep track of point changes to make a direct DB query
+        // Ignoring Aunt Sally here (PEMDAS)
+        if (!isset($this->pointChanges[$operator])) {
+            $this->pointChanges[$operator] = 0;
+        }
+        $this->pointChanges[$operator] += $points;
+
+        $this->isChanged('points', (int) $this->updatedPoints, (int) $oldPoints);
 
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getPointChanges()
+    {
+        return $this->pointChanges;
     }
 
     /**
@@ -798,7 +879,10 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
     public function setPoints($points)
     {
         $this->isChanged('points', $points);
-        $this->points = $points;
+        $this->points = (int) $points;
+
+        // Something is setting points directly so reset points updated by database
+        $this->resetPointChanges();
 
         return $this;
     }
@@ -810,7 +894,38 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
      */
     public function getPoints()
     {
+        if (null !== $this->actualPoints) {
+            return $this->actualPoints;
+        } elseif (null !== $this->updatedPoints) {
+            return $this->updatedPoints;
+        }
+
         return $this->points;
+    }
+
+    /**
+     * Set by the repository method when points are updated and requeried directly on the DB side.
+     *
+     * @param $points
+     */
+    public function setActualPoints($points)
+    {
+        $this->actualPoints = (int) $points;
+        $this->pointChanges = [];
+    }
+
+    /**
+     * Reset point changes.
+     *
+     * @return $this
+     */
+    public function resetPointChanges()
+    {
+        $this->actualPoints  = null;
+        $this->pointChanges  = [];
+        $this->updatedPoints = null;
+
+        return $this;
     }
 
     /**
@@ -819,12 +934,12 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
      * @param           $type
      * @param           $name
      * @param           $action
-     * @param           $pointsDelta
+     * @param           $pointChanges
      * @param IpAddress $ip
      */
-    public function addPointsChangeLogEntry($type, $name, $action, $pointsDelta, IpAddress $ip)
+    public function addPointsChangeLogEntry($type, $name, $action, $pointChanges, IpAddress $ip)
     {
-        if ($pointsDelta === 0) {
+        if ($pointChanges === 0) {
             // No need to record no change
             return;
         }
@@ -835,7 +950,7 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
         $event->setEventName($name);
         $event->setActionName($action);
         $event->setDateAdded(new \DateTime());
-        $event->setDelta($pointsDelta);
+        $event->setDelta($pointChanges);
         $event->setIpAddress($ip);
         $event->setLead($this);
         $this->addPointsChangeLog($event);
@@ -1010,6 +1125,27 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
     }
 
     /**
+     * @param LeadEventLog $eventLog
+     *
+     * @return $this
+     */
+    public function addEventLog(LeadEventLog $log)
+    {
+        $this->eventLog[] = $log;
+        $log->setLead($this);
+
+        return $this;
+    }
+
+    /**
+     * @param LeadEventLog $eventLog
+     */
+    public function removeEventLog(LeadEventLog $eventLog)
+    {
+        $this->eventLog->removeElement($eventLog);
+    }
+
+    /**
      * @param DoNotContact $doNotContact
      *
      * @return $this
@@ -1139,6 +1275,14 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
     /**
      * @return bool
      */
+    public function wasAnonymous()
+    {
+        return $this->dateIdentified == null && $this->isAnonymous() === false;
+    }
+
+    /**
+     * @return bool
+     */
     protected function getFirstSocialIdentity()
     {
         if (isset($this->fields['social'])) {
@@ -1156,6 +1300,26 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
         }
 
         return false;
+    }
+
+    /**
+     * @param LeadManipulator|null $manipulator
+     *
+     * @return self
+     */
+    public function setManipulator(LeadManipulator $manipulator = null)
+    {
+        $this->manipulator = $manipulator;
+
+        return $this;
+    }
+
+    /**
+     * @return LeadManipulator|null
+     */
+    public function getManipulator()
+    {
+        return $this->manipulator;
     }
 
     /**
@@ -1316,6 +1480,15 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
     }
 
     /**
+     * @param UtmTag $utmTag
+     */
+    public function removeUtmTagEntry(UtmTag $utmTag)
+    {
+        $this->changes['utmtags'] = ['removed', 'UtmTagID:'.$utmTag->getId()];
+        $this->utmtags->removeElement($utmTag);
+    }
+
+    /**
      * Set stage.
      *
      * @param \Mautic\StageBundle\Entity\Stage $stage
@@ -1406,7 +1579,7 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
 
         if (!empty($attribution) && empty($attributionDate)) {
             $this->addUpdatedField('attribution_date', (new \DateTime())->format('Y-m-d'));
-        } elseif (empty($attribution)) {
+        } elseif (empty($attribution) && !empty($attributionDate)) {
             $this->addUpdatedField('attribution_date', null);
         }
     }
@@ -1416,9 +1589,19 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
      */
     public function checkDateIdentified()
     {
-        if ($this->dateIdentified == null && $this->isAnonymous() === false) {
+        if ($this->wasAnonymous()) {
             $this->dateIdentified            = new \DateTime();
             $this->changes['dateIdentified'] = ['', $this->dateIdentified];
+        }
+    }
+
+    /**
+     * Set date added if not already set.
+     */
+    public function checkDateAdded()
+    {
+        if (null === $this->getDateAdded()) {
+            $this->setDateAdded(new \DateTime());
         }
     }
 
@@ -1566,6 +1749,14 @@ class Lead extends FormEntity implements CustomFieldEntityInterface
         $this->mobile = $mobile;
 
         return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getLeadPhoneNumber()
+    {
+        return $this->getMobile() ?: $this->getPhone();
     }
 
     /**

@@ -30,7 +30,7 @@ class PluginRepository extends CommonRepository
     public function findByBundle($bundle)
     {
         $q = $this->createQueryBuilder($this->getTableAlias());
-        $q->where($q->expr()->eq('i.bundle', ':bundle'))
+        $q->where($q->expr()->eq('p.bundle', ':bundle'))
             ->setParameter('bundle', $bundle);
 
         return $q->getQuery()->getOneOrNullResult();
@@ -39,7 +39,7 @@ class PluginRepository extends CommonRepository
     /**
      * {@inheritdoc}
      */
-    public function getEntities($args = [])
+    public function getEntities(array $args = [])
     {
         $q = $this->_em->createQueryBuilder();
         $q->select($this->getTableAlias())

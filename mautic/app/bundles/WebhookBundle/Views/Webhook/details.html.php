@@ -67,6 +67,12 @@ $view['slots']->set('actions', $view->render('MauticCoreBundle:Helper:page_actio
                                         <?php echo $view['translator']->trans('mautic.webhook.status'); ?>
                                     </th>
                                     <th>
+                                        <?php echo $view['translator']->trans('mautic.webhook.note'); ?>
+                                    </th>
+                                    <th>
+                                        <?php echo $view['translator']->trans('mautic.webhook.runtime'); ?>
+                                    </th>
+                                    <th>
                                         <?php echo $view['translator']->trans('mautic.core.date.added'); ?>
                                     </th>
                                 </tr>
@@ -81,6 +87,8 @@ $view['slots']->set('actions', $view->render('MauticCoreBundle:Helper:page_actio
                                             ]);
                                             ?>
                                         </td>
+                                        <td><?php echo $log->getNote(); ?></td>
+                                        <td><?php echo $log->getRuntime(); ?> s</td>
                                         <td><?php echo $view['date']->toFull($log->getDateAdded()); ?></td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -110,7 +118,7 @@ $view['slots']->set('actions', $view->render('MauticCoreBundle:Helper:page_actio
             <div class="panel-body pt-xs">
                 <div class="input-group">
                     <input onclick="this.setSelectionRange(0, this.value.length);" type="text" class="form-control" readonly
-                           value="<?php echo $item->getWebhookUrl(); ?>" />
+                           value="<?php echo $view->escape($item->getWebhookUrl()); ?>" />
                     <span class="input-group-btn">
                         <button class="btn btn-default btn-nospin" onclick="window.open('<?php echo $item->getWebhookUrl(); ?>', '_blank');">
                             <i class="fa fa-external-link"></i>

@@ -14,6 +14,8 @@ namespace Mautic\PageBundle\Model;
 use Mautic\CoreBundle\Helper\UrlHelper;
 use Mautic\CoreBundle\Model\FormModel;
 use Mautic\PageBundle\Entity\Redirect;
+use Mautic\PageBundle\Event\RedirectGenerationEvent;
+use Mautic\PageBundle\PageEvents;
 
 /**
  * Class RedirectModel.
@@ -61,11 +63,19 @@ class RedirectModel extends FormModel
      * @param Redirect $redirect
      * @param array    $clickthrough
      * @param bool     $shortenUrl
+     * @param array    $utmTags
      *
      * @return string
      */
-    public function generateRedirectUrl(Redirect $redirect, $clickthrough = [], $shortenUrl = false)
+    public function generateRedirectUrl(Redirect $redirect, $clickthrough = [], $shortenUrl = false, $utmTags = [])
     {
+        if ($this->dispatcher->hasListeners(PageEvents::ON_REDIRECT_GENERATE)) {
+            $event = new RedirectGenerationEvent($redirect, $clickthrough);
+            $this->dispatcher->dispatch(PageEvents::ON_REDIRECT_GENERATE, $event);
+
+            $clickthrough = $event->getClickthrough();
+        }
+
         $url = $this->buildUrl(
             'mautic_url_redirect',
             ['redirectId' => $redirect->getRedirectId()],
@@ -74,11 +84,37 @@ class RedirectModel extends FormModel
             $shortenUrl
         );
 
+        if (!empty($utmTags)) {
+            $utmTags   = $this->getUtmTagsForUrl($utmTags);
+            $query     = parse_url($url, PHP_URL_QUERY);
+            $urlString = http_build_query($utmTags, '', '&');
+            if ($query) {
+                $url .= '&'.$urlString;
+            } else {
+                $url .= '?'.$urlString;
+            }
+        }
+
         if ($shortenUrl) {
             $url = $this->urlHelper->buildShortUrl($url);
         }
 
         return $url;
+    }
+
+    /**
+     * Generate UTMs params for url.
+     *
+     * @return array
+     */
+    public function getUtmTagsForUrl($rawUtmTags)
+    {
+        $utmTags = [];
+        foreach ($rawUtmTags as $utmTag => $value) {
+            $utmTags[str_replace('utm', 'utm_', strtolower($utmTag))] = $value;
+        }
+
+        return $utmTags;
     }
 
     /**

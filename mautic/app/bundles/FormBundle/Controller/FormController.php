@@ -43,7 +43,6 @@ class FormController extends CommonFormController
                 'form:forms:deleteother',
                 'form:forms:publishown',
                 'form:forms:publishother',
-
             ],
             'RETURN_ARRAY'
         );
@@ -52,9 +51,7 @@ class FormController extends CommonFormController
             return $this->accessDenied();
         }
 
-        if ($this->request->getMethod() == 'POST') {
-            $this->setListFilters();
-        }
+        $this->setListFilters();
 
         $session = $this->get('session');
 
@@ -194,7 +191,6 @@ class FormController extends CommonFormController
                 'form:forms:deleteother',
                 'form:forms:publishown',
                 'form:forms:publishother',
-
             ],
             'RETURN_ARRAY'
         );
@@ -238,14 +234,17 @@ class FormController extends CommonFormController
             $activeFormFields[] = $field;
         }
 
+        $submissionCounts = $this->getModel('form.submission')->getRepository()->getSubmissionCounts($activeForm);
+
         return $this->delegateView(
             [
                 'viewParameters' => [
-                    'activeForm'  => $activeForm,
-                    'page'        => $page,
-                    'logs'        => $logs,
-                    'permissions' => $permissions,
-                    'stats'       => [
+                    'activeForm'       => $activeForm,
+                    'submissionCounts' => $submissionCounts,
+                    'page'             => $page,
+                    'logs'             => $logs,
+                    'permissions'      => $permissions,
+                    'stats'            => [
                         'submissionsInTime' => $timeStats,
                     ],
                     'dateRangeForm'     => $dateRangeForm->createView(),
@@ -320,7 +319,6 @@ class FormController extends CommonFormController
                         $model->setFields($entity, $fields);
 
                         try {
-
                             // Set alias to prevent SQL errors
                             $alias = $model->cleanAlias($entity->getName(), '', 10);
                             $entity->setAlias($alias);
@@ -451,6 +449,8 @@ class FormController extends CommonFormController
                     'activeForm'     => $entity,
                     'form'           => $form->createView(),
                     'contactFields'  => $this->getModel('lead.field')->getFieldListWithProperties(),
+                    'companyFields'  => $this->getModel('lead.field')->getFieldListWithProperties('company'),
+                    'inBuilder'      => true,
                 ],
                 'contentTemplate' => 'MauticFormBundle:Builder:index.html.php',
                 'passthroughVars' => [
@@ -575,7 +575,9 @@ class FormController extends CommonFormController
                         $model->setFields($entity, $fields);
                         $model->deleteFields($entity, $deletedFields);
 
-                        if (!$alias = $entity->getAlias()) {
+                        $alias = $entity->getAlias();
+
+                        if (empty($alias)) {
                             $alias = $model->cleanAlias($entity->getName(), '', 10);
                             $entity->setAlias($alias);
                         }
@@ -706,12 +708,19 @@ class FormController extends CommonFormController
             $this->clearSessionComponents($objectId);
 
             //load existing fields into session
-            $modifiedFields = [];
-            $usedLeadFields = [];
-            $existingFields = $entity->getFields()->toArray();
+            $modifiedFields    = [];
+            $usedLeadFields    = [];
+            $usedCompanyFields = [];
+            $existingFields    = $entity->getFields()->toArray();
+            $submitButton      = false;
 
             foreach ($existingFields as $formField) {
                 // Check to see if the field still exists
+
+                if ($formField->getType() == 'button') {
+                    //submit button found
+                    $submitButton = true;
+                }
                 if ($formField->getType() !== 'button' && !isset($availableFields[$formField->getType()])) {
                     continue;
                 }
@@ -738,7 +747,21 @@ class FormController extends CommonFormController
                     $usedLeadFields[$id] = $field['leadField'];
                 }
             }
+            if (!$submitButton) { //means something deleted the submit button from the form
+                //add a submit button
+                $keyId = 'new'.hash('sha1', uniqid(mt_rand()));
+                $field = new Field();
 
+                $modifiedFields[$keyId]                    = $field->convertToArray();
+                $modifiedFields[$keyId]['label']           = $this->translator->trans('mautic.core.form.submit');
+                $modifiedFields[$keyId]['alias']           = 'submit';
+                $modifiedFields[$keyId]['showLabel']       = 1;
+                $modifiedFields[$keyId]['type']            = 'button';
+                $modifiedFields[$keyId]['id']              = $keyId;
+                $modifiedFields[$keyId]['inputAttributes'] = 'class="btn btn-default"';
+                $modifiedFields[$keyId]['formId']          = $objectId;
+                unset($modifiedFields[$keyId]['form']);
+            }
             $session->set('mautic.form.'.$objectId.'.fields.leadfields', $usedLeadFields);
 
             if (!empty($reorder)) {
@@ -803,7 +826,9 @@ class FormController extends CommonFormController
                     'activeForm'         => $entity,
                     'form'               => $form->createView(),
                     'forceTypeSelection' => $forceTypeSelection,
-                    'contactFields'      => $this->getModel('lead.field')->getFieldListWithProperties(),
+                    'contactFields'      => $this->getModel('lead.field')->getFieldListWithProperties('lead'),
+                    'companyFields'      => $this->getModel('lead.field')->getFieldListWithProperties('company'),
+                    'inBuilder'          => true,
                 ],
                 'contentTemplate' => 'MauticFormBundle:Builder:index.html.php',
                 'passthroughVars' => [
@@ -907,7 +932,12 @@ class FormController extends CommonFormController
             'content'     => $html,
             'stylesheets' => [],
             'name'        => $form->getName(),
+            'metaRobots'  => '<meta name="robots" content="index">',
         ];
+
+        if ($form->getNoIndex()) {
+            $viewParams['metaRobots'] = '<meta name="robots" content="noindex">';
+        }
 
         $template = $form->getTemplate();
         if (!empty($template)) {
@@ -942,6 +972,9 @@ class FormController extends CommonFormController
 
             if (!empty($analytics)) {
                 $assetsHelper->addCustomDeclaration($analytics);
+            }
+            if ($form->getNoIndex()) {
+                $assetsHelper->addCustomDeclaration('<meta name="robots" content="noindex">');
             }
 
             return $this->render($logicalName, $viewParams);

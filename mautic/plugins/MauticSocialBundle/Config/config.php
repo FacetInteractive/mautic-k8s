@@ -46,6 +46,12 @@ return [
                 'controller'      => 'MauticSocialBundle:Api\TweetApi',
             ],
         ],
+        'public' => [
+            'mautic_social_js_generate' => [
+                'path'       => '/social/generate/{formName}.js',
+                'controller' => 'MauticSocialBundle:Js:generate',
+            ],
+        ],
     ],
 
     'services' => [
@@ -54,10 +60,10 @@ return [
                 'class' => 'MauticPlugin\MauticSocialBundle\EventListener\FormSubscriber',
             ],
             'mautic.social.campaignbundle.subscriber' => [
-                'class'     => 'MauticPlugin\MauticSocialBundle\EventListener\CampaignSubscriber',
+                'class'     => \MauticPlugin\MauticSocialBundle\EventListener\CampaignSubscriber::class,
                 'arguments' => [
-                    'mautic.factory',
                     'mautic.social.helper.campaign',
+                    'mautic.helper.integration',
                 ],
             ],
             'mautic.social.configbundle.subscriber' => [
@@ -164,6 +170,72 @@ return [
                     'mautic.page.helper.token',
                     'mautic.asset.helper.token',
                     'mautic.social.model.tweet',
+                ],
+            ],
+            'mautic.social.helper.twitter_command' => [
+                'class'     => \MauticPlugin\MauticSocialBundle\Helper\TwitterCommandHelper::class,
+                'arguments' => [
+                    'mautic.lead.model.lead',
+                    'mautic.lead.model.field',
+                    'mautic.social.model.monitoring',
+                    'mautic.social.model.postcount',
+                    'translator',
+                    'doctrine.orm.entity_manager',
+                    'mautic.helper.core_parameters',
+                ],
+            ],
+        ],
+        'integrations' => [
+            'mautic.integration.facebook' => [
+                'class'     => \MauticPlugin\MauticSocialBundle\Integration\FacebookIntegration::class,
+                'arguments' => [
+                ],
+            ],
+            'mautic.integration.foursquare' => [
+                'class'     => \MauticPlugin\MauticSocialBundle\Integration\FoursquareIntegration::class,
+                'arguments' => [
+                ],
+            ],
+            'mautic.integration.googleplus' => [
+                'class'     => \MauticPlugin\MauticSocialBundle\Integration\GooglePlusIntegration::class,
+                'arguments' => [
+                ],
+            ],
+            'mautic.integration.instagram' => [
+                'class'     => \MauticPlugin\MauticSocialBundle\Integration\InstagramIntegration::class,
+                'arguments' => [
+                ],
+            ],
+            'mautic.integration.linkedin' => [
+                'class'     => \MauticPlugin\MauticSocialBundle\Integration\LinkedInIntegration::class,
+                'arguments' => [
+                ],
+            ],
+            'mautic.integration.twitter' => [
+                'class'     => \MauticPlugin\MauticSocialBundle\Integration\TwitterIntegration::class,
+                'arguments' => [
+                ],
+            ],
+        ],
+        'command' => [
+            'mautic.social.command.twitter_hashtags' => [
+                'class'     => \MauticPlugin\MauticSocialBundle\Command\MonitorTwitterHashtagsCommand::class,
+                'arguments' => [
+                    'event_dispatcher',
+                    'translator',
+                    'mautic.helper.integration',
+                    'mautic.social.helper.twitter_command',
+                    'mautic.helper.core_parameters',
+                ],
+            ],
+            'mautic.social.command.twitter_mentions' => [
+                'class'     => \MauticPlugin\MauticSocialBundle\Command\MonitorTwitterMentionsCommand::class,
+                'arguments' => [
+                    'event_dispatcher',
+                    'translator',
+                    'mautic.helper.integration',
+                    'mautic.social.helper.twitter_command',
+                    'mautic.helper.core_parameters',
                 ],
             ],
         ],

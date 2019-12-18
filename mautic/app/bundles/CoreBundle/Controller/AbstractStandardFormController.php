@@ -12,6 +12,7 @@
 namespace Mautic\CoreBundle\Controller;
 
 use Mautic\CoreBundle\Entity\FormEntity;
+use Mautic\CoreBundle\Model\AbstractCommonModel;
 use Mautic\CoreBundle\Model\FormModel;
 use Symfony\Component\Form\Form;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -21,6 +22,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 abstract class AbstractStandardFormController extends AbstractFormController
 {
+    use FormErrorMessagesTrait;
+
     /**
      * Get this controller's model name.
      */
@@ -177,7 +180,7 @@ abstract class AbstractStandardFormController extends AbstractFormController
      * @param      $action
      * @param      $isPost
      * @param $objectId
-     * @param   $isClone
+     * @param $isClone
      */
     protected function beforeFormProcessed($entity, Form $form, $action, $isPost, $objectId = null, $isClone = false)
     {
@@ -255,7 +258,7 @@ abstract class AbstractStandardFormController extends AbstractFormController
     /**
      * Clone an entity.
      *
-     * @param   $objectId
+     * @param $objectId
      *
      * @return array|\Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
      */
@@ -399,7 +402,8 @@ abstract class AbstractStandardFormController extends AbstractFormController
                     'edit'
                 )
             );
-        } elseif (!$this->checkActionPermission('edit', $entity)) {
+        } elseif ((!$isClone && !$this->checkActionPermission('edit', $entity)) || ($isClone && !$this->checkActionPermission('create'))) {
+            //deny access if the entity is not a clone and don't have permission to edit or is a clone and don't have permission to create
             return $this->accessDenied();
         } elseif (!$isClone && $model->isLocked($entity)) {
             //deny access if the entity is locked
@@ -507,6 +511,7 @@ abstract class AbstractStandardFormController extends AbstractFormController
                         'objectId'     => $entity->getId(),
                     ]
                 ),
+                'validationError' => $this->getFormErrorForBuilder($form),
             ],
             'objectId' => $objectId,
             'entity'   => $entity,
@@ -672,6 +677,26 @@ abstract class AbstractStandardFormController extends AbstractFormController
     protected function getRouteBase()
     {
         return $this->getModelName();
+    }
+
+    /**
+     * Provide the name of the column which is used for default ordering.
+     *
+     * @return string
+     */
+    protected function getDefaultOrderColumn()
+    {
+        return 'name';
+    }
+
+    /**
+     * Provide the direction for default ordering.
+     *
+     * @return string
+     */
+    protected function getDefaultOrderDirection()
+    {
+        return 'ASC';
     }
 
     /**
@@ -853,9 +878,7 @@ abstract class AbstractStandardFormController extends AbstractFormController
             return $this->accessDenied();
         }
 
-        if ($this->request->getMethod() == 'POST') {
-            $this->setListFilters();
-        }
+        $this->setListFilters();
 
         $session = $this->get('session');
         if (empty($page)) {
@@ -878,11 +901,11 @@ abstract class AbstractStandardFormController extends AbstractFormController
         $repo  = $model->getRepository();
 
         if (!$permissions[$this->getPermissionBase().':viewother']) {
-            $filter['force'] = ['column' => $repo->getTableAlias().'.createdBy', 'expr' => 'eq', 'value' => $this->user->getId()];
+            $filter['force'][] = ['column' => $repo->getTableAlias().'.createdBy', 'expr' => 'eq', 'value' => $this->user->getId()];
         }
 
-        $orderBy    = $session->get('mautic.'.$this->getSessionBase().'.orderby', $repo->getTableAlias().'.name');
-        $orderByDir = $session->get('mautic.'.$this->getSessionBase().'.orderbydir', 'ASC');
+        $orderBy    = $session->get('mautic.'.$this->getSessionBase().'.orderby', $repo->getTableAlias().'.'.$this->getDefaultOrderColumn());
+        $orderByDir = $session->get('mautic.'.$this->getSessionBase().'.orderbydir', $this->getDefaultOrderDirection());
 
         list($count, $items) = $this->getIndexItems($start, $limit, $filter, $orderBy, $orderByDir);
 
@@ -1057,6 +1080,7 @@ abstract class AbstractStandardFormController extends AbstractFormController
                         'objectId'     => ($entity) ? $entity->getId() : 0,
                     ]
                 ),
+                'validationError' => $this->getFormErrorForBuilder($form),
             ],
             'entity' => $entity,
             'form'   => $form,
@@ -1117,10 +1141,7 @@ abstract class AbstractStandardFormController extends AbstractFormController
             return $this->accessDenied();
         }
 
-        // Set filters
-        if ($this->request->getMethod() == 'POST') {
-            $this->setListFilters();
-        }
+        $this->setListFilters();
 
         // Audit log entries
         $logs = ($logObject) ? $this->getModel('core.auditLog')->getLogForObject($logObject, $objectId, $entity->getDateAdded(), 10, $logBundle) : [];
@@ -1173,5 +1194,10 @@ abstract class AbstractStandardFormController extends AbstractFormController
         return $this->delegateView(
             $this->getViewArguments($delegateArgs, 'view')
         );
+    }
+
+    protected function getDataForExport(AbstractCommonModel $model, array $args, callable $resultsCallback = null, $start = 0)
+    {
+        return parent::getDataForExport($model, $args, $resultsCallback, $start); // TODO: Change the autogenerated stub
     }
 }

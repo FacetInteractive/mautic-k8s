@@ -23,6 +23,7 @@ use Symfony\Component\OptionsResolver\OptionsResolverInterface;
  */
 class CampaignType extends AbstractType
 {
+    private $security;
     private $translator;
     private $em;
 
@@ -57,6 +58,16 @@ class CampaignType extends AbstractType
             'attr'       => ['class' => 'form-control editor'],
             'required'   => false,
         ]);
+
+        $builder->add('allowRestart',
+            'yesno_button_group',
+            [
+                'label' => 'mautic.campaign.allow_restart',
+                'attr'  => [
+                    'tooltip' => 'mautic.campaign.allow_restart.tooltip',
+                ],
+            ]
+        );
 
         //add category
         $builder->add('category', 'category', [

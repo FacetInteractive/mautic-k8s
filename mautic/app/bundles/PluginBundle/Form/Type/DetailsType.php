@@ -68,7 +68,6 @@ class DetailsType extends AbstractType
                     'class'   => 'btn btn-success btn-lg',
                     'onclick' => 'Mautic.initiateIntegrationAuthorization()',
                     'icon'    => 'fa fa-key',
-
                 ],
                 'label'    => 'mautic.integration.form.'.$label,
                 'disabled' => $disabled,
@@ -76,6 +75,7 @@ class DetailsType extends AbstractType
         }
 
         $features = $options['integration_object']->getSupportedFeatures();
+        $tooltips = $options['integration_object']->getSupportedFeatureTooltips();
         if (!empty($features)) {
             // Check to see if the integration is a new entry and thus not configured
             $configured      = $options['data']->getId() !== null;
@@ -88,13 +88,23 @@ class DetailsType extends AbstractType
             }
 
             $builder->add('supportedFeatures', 'choice', [
-                'choices'    => $choices,
-                'expanded'   => true,
-                'label_attr' => ['class' => 'control-label'],
-                'multiple'   => true,
-                'label'      => 'mautic.integration.form.features',
-                'required'   => false,
-                'data'       => $data,
+                'choices'     => $choices,
+                'expanded'    => true,
+                'label_attr'  => ['class' => 'control-label'],
+                'multiple'    => true,
+                'label'       => 'mautic.integration.form.features',
+                'required'    => false,
+                'data'        => $data,
+                'choice_attr' => function ($val, $key, $index) use ($tooltips) {
+                    if (array_key_exists($val, $tooltips)) {
+                        return [
+                            'data-toggle' => 'tooltip',
+                            'title'       => $tooltips[$val],
+                        ];
+                    } else {
+                        return [];
+                    }
+                },
             ]);
         }
 

@@ -11,10 +11,10 @@
 
 namespace Mautic\LeadBundle\Controller;
 
+use Doctrine\DBAL\DBALException;
 use Mautic\CoreBundle\Controller\FormController;
 use Mautic\LeadBundle\Entity\LeadField;
 use Mautic\LeadBundle\Model\FieldModel;
-use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormError;
 
 class FieldController extends FormController
@@ -37,9 +37,7 @@ class FieldController extends FormController
             return $this->accessDenied();
         }
 
-        if ($this->request->getMethod() == 'POST') {
-            $this->setListFilters();
-        }
+        $this->setListFilters();
 
         $limit  = $session->get('mautic.leadfield.limit', $this->coreParametersHelper->getParameter('default_pagelimit'));
         $search = $this->request->get('search', $session->get('mautic.leadfield.filter', ''));
@@ -154,12 +152,22 @@ class FieldController extends FormController
                     }
 
                     if ($valid) {
+                        $flashMessage = 'mautic.core.notice.created';
                         try {
                             //form is valid so process the data
                             $model->saveEntity($field);
-
-                            $this->addFlash(
-                                'mautic.core.notice.created',
+                        } catch (DBALException $ee) {
+                            $flashMessage = $ee->getMessage();
+                        } catch (\Exception $e) {
+                            $form['alias']->addError(
+                                    new FormError(
+                                        $this->get('translator')->trans('mautic.lead.field.failed', ['%error%' => $e->getMessage()], 'validators')
+                                    )
+                                );
+                            $valid = false;
+                        }
+                        $this->addFlash(
+                                $flashMessage,
                                 [
                                     '%name%'      => $field->getLabel(),
                                     '%menu_link%' => 'mautic_contactfield_index',
@@ -172,14 +180,6 @@ class FieldController extends FormController
                                     ),
                                 ]
                             );
-                        } catch (\Exception $e) {
-                            $form['alias']->addError(
-                                new FormError(
-                                    $this->get('translator')->trans('mautic.lead.field.failed', ['%error%' => $e->getMessage()], 'validators')
-                                )
-                            );
-                            $valid = false;
-                        }
                     }
                 }
             }
@@ -292,7 +292,7 @@ class FieldController extends FormController
                         //form is valid so process the data
                         $model->saveEntity($field, $form->get('buttons')->get('save')->isClicked());
 
-                        $this->addFlash('mautic.core.notice.updated',  [
+                        $this->addFlash('mautic.core.notice.updated', [
                             '%name%'      => $field->getLabel(),
                             '%menu_link%' => 'mautic_contactfield_index',
                             '%url%'       => $this->generateUrl('mautic_contactfield_action', [
@@ -349,7 +349,7 @@ class FieldController extends FormController
      *
      * @param $objectId
      *
-     * @return JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse|Response
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse
      */
     public function cloneAction($objectId)
     {
@@ -364,6 +364,7 @@ class FieldController extends FormController
             $clone = clone $entity;
             $clone->setIsPublished(false);
             $clone->setIsFixed(false);
+            $this->get('mautic.helper.field.alias')->makeAliasUnique($clone);
             $model->saveEntity($clone);
             $objectId = $clone->getId();
         }
@@ -397,6 +398,7 @@ class FieldController extends FormController
         ];
 
         if ($this->request->getMethod() == 'POST') {
+            /** @var FieldModel $model */
             $model = $this->getModel('lead.field');
             $field = $model->getEntity($objectId);
 
@@ -413,16 +415,34 @@ class FieldController extends FormController
                 return $this->accessDenied();
             }
 
-            $model->deleteEntity($field);
+            $segments = [];
+            foreach ($model->getFieldSegments($field) as $segment) {
+                $segments[] = sprintf('"%s" (%d)', $segment->getName(), $segment->getId());
+            }
 
-            $flashes[] = [
-                'type'    => 'notice',
-                'msg'     => 'mautic.core.notice.deleted',
-                'msgVars' => [
-                    '%name%' => $field->getLabel(),
-                    '%id%'   => $objectId,
-                ],
-            ];
+            if (count($segments)) {
+                $flashMessage = [
+                    'type'    => 'error',
+                    'msg'     => 'mautic.core.notice.used.field',
+                    'msgVars' => [
+                        '%name%'     => $field->getLabel(),
+                        '%id%'       => $objectId,
+                        '%segments%' => implode(', ', $segments),
+                    ],
+                ];
+            } else {
+                $model->deleteEntity($field);
+                $flashMessage = [
+                    'type'    => 'notice',
+                    'msg'     => 'mautic.core.notice.deleted',
+                    'msgVars' => [
+                        '%name%' => $field->getLabel(),
+                        '%id%'   => $objectId,
+                    ],
+                ];
+            }
+
+            $flashes[] = $flashMessage;
         } //else don't do anything
 
         return $this->postActionRedirect(
@@ -456,6 +476,7 @@ class FieldController extends FormController
         ];
 
         if ($this->request->getMethod() == 'POST') {
+            /** @var FieldModel $model */
             $model     = $this->getModel('lead.field');
             $ids       = json_decode($this->request->query->get('ids', '{}'));
             $deleteIds = [];
@@ -481,15 +502,44 @@ class FieldController extends FormController
 
             // Delete everything we are able to
             if (!empty($deleteIds)) {
-                $entities = $model->deleteEntities($deleteIds);
+                $filteredDeleteIds = $model->filterUsedFieldIds($deleteIds);
+                $usedFieldIds      = array_diff($deleteIds, $filteredDeleteIds);
+                $segments          = [];
+                $usedFieldsNames   = [];
 
-                $flashes[] = [
-                    'type'    => 'notice',
-                    'msg'     => 'mautic.lead.field.notice.batch_deleted',
-                    'msgVars' => [
-                        '%count%' => count($entities),
-                    ],
-                ];
+                if ($usedFieldIds) {
+                    // Iterating through all used fileds to get segments they are used in
+                    foreach ($usedFieldIds as $usedFieldId) {
+                        $fieldEntity = $model->getEntity($usedFieldId);
+                        foreach ($model->getFieldSegments($fieldEntity) as $segment) {
+                            $segments[$segment->getId()] = sprintf('"%s" (%d)', $segment->getName(), $segment->getId());
+                            $usedFieldsNames[]           = sprintf('"%s"', $fieldEntity->getName());
+                        }
+                    }
+                }
+
+                if ($filteredDeleteIds !== $deleteIds) {
+                    $flashes[] = [
+                        'type'    => 'error',
+                        'msg'     => 'mautic.core.notice.used.fields',
+                        'msgVars' => [
+                            '%segments%' => implode(', ', $segments),
+                            '%fields%'   => implode(', ', array_unique($usedFieldsNames)),
+                        ],
+                    ];
+                }
+
+                if (count($filteredDeleteIds)) {
+                    $entities = $model->deleteEntities($filteredDeleteIds);
+
+                    $flashes[] = [
+                        'type'    => 'notice',
+                        'msg'     => 'mautic.lead.field.notice.batch_deleted',
+                        'msgVars' => [
+                            '%count%' => count($entities),
+                        ],
+                    ];
+                }
             }
         } //else don't do anything
 

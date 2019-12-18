@@ -25,8 +25,11 @@ class ArrayStringTransformer implements DataTransformerInterface
      */
     public function transform($array)
     {
-        if ($array === null) {
+        if (null === $array) {
             return '';
+        }
+        if (is_string($array)) {
+            return $array;
         }
 
         return implode(',', $array);

@@ -12,8 +12,11 @@
 namespace Mautic\CampaignBundle\Controller;
 
 use Mautic\CampaignBundle\Entity\Campaign;
+use Mautic\CampaignBundle\Entity\Event;
 use Mautic\CampaignBundle\Entity\LeadEventLogRepository;
+use Mautic\CampaignBundle\EventListener\CampaignActionJumpToEventSubscriber;
 use Mautic\CampaignBundle\Model\CampaignModel;
+use Mautic\CampaignBundle\Model\EventModel;
 use Mautic\CoreBundle\Controller\AbstractStandardFormController;
 use Mautic\LeadBundle\Controller\EntityContactsTrait;
 use Symfony\Component\Form\Form;
@@ -69,6 +72,30 @@ class CampaignController extends AbstractStandardFormController
      * @var
      */
     protected $sessionId;
+
+    /**
+     * @return array
+     */
+    protected function getPermissions()
+    {
+        //set some permissions
+        return (array) $this->get('mautic.security')->isGranted(
+            [
+                'campaign:campaigns:viewown',
+                'campaign:campaigns:viewother',
+                'campaign:campaigns:create',
+                'campaign:campaigns:editown',
+                'campaign:campaigns:editother',
+                'campaign:campaigns:cloneown',
+                'campaign:campaigns:cloneother',
+                'campaign:campaigns:deleteown',
+                'campaign:campaigns:deleteother',
+                'campaign:campaigns:publishown',
+                'campaign:campaigns:publishother',
+            ],
+            'RETURN_ARRAY'
+        );
+    }
 
     /**
      * Deletes a group of entities.
@@ -182,15 +209,25 @@ class CampaignController extends AbstractStandardFormController
         $campaign->setIsPublished(false);
 
         // Clone the campaign's events
+        /** @var Event $event */
         foreach ($events as $event) {
             $tempEventId = 'new'.$event->getId();
 
             $clone = clone $event;
+            $clone->nullId();
             $clone->setCampaign($campaign);
             $clone->setTempId($tempEventId);
 
             // Just wipe out the parent as it'll be generated when the cloned entity is saved
             $clone->setParent(null);
+
+            if (CampaignActionJumpToEventSubscriber::EVENT_NAME === $clone->getType()) {
+                // Update properties to point to the new temp ID
+                $properties                = $clone->getProperties();
+                $properties['jumpToEvent'] = 'new'.$properties['jumpToEvent'];
+
+                $clone->setProperties($properties);
+            }
 
             $campaign->addEvent($tempEventId, $clone);
         }
@@ -341,6 +378,8 @@ class CampaignController extends AbstractStandardFormController
         }
 
         if ($isClone) {
+            list($this->addedSources, $this->deletedSources, $campaignSources) = $this->getSessionSources($objectId, $isClone);
+            $this->getCampaignModel()->setLeadSources($entity, $campaignSources, []);
             // If this is a clone, we need to save the entity first to properly build the events, sources and canvas settings
             $this->getCampaignModel()->getRepository()->saveEntity($entity);
             // Set as new so that timestamps are still hydrated
@@ -356,7 +395,9 @@ class CampaignController extends AbstractStandardFormController
 
         if ('edit' === $action && null !== $this->connections) {
             if (!empty($this->deletedEvents)) {
-                $this->getModel('campaign.event')->deleteEvents($entity->getEvents()->toArray(), $this->deletedEvents);
+                /** @var EventModel $eventModel */
+                $eventModel = $this->getModel('campaign.event');
+                $eventModel->deleteEvents($entity->getEvents()->toArray(), $this->deletedEvents);
             }
         }
 
@@ -484,7 +525,7 @@ class CampaignController extends AbstractStandardFormController
         if (!empty($currentFilters)) {
             $listIds = $catIds = [];
             foreach ($currentFilters as $type => $typeFilters) {
-                $listFilters['filters'] ['groups']['mautic.campaign.leadsource.'.$type]['values'] = $typeFilters;
+                $listFilters['filters']['groups']['mautic.campaign.leadsource.'.$type]['values'] = $typeFilters;
 
                 foreach ($typeFilters as $fltr) {
                     if ($type == 'list') {
@@ -639,20 +680,54 @@ class CampaignController extends AbstractStandardFormController
                 $dateRangeForm   = $this->get('form.factory')->create('daterange', $dateRangeValues, ['action' => $action]);
 
                 /** @var LeadEventLogRepository $eventLogRepo */
-                $eventLogRepo = $this->getDoctrine()->getManager()->getRepository('MauticCampaignBundle:LeadEventLog');
-                $events       = $this->getCampaignModel()->getEventRepository()->getCampaignEvents($entity->getId());
-                $leadCount    = $this->getCampaignModel()->getRepository()->getCampaignLeadCount($entity->getId());
-
-                $campaignLogCounts = $eventLogRepo->getCampaignLogCounts($entity->getId(), true);
-                $sortedEvents      = [
+                $eventLogRepo             = $this->getDoctrine()->getManager()->getRepository('MauticCampaignBundle:LeadEventLog');
+                $events                   = $this->getCampaignModel()->getEventRepository()->getCampaignEvents($entity->getId());
+                $leadCount                = $this->getCampaignModel()->getRepository()->getCampaignLeadCount($entity->getId());
+                $campaignLogCounts        = $eventLogRepo->getCampaignLogCounts($entity->getId(), false, false, true);
+                $pendingCampaignLogCounts = $eventLogRepo->getCampaignLogCounts($entity->getId(), false, false);
+                $sortedEvents             = [
                     'decision'  => [],
                     'action'    => [],
                     'condition' => [],
-                    'message'   => [],
                 ];
-                foreach ($events as $event) {
-                    $event['logCount']                   = (isset($campaignLogCounts[$event['id']])) ? (int) $campaignLogCounts[$event['id']] : 0;
-                    $event['percent']                    = ($leadCount) ? round($event['logCount'] / $leadCount * 100) : 0;
+                foreach ($events as &$event) {
+                    $event['logCount']           =
+                    $event['logCountForPending'] =
+                    $event['percent']            =
+                    $event['yesPercent']         =
+                    $event['noPercent']          = 0;
+                    $event['leadCount']          = $leadCount;
+
+                    if (isset($campaignLogCounts[$event['id']])) {
+                        $event['logCount']           = array_sum($campaignLogCounts[$event['id']]);
+                        $event['logCountForPending'] = isset($pendingCampaignLogCounts[$event['id']]) ? array_sum($pendingCampaignLogCounts[$event['id']]) : 0;
+
+                        $pending  = $event['leadCount'] - $event['logCountForPending'];
+                        $totalYes = $campaignLogCounts[$event['id']][1];
+                        $totalNo  = $campaignLogCounts[$event['id']][0];
+                        $total    = $totalYes + $totalNo + $pending;
+                        if ($leadCount) {
+                            $event['percent']    = round(($event['logCount'] / $total) * 100, 1);
+                            $event['yesPercent'] = round(($campaignLogCounts[$event['id']][1] / $total) * 100, 1);
+                            $event['noPercent']  = round(($campaignLogCounts[$event['id']][0] / $total) * 100, 1);
+                        }
+                    }
+                }
+
+                // rewrite stats data from parent condition if exist
+                foreach ($events as &$event) {
+                    if (!empty($event['decisionPath']) && !empty($event['parent_id']) && isset($events[$event['parent_id']])) {
+                        $parentEvent                 = $events[$event['parent_id']];
+                        $event['logCountForPending'] = $parentEvent['logCountForPending'];
+                        $event['percent']            = $parentEvent['percent'];
+                        $event['yesPercent']         = $parentEvent['yesPercent'];
+                        $event['noPercent']          = $parentEvent['noPercent'];
+                        if ($event['decisionPath'] == 'yes') {
+                            $event['noPercent'] = 0;
+                        } else {
+                            $event['yesPercent'] = 0;
+                        }
+                    }
                     $sortedEvents[$event['eventType']][] = $event;
                 }
 
@@ -664,15 +739,25 @@ class CampaignController extends AbstractStandardFormController
                     ['campaign_id' => $objectId]
                 );
 
+                $session = $this->get('session');
+
+                $campaignSources = $this->getCampaignModel()->getSourceLists();
+
+                $this->prepareCampaignSourcesForEdit($objectId, $campaignSources, true);
+                $this->prepareCampaignEventsForEdit($entity, $objectId, true);
+
                 $args['viewParameters'] = array_merge(
                     $args['viewParameters'],
                     [
-                        'campaign'      => $entity,
-                        'stats'         => $stats,
-                        'events'        => $sortedEvents,
-                        'sources'       => $this->getCampaignModel()->getLeadSources($entity),
-                        'dateRangeForm' => $dateRangeForm->createView(),
-                        'campaignLeads' => $this->forward(
+                        'campaign'        => $entity,
+                        'stats'           => $stats,
+                        'events'          => $sortedEvents,
+                        'eventSettings'   => $this->getCampaignModel()->getEvents(),
+                        'sources'         => $this->getCampaignModel()->getLeadSources($entity),
+                        'dateRangeForm'   => $dateRangeForm->createView(),
+                        'campaignSources' => $this->campaignSources,
+                        'campaignEvents'  => $events,
+                        'campaignLeads'   => $this->forward(
                             'MauticCampaignBundle:Campaign:contacts',
                             [
                                 'objectId'   => $entity->getId(),
@@ -683,6 +768,7 @@ class CampaignController extends AbstractStandardFormController
                     ]
                 );
                 break;
+
             case 'new':
             case 'edit':
                 $args['viewParameters'] = array_merge(
@@ -692,7 +778,6 @@ class CampaignController extends AbstractStandardFormController
                         'campaignEvents'  => $this->campaignEvents,
                         'campaignSources' => $this->campaignSources,
                         'deletedEvents'   => $this->deletedEvents,
-
                     ]
                 );
                 break;
@@ -764,7 +849,6 @@ class CampaignController extends AbstractStandardFormController
         }
 
         $this->modifiedEvents = $this->campaignEvents = $campaignEvents;
-
         $this->get('session')->set('mautic.campaign.'.$objectId.'.events.modified', $campaignEvents);
     }
 

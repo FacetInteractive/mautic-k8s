@@ -15,6 +15,7 @@ use FOS\RestBundle\Util\Codes;
 use Mautic\ApiBundle\Controller\CommonApiController;
 use Mautic\CoreBundle\Helper\InputHelper;
 use Mautic\LeadBundle\Controller\LeadAccessTrait;
+use Mautic\LeadBundle\Entity\Lead;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\FilterControllerEvent;
 
@@ -73,29 +74,30 @@ class EmailApiController extends CommonApiController
     public function sendAction($id)
     {
         $entity = $this->model->getEntity($id);
-        if (null !== $entity) {
-            if (!$this->checkEntityAccess($entity, 'view')) {
-                return $this->accessDenied();
-            }
 
-            $lists = $this->request->request->get('lists', null);
-            $limit = $this->request->request->get('limit', null);
-
-            list($count, $failed) = $this->model->sendEmailToLists($entity, $lists, $limit);
-
-            $view = $this->view(
-                [
-                    'success'          => 1,
-                    'sentCount'        => $count,
-                    'failedRecipients' => $failed,
-                ],
-                Codes::HTTP_OK
-            );
-
-            return $this->handleView($view);
+        if (null === $entity || !$entity->isPublished()) {
+            return $this->notFound();
         }
 
-        return $this->notFound();
+        if (!$this->checkEntityAccess($entity, 'view')) {
+            return $this->accessDenied();
+        }
+
+        $lists = $this->request->request->get('lists', null);
+        $limit = $this->request->request->get('limit', null);
+
+        list($count, $failed) = $this->model->sendEmailToLists($entity, $lists, $limit);
+
+        $view = $this->view(
+            [
+                'success'          => 1,
+                'sentCount'        => $count,
+                'failedRecipients' => $failed,
+            ],
+            Codes::HTTP_OK
+        );
+
+        return $this->handleView($view);
     }
 
     /**
@@ -116,21 +118,27 @@ class EmailApiController extends CommonApiController
                 return $this->accessDenied();
             }
 
+            /** @var Lead $lead */
             $lead = $this->checkLeadAccess($leadId, 'edit');
             if ($lead instanceof Response) {
                 return $lead;
             }
 
-            $post     = $this->request->request->all();
-            $tokens   = (!empty($post['tokens'])) ? $post['tokens'] : [];
-            $response = ['success' => false];
+            $post       = $this->request->request->all();
+            $tokens     = (!empty($post['tokens'])) ? $post['tokens'] : [];
+            $assetsIds  = (!empty($post['assetAttachments'])) ? $post['assetAttachments'] : [];
+            $response   = ['success' => false];
 
-            $cleantokens = array_map(
-                function ($v) {
-                    return InputHelper::clean($v);
-                },
-                $tokens
-            );
+            $cleanTokens = [];
+
+            foreach ($tokens as $token => $value) {
+                $value = InputHelper::clean($value);
+                if (!preg_match('/^{.*?}$/', $token)) {
+                    $token = '{'.$token.'}';
+                }
+
+                $cleanTokens[$token] = $value;
+            }
 
             $leadFields = array_merge(['id' => $leadId], $lead->getProfileFields());
 
@@ -138,9 +146,10 @@ class EmailApiController extends CommonApiController
                 $entity,
                 $leadFields,
                 [
-                    'source'        => ['api', 0],
-                    'tokens'        => $cleantokens,
-                    'return_errors' => true,
+                    'source'            => ['api', 0],
+                    'tokens'            => $cleanTokens,
+                    'assetAttachments'  => $assetsIds,
+                    'return_errors'     => true,
                 ]
             );
 

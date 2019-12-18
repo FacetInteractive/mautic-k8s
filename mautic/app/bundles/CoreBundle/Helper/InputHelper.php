@@ -234,16 +234,25 @@ class InputHelper
 
     /**
      * Returns a satnitized string which can be used in a file system.
+     * Attaches the file extension if provided.
      *
-     * @param  $value
+     * @param string $value
+     * @param string $extension
      *
      * @return string
      */
-    public static function filename($value)
+    public static function filename($value, $extension = null)
     {
         $value = str_replace(' ', '_', $value);
 
-        return preg_replace("/[^a-z0-9\.\_]/", '', strtolower($value));
+        $sanitized = preg_replace("/[^a-z0-9\.\_-]/", '', strtolower($value));
+        $sanitized = preg_replace("/^\.\./", '', strtolower($sanitized));
+
+        if (null === $extension) {
+            return $sanitized;
+        }
+
+        return sprintf('%s.%s', $sanitized, $extension);
     }
 
     /**
@@ -291,7 +300,7 @@ class InputHelper
         $value = filter_var($value, FILTER_SANITIZE_URL);
         $parts = parse_url($value);
 
-        if ($parts) {
+        if ($parts && !empty($parts['path'])) {
             if (isset($parts['scheme'])) {
                 if (!in_array($parts['scheme'], $allowedProtocols)) {
                     $parts['scheme'] = $defaultProtocol;
@@ -345,8 +354,10 @@ class InputHelper
         }
 
         $value = substr($value, 0, 254);
+        $value = filter_var($value, FILTER_SANITIZE_EMAIL);
+        $value = str_replace('..', '.', $value);
 
-        return filter_var($value, FILTER_SANITIZE_EMAIL);
+        return trim($value);
     }
 
     /**
@@ -361,6 +372,12 @@ class InputHelper
     {
         $value = self::clean($value, $urldecode);
 
+        // Return empty array for empty values
+        if (empty($value)) {
+            return [];
+        }
+
+        // Put a value into array if not an array
         if (!is_array($value)) {
             $value = [$value];
         }
@@ -384,12 +401,25 @@ class InputHelper
         } else {
             // Special handling for doctype
             $doctypeFound = preg_match('/(<!DOCTYPE(.*?)>)/is', $value, $doctype);
-
             // Special handling for CDATA tags
             $value = str_replace(['<![CDATA[', ']]>'], ['<mcdata>', '</mcdata>'], $value, $cdataCount);
-
             // Special handling for conditional blocks
-            $value = preg_replace("/<!--\[if(.*?)\]>(.*?)<!\[endif\]-->/is", '<mcondition><mif>$1</mif>$2</mcondition>', $value, -1, $conditionsFound);
+            preg_match_all("/<!--\[if(.*?)\]>(.*?)(?:\<\!\-\-)?<!\[endif\]-->/is", $value, $matches);
+            if (!empty($matches[0])) {
+                $from = [];
+                $to   = [];
+                foreach ($matches[0] as $key=>$match) {
+                    $from[]   = $match;
+                    $startTag = '<mcondition>';
+                    $endTag   = '</mcondition>';
+                    if (false !== strpos($match, '<!--<![endif]-->')) {
+                        $startTag = '<mconditionnonoutlook>';
+                        $endTag   = '</mconditionnonoutlook>';
+                    }
+                    $to[] = $startTag.'<mif>'.$matches[1][$key].'</mif>'.$matches[2][$key].$endTag;
+                }
+                $value = str_replace($from, $to, $value);
+            }
 
             // Slecial handling for XML tags used in Outlook optimized emails <o:*/> and <w:/>
             $value = preg_replace_callback(
@@ -399,8 +429,16 @@ class InputHelper
                 },
                 $value, -1, $needsDecoding);
 
+            // Slecial handling for script tags
+            $value = preg_replace_callback(
+                "/<script>(.*?)<\/script>/is",
+                function ($matches) {
+                    return '<mscript>'.base64_encode($matches[0]).'</mscript>';
+                },
+                $value, -1, $needsScriptDecoding);
+
             // Special handling for HTML comments
-            $value = str_replace(['<!--', '-->'], ['<mcomment>', '</mcomment>'], $value, $commentCount);
+            $value = str_replace(['<!-->', '<!--', '-->'], ['<mcomment></mcomment>', '<mcomment>', '</mcomment>'], $value, $commentCount);
 
             $value = self::getFilter(true)->clean($value, 'html');
 
@@ -413,8 +451,9 @@ class InputHelper
                 $value = str_replace(['<mcdata>', '</mcdata>'], ['<![CDATA[', ']]>'], $value);
             }
 
-            if ($conditionsFound) {
+            if (!empty($matches[0])) {
                 // Special handling for conditional blocks
+                $value = preg_replace("/<mconditionnonoutlook><mif>(.*?)<\/mif>(.*?)<\/mconditionnonoutlook>/is", '<!--[if$1]>$2<!--<![endif]-->', $value);
                 $value = preg_replace("/<mcondition><mif>(.*?)<\/mif>(.*?)<\/mcondition>/is", '<!--[if$1]>$2<![endif]-->', $value);
             }
 
@@ -422,12 +461,23 @@ class InputHelper
                 $value = str_replace(['<mcomment>', '</mcomment>'], ['<!--', '-->'], $value);
             }
 
-            $value = preg_replace_callback(
-                "/<mencoded>(.*?)<\/mencoded>/is",
-                function ($matches) {
-                    return htmlspecialchars_decode($matches[1]);
-                },
-                $value);
+            if ($needsDecoding) {
+                $value = preg_replace_callback(
+                    "/<mencoded>(.*?)<\/mencoded>/is",
+                    function ($matches) {
+                        return htmlspecialchars_decode($matches[1]);
+                    },
+                    $value);
+            }
+
+            if ($needsScriptDecoding) {
+                $value = preg_replace_callback(
+                    "/<mscript>(.*?)<\/mscript>/is",
+                    function ($matches) {
+                        return base64_decode($matches[1]);
+                    },
+                    $value);
+            }
         }
 
         return $value;

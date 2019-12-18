@@ -96,7 +96,9 @@ Mautic.loadContent = function (route, link, method, target, showPageLoading, cal
  */
 Mautic.generatePageTitle = function(route){
 
-    if( -1 !== route.indexOf('view') ){
+    if (-1 !== route.indexOf('timeline')) {
+        return
+    } else if (-1 !== route.indexOf('view')) {
         //loading view of module title
         var currentModule = route.split('/')[3];
 
@@ -109,6 +111,9 @@ Mautic.generatePageTitle = function(route){
         } else {
             currentModuleItem = mQuery('.page-header h3').text();
         }
+
+        // Encoded entites are decoded by this process and can cause a XSS
+        currentModuleItem = mQuery('<div>'+currentModuleItem+'</div>').text();
 
         mQuery('title').html( currentModule[0].toUpperCase() + currentModule.slice(1) + ' | ' + currentModuleItem + ' | Mautic' );
     } else {
@@ -144,10 +149,6 @@ Mautic.processPageContent = function (response) {
             } else {
                 mQuery(response.target).html(response.newContent);
             }
-        }
-
-        if (response.flashes) {
-            Mautic.setFlashes(response.flashes);
         }
 
         if (response.notifications) {
@@ -231,12 +232,7 @@ Mautic.onPageLoad = function (container, response, inModal) {
     Mautic.initDateRangePicker(container + ' #daterange_date_from', container + ' #daterange_date_to');
 
     //initiate links
-    mQuery(container + " a[data-toggle='ajax']").off('click.ajax');
-    mQuery(container + " a[data-toggle='ajax']").on('click.ajax', function (event) {
-        event.preventDefault();
-
-        return Mautic.ajaxifyLink(this, event);
-    });
+    Mautic.makeLinksAlive(mQuery(container + " a[data-toggle='ajax']"));
 
     //initialize forms
     mQuery(container + " form[data-toggle='ajax']").each(function (index) {
@@ -244,12 +240,7 @@ Mautic.onPageLoad = function (container, response, inModal) {
     });
 
     //initialize ajax'd modals
-    mQuery(container + " *[data-toggle='ajaxmodal']").off('click.ajaxmodal');
-    mQuery(container + " *[data-toggle='ajaxmodal']").on('click.ajaxmodal', function (event) {
-        event.preventDefault();
-
-        Mautic.ajaxifyModal(this, event);
-    });
+    Mautic.makeModalsAlive(mQuery(container + " *[data-toggle='ajaxmodal']"))
 
     //initialize embedded modal forms
     Mautic.activateModalEmbeddedForms(container);
@@ -265,7 +256,26 @@ Mautic.onPageLoad = function (container, response, inModal) {
     });
 
     //initialize tooltips
-    mQuery(container + " *[data-toggle='tooltip']").tooltip({html: true, container: 'body'});
+    var pageTooltips = mQuery(container + " *[data-toggle='tooltip']");
+    pageTooltips.tooltip({html: true, container: 'body'});
+
+    // Enable tooltips on checkbox & radio input's to
+    // show when hovering their parent LABEL element
+    pageTooltips.each(function(i) {
+        var thisTooltip   = mQuery(pageTooltips.get(i));
+        var elementParent = thisTooltip.parent();
+
+        if (elementParent.get(0).tagName === 'LABEL') {
+            elementParent.append('<i class="fa fa-question-circle"></i>');
+
+            elementParent.hover(function () {
+                thisTooltip.tooltip('show')
+            }, function () {
+                thisTooltip.tooltip('hide');
+            });
+        }
+    });
+
 
     //initialize sortable lists
     mQuery(container + " *[data-toggle='sortablelist']").each(function (index) {
@@ -284,12 +294,7 @@ Mautic.onPageLoad = function (container, response, inModal) {
         Mautic.initiateFileDownload(mQuery(this).attr('href'));
     });
 
-    mQuery(container + " a[data-toggle='confirmation']").off('click.confirmation');
-    mQuery(container + " a[data-toggle='confirmation']").on('click.confirmation', function (event) {
-        event.preventDefault();
-        MauticVars.ignoreIconSpin = true;
-        return Mautic.showConfirmation(this);
-    });
+    Mautic.makeConfirmationsAlive(mQuery(container + " a[data-toggle='confirmation']"));
 
     //initialize date/time
     mQuery(container + " *[data-toggle='datetime']").each(function() {
@@ -304,6 +309,18 @@ Mautic.onPageLoad = function (container, response, inModal) {
         Mautic.activateDateTimeInputs(this, 'time');
     });
 
+    // Initialize callback options
+    mQuery(container + " *[data-onload-callback]").each(function() {
+        var callback = function(el) {
+            if (typeof window["Mautic"][mQuery(el).attr('data-onload-callback')] == 'function') {
+                window["Mautic"][mQuery(el).attr('data-onload-callback')].apply('window', [el]);
+            }
+        }
+
+        mQuery(document).ready(callback(this));
+    });
+
+
     mQuery(container + " input[data-toggle='color']").each(function() {
         Mautic.activateColorPicker(this);
     });
@@ -316,14 +333,7 @@ Mautic.onPageLoad = function (container, response, inModal) {
         Mautic.activateMultiSelect(this);
     });
 
-    mQuery(container + " *[data-toggle='field-lookup']").each(function (index) {
-        var target = mQuery(this).attr('data-target');
-        var options = mQuery(this).attr('data-options');
-        var field = mQuery(this).attr('id');
-        var action = mQuery(this).attr('data-action');
-
-        Mautic.activateFieldTypeahead(field, target, options, action);
-    });
+    Mautic.activateLookupTypeahead(mQuery(container));
 
     // Fix dropdowns in responsive tables - https://github.com/twbs/bootstrap/issues/11037#issuecomment-163746965
     mQuery(container + " .table-responsive").on('shown.bs.dropdown', function (e) {
@@ -505,7 +515,7 @@ Mautic.onPageLoad = function (container, response, inModal) {
                 editor.popups.hideAll();
             });
 
-            var maxButtons = ['undo', 'redo', '|', 'bold', 'italic', 'underline', 'paragraphFormat', 'fontFamily', 'fontSize', 'color', 'align', 'formatOL', 'formatUL', 'quote', 'clearFormatting', 'insertLink', 'insertImage', 'insertGatedVideo', 'insertTable', 'html', 'fullscreen'];
+            var maxButtons = ['undo', 'redo', '|', 'bold', 'italic', 'underline', 'paragraphFormat', 'fontFamily', 'fontSize', 'color', 'align', 'formatOL', 'formatUL', 'quote', 'clearFormatting', 'token', 'insertLink', 'insertImage', 'insertGatedVideo', 'insertTable', 'html', 'fullscreen'];
             var minButtons = ['undo', 'redo', '|', 'bold', 'italic', 'underline'];
 
             if (textarea.hasClass('editor-email')) {
@@ -520,12 +530,17 @@ Mautic.onPageLoad = function (container, response, inModal) {
                 minButtons = ['undo', 'redo', '|', 'bold', 'italic', 'underline', 'paragraphFormat', 'fontFamily', 'fontSize', 'color', 'align', 'formatOL', 'formatUL', 'quote', 'clearFormatting', 'insertLink', 'insertImage', 'insertGatedVideo', 'insertTable', 'html', 'fullscreen'];
             }
 
+            if (textarea.hasClass('editor-basic')) {
+                minButtons = ['undo', 'redo', '|', 'bold', 'italic', 'underline', 'paragraphFormat', 'fontFamily', 'fontSize', 'color', 'align', 'formatOL', 'formatUL', 'quote', 'clearFormatting', 'insertLink', 'insertImage', 'insertTable', 'html', 'fullscreen'];
+            }
+
             if (textarea.hasClass('editor-advanced') || textarea.hasClass('editor-basic-fullpage')) {
                 var options = {
                     // Set custom buttons with separator between them.
                     toolbarButtons: maxButtons,
                     toolbarButtonsMD: maxButtons,
-                    heightMin: 300
+                    heightMin: 300,
+                    useClasses: false
                 };
 
                 if (textarea.hasClass('editor-basic-fullpage')) {
@@ -548,7 +563,8 @@ Mautic.onPageLoad = function (container, response, inModal) {
                     toolbarButtonsMD: minButtons,
                     toolbarButtonsSM: minButtons,
                     toolbarButtonsXS: minButtons,
-                    heightMin: 100
+                    heightMin: 100,
+                    useClasses: false
                 }));
             }
         });
@@ -642,7 +658,7 @@ Mautic.onPageLoad = function (container, response, inModal) {
     }
 
     if (contentSpecific && typeof Mautic[contentSpecific + "OnLoad"] == 'function') {
-        if (typeof Mautic.loadedContent[contentSpecific] == 'undefined') {
+        if (inModal || typeof Mautic.loadedContent[contentSpecific] == 'undefined') {
             Mautic.loadedContent[contentSpecific] = true;
             Mautic[contentSpecific + "OnLoad"](container, response);
         }
@@ -692,6 +708,60 @@ Mautic.onPageLoad = function (container, response, inModal) {
     if ((response && typeof response.stopPageLoading != 'undefined' && response.stopPageLoading) || container == '#app-content' || container == '.page-list') {
         Mautic.stopPageLoadingBar();
     }
+};
+
+/**
+ * @param jQueryObject
+ */
+Mautic.activateLookupTypeahead = function(containerEl) {
+    containerEl.find("*[data-toggle='field-lookup']").each(function () {
+        var lookup = mQuery(this);
+
+        Mautic.activateFieldTypeahead(
+            lookup.attr('id'),
+            lookup.attr('data-target'),
+            lookup.attr('data-options'),
+            lookup.attr('data-action')
+        );
+    });
+};
+
+/**
+ * @param jQueryObject
+ */
+Mautic.makeConfirmationsAlive = function(jQueryObject) {
+    jQueryObject.off('click.confirmation');
+    jQueryObject.on('click.confirmation', function (event) {
+        event.preventDefault();
+        MauticVars.ignoreIconSpin = true;
+        return Mautic.showConfirmation(this);
+    });
+};
+
+/**
+ *
+ * @param jQueryObject
+ */
+Mautic.makeModalsAlive = function(jQueryObject) {
+    jQueryObject.off('click.ajaxmodal');
+    jQueryObject.on('click.ajaxmodal', function (event) {
+        event.preventDefault();
+
+        Mautic.ajaxifyModal(this, event);
+    });
+};
+
+/**
+ *
+ * @param jQueryObject
+ */
+Mautic.makeLinksAlive = function(jQueryObject) {
+    jQueryObject.off('click.ajax');
+    jQueryObject.on('click.ajax', function (event) {
+        event.preventDefault();
+
+        return Mautic.ajaxifyLink(this, event);
+    });
 };
 
 /**
@@ -904,6 +974,23 @@ Mautic.activateChosenSelect = function(el, ignoreGlobal, jQueryVariant) {
                 lookingForMsg: "Looking for"
             });
         }
+    }
+};
+
+/**
+ * Check and destroy chosen select
+ *
+ * @param el
+ */
+Mautic.destroyChosen = function(el) {
+    if(el.get(0)) {
+        var eventObject = mQuery._data(el.get(0), 'events');
+    }
+
+    // Check if object has chosen event
+    if (eventObject !== undefined && eventObject['chosen:activate'] !== undefined) {
+        el.chosen('destroy');
+        el.off('chosen:activate chosen:close chosen:open chosen:updated'); //Clear chosen events because chosen('destroy') doesn't
     }
 };
 
@@ -1144,6 +1231,7 @@ Mautic.activateDateTimeInputs = function(el, type) {
             lazyInit: true,
             validateOnBlur: false,
             allowBlank: true,
+            scrollMonth: false,
             scrollInput: false
         });
     } else if(type == 'date') {
@@ -1153,6 +1241,7 @@ Mautic.activateDateTimeInputs = function(el, type) {
             lazyInit: true,
             validateOnBlur: false,
             allowBlank: true,
+            scrollMonth: false,
             scrollInput: false,
             closeOnDateSelect: true
         });
@@ -1163,6 +1252,7 @@ Mautic.activateDateTimeInputs = function(el, type) {
             lazyInit: true,
             validateOnBlur: false,
             allowBlank: true,
+            scrollMonth: false,
             scrollInput: false
         });
     }

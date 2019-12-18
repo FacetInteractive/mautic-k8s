@@ -34,12 +34,14 @@ foreach ($groups as $key => $group):
                             <div class="row">
                                 <?php if (isset($form['companyname'])): ?>
                                     <div class="col-sm-<?php echo $halfSize; ?>">
-                                        <?php echo $view['form']->row($form['companyname']); ?>
+                                        <?php echo $view['form']->row($view->escape($form['companyname'])); ?>
                                     </div>
                                 <?php endif; ?>
-                                <div class="col-sm-<?php echo $halfSize; ?>">
-                                    <?php echo $view['form']->row($form['companyemail']); ?>
-                                </div>
+                                <?php if (isset($form['companyemail'])): ?>
+                                    <div class="col-sm-<?php echo $halfSize; ?>">
+                                        <?php echo $view['form']->row($form['companyemail']); ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <hr class="mnr-md mnl-md">

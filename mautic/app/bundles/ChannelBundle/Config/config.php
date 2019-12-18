@@ -24,6 +24,14 @@ return [
                 'path'       => '/messages/{objectAction}/{objectId}',
                 'controller' => 'MauticChannelBundle:Message:execute',
             ],
+            'mautic_channel_batch_contact_set' => [
+                'path'       => '/channels/batch/contact/set',
+                'controller' => 'MauticChannelBundle:BatchContact:set',
+            ],
+            'mautic_channel_batch_contact_view' => [
+                'path'       => '/channels/batch/contact/view',
+                'controller' => 'MauticChannelBundle:BatchContact:index',
+            ],
         ],
         'api' => [
             'mautic_api_messagetandard' => [
@@ -34,7 +42,6 @@ return [
             ],
         ],
         'public' => [
-
         ],
     ],
 
@@ -48,13 +55,10 @@ return [
             ],
         ],
         'admin' => [
-
         ],
         'profile' => [
-
         ],
         'extra' => [
-
         ],
     ],
 
@@ -65,11 +69,13 @@ return [
     'services' => [
         'events' => [
             'mautic.channel.campaignbundle.subscriber' => [
-                'class'     => 'Mautic\ChannelBundle\EventListener\CampaignSubscriber',
+                'class'     => Mautic\ChannelBundle\EventListener\CampaignSubscriber::class,
                 'arguments' => [
                     'mautic.channel.model.message',
-                    'mautic.campaign.model.campaign',
-                    'mautic.campaign.model.event',
+                    'mautic.campaign.dispatcher.action',
+                    'mautic.campaign.event_collector',
+                    'monolog.logger.mautic',
+                    'translator',
                 ],
             ],
             'mautic.channel.channelbundle.subscriber' => [
@@ -78,7 +84,22 @@ return [
                     'mautic.core.model.auditlog',
                 ],
             ],
-
+            'mautic.channel.channelbundle.lead.subscriber' => [
+                'class' => Mautic\ChannelBundle\EventListener\LeadSubscriber::class,
+            ],
+            'mautic.channel.reportbundle.subscriber' => [
+                'class'     => Mautic\ChannelBundle\EventListener\ReportSubscriber::class,
+                'arguments' => [
+                    'mautic.lead.model.company_report_data',
+                ],
+            ],
+            'mautic.channel.button.subscriber' => [
+                'class'     => \Mautic\ChannelBundle\EventListener\ButtonSubscriber::class,
+                'arguments' => [
+                    'router',
+                    'translator',
+                ],
+            ],
         ],
         'forms' => [
             \Mautic\ChannelBundle\Form\Type\MessageType::class => [
@@ -126,10 +147,24 @@ return [
                     'mautic.helper.core_parameters',
                 ],
             ],
+            'mautic.channel.model.channel.action' => [
+                'class'     => \Mautic\ChannelBundle\Model\ChannelActionModel::class,
+                'arguments' => [
+                    'mautic.lead.model.lead',
+                    'mautic.lead.model.dnc',
+                    'translator',
+                ],
+            ],
+            'mautic.channel.model.frequency.action' => [
+                'class'     => \Mautic\ChannelBundle\Model\FrequencyActionModel::class,
+                'arguments' => [
+                    'mautic.lead.model.lead',
+                    'mautic.lead.repository.frequency_rule',
+                ],
+            ],
         ],
     ],
 
     'parameters' => [
-
     ],
 ];

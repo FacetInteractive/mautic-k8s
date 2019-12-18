@@ -17,6 +17,7 @@ use Mautic\CoreBundle\Helper\IpLookupHelper;
 use Mautic\CoreBundle\Model\AuditLogModel;
 use Mautic\EmailBundle\EmailEvents;
 use Mautic\EmailBundle\Event as Events;
+use Mautic\EmailBundle\Event\TransportWebhookEvent;
 use Mautic\EmailBundle\Model\EmailModel;
 
 /**
@@ -59,12 +60,11 @@ class EmailSubscriber extends CommonSubscriber
     public static function getSubscribedEvents()
     {
         return [
-            EmailEvents::EMAIL_POST_SAVE   => ['onEmailPostSave', 0],
-            EmailEvents::EMAIL_POST_DELETE => ['onEmailDelete', 0],
-            EmailEvents::EMAIL_FAILED      => ['onEmailFailed', 0],
-            EmailEvents::EMAIL_ON_SEND     => ['onEmailSend', 0],
-            EmailEvents::EMAIL_RESEND      => ['onEmailResend', 0],
-            EmailEvents::EMAIL_PARSE       => ['onEmailParse', 0],
+            EmailEvents::EMAIL_POST_SAVE      => ['onEmailPostSave', 0],
+            EmailEvents::EMAIL_POST_DELETE    => ['onEmailDelete', 0],
+            EmailEvents::EMAIL_FAILED         => ['onEmailFailed', 0],
+            EmailEvents::EMAIL_RESEND         => ['onEmailResend', 0],
+            EmailEvents::ON_TRANSPORT_WEBHOOK => ['onTransportWebhook', -255],
         ];
     }
 
@@ -130,24 +130,6 @@ class EmailSubscriber extends CommonSubscriber
     }
 
     /**
-     * Add an unsubscribe email to the List-Unsubscribe header if applicable.
-     *
-     * @param Events\EmailSendEvent $event
-     */
-    public function onEmailSend(Events\EmailSendEvent $event)
-    {
-        $helper = $event->getHelper();
-        if ($helper && $unsubscribeEmail = $helper->generateUnsubscribeEmail()) {
-            $headers          = $event->getTextHeaders();
-            $existing         = (isset($headers['List-Unsubscribe'])) ? $headers['List-Unsubscribe'] : '';
-            $unsubscribeEmail = "<mailto:$unsubscribeEmail>";
-            $updatedHeader    = ($existing) ? $unsubscribeEmail.', '.$existing : $unsubscribeEmail;
-
-            $event->addTextHeader('List-Unsubscribe', $updatedHeader);
-        }
-    }
-
-    /**
      * Process if an email is resent.
      *
      * @param Events\QueueEmailEvent $event
@@ -180,24 +162,13 @@ class EmailSubscriber extends CommonSubscriber
     }
 
     /**
-     * @param Events\ParseEmailEvent $event
+     * This is default handling of email transport webhook requests.
+     * For custom handling (queues) for specific transport use the same listener with priority higher than -255.
+     *
+     * @param TransportWebhookEvent $event
      */
-    public function onEmailParse(Events\ParseEmailEvent $event)
+    public function onTransportWebhook(TransportWebhookEvent $event)
     {
-        // Listening for bounce_folder and unsubscribe_folder
-        $isBounce      = $event->isApplicable('EmailBundle', 'bounces');
-        $isUnsubscribe = $event->isApplicable('EmailBundle', 'unsubscribes');
-
-        if ($isBounce || $isUnsubscribe) {
-            // Process the messages
-
-            /** @var \Mautic\EmailBundle\Helper\MessageHelper $messageHelper */
-            $messageHelper = $this->factory->getHelper('message');
-
-            $messages = $event->getMessages();
-            foreach ($messages as $message) {
-                $messageHelper->analyzeMessage($message, $isBounce, $isUnsubscribe);
-            }
-        }
+        $event->getTransport()->processCallbackRequest($event->getRequest());
     }
 }

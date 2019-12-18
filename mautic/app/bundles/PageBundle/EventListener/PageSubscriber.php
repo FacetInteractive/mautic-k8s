@@ -16,7 +16,11 @@ use Mautic\CoreBundle\Helper\IpLookupHelper;
 use Mautic\CoreBundle\Model\AuditLogModel;
 use Mautic\CoreBundle\Templating\Helper\AssetsHelper;
 use Mautic\PageBundle\Event as Events;
+use Mautic\PageBundle\Model\PageModel;
 use Mautic\PageBundle\PageEvents;
+use Mautic\QueueBundle\Event\QueueConsumerEvent;
+use Mautic\QueueBundle\Queue\QueueConsumerResults;
+use Mautic\QueueBundle\QueueEvents;
 
 /**
  * Class PageSubscriber.
@@ -39,17 +43,28 @@ class PageSubscriber extends CommonSubscriber
     protected $ipLookupHelper;
 
     /**
+     * @var PageModel
+     */
+    protected $pageModel;
+
+    /**
      * PageSubscriber constructor.
      *
      * @param AssetsHelper   $assetsHelper
      * @param IpLookupHelper $ipLookupHelper
      * @param AuditLogModel  $auditLogModel
+     * @param PageModel      $pageModel
      */
-    public function __construct(AssetsHelper $assetsHelper, IpLookupHelper $ipLookupHelper, AuditLogModel $auditLogModel)
-    {
+    public function __construct(
+        AssetsHelper $assetsHelper,
+        IpLookupHelper $ipLookupHelper,
+        AuditLogModel $auditLogModel,
+        PageModel $pageModel
+    ) {
         $this->assetsHelper   = $assetsHelper;
         $this->ipLookupHelper = $ipLookupHelper;
         $this->auditLogModel  = $auditLogModel;
+        $this->pageModel      = $pageModel;
     }
 
     /**
@@ -61,6 +76,7 @@ class PageSubscriber extends CommonSubscriber
             PageEvents::PAGE_POST_SAVE   => ['onPagePostSave', 0],
             PageEvents::PAGE_POST_DELETE => ['onPageDelete', 0],
             PageEvents::PAGE_ON_DISPLAY  => ['onPageDisplay', -255], // We want this to run last
+            QueueEvents::PAGE_HIT        => ['onPageHit', 0],
         ];
     }
 
@@ -145,6 +161,78 @@ class PageSubscriber extends CommonSubscriber
             $content = str_ireplace('</body>', $bodyCloseScripts."\n</body>", $content);
         }
 
+        // Get scripts to insert before a custom tag
+        $params = $event->getParams();
+        if (count($params) > 0) {
+            if (isset($params['custom_tag']) && $customTag = $params['custom_tag']) {
+                ob_start();
+                $this->assetsHelper->outputScripts('customTag');
+                $bodyCustomTag = ob_get_clean();
+
+                if ($bodyCustomTag) {
+                    $content = str_ireplace($customTag, $bodyCustomTag."\n".$customTag, $content);
+                }
+            }
+        }
+
         $event->setContent($content);
+    }
+
+    /**
+     * @param QueueConsumerEvent $event
+     */
+    public function onPageHit(QueueConsumerEvent $event)
+    {
+        $payload                = $event->getPayload();
+        $request                = $payload['request'];
+        $trackingNewlyGenerated = $payload['isNew'];
+        $hitId                  = $payload['hitId'];
+        $pageId                 = $payload['pageId'];
+        $leadId                 = $payload['leadId'];
+        $isRedirect             = !empty($payload['isRedirect']);
+        $hitRepo                = $this->em->getRepository('MauticPageBundle:Hit');
+        $pageRepo               = $this->em->getRepository('MauticPageBundle:Page');
+        $redirectRepo           = $this->em->getRepository('MauticPageBundle:Redirect');
+        $leadRepo               = $this->em->getRepository('MauticLeadBundle:Lead');
+        $hit                    = $hitId ? $hitRepo->find((int) $hitId) : null;
+        $lead                   = $leadId ? $leadRepo->find((int) $leadId) : null;
+
+        // On the off chance that the queue contains a message which does not
+        // reference a valid Hit or Lead, discard it to avoid clogging the queue.
+        if (null === $hit || null === $lead) {
+            $event->setResult(QueueConsumerResults::REJECT);
+
+            // Log the rejection with event payload as context.
+            if ($this->logger) {
+                $this->logger->addNotice(
+                    'QUEUE MESSAGE REJECTED: Lead or Hit not found',
+                    $payload
+                );
+            }
+
+            return;
+        }
+
+        if ($isRedirect) {
+            $page = $pageId ? $redirectRepo->find((int) $pageId) : null;
+        } else {
+            $page = $pageId ? $pageRepo->find((int) $pageId) : null;
+        }
+
+        // Also reject messages when processing causes any other exception.
+        try {
+            $this->pageModel->processPageHit($hit, $page, $request, $lead, $trackingNewlyGenerated, false);
+            $event->setResult(QueueConsumerResults::ACKNOWLEDGE);
+        } catch (\Exception $e) {
+            $event->setResult(QueueConsumerResults::REJECT);
+
+            // Log the exception with event payload as context.
+            if ($this->logger) {
+                $this->logger->addError(
+                    'QUEUE CONSUMER ERROR ('.QueueEvents::PAGE_HIT.'): '.$e->getMessage(),
+                    $payload
+                );
+            }
+        }
     }
 }

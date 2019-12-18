@@ -12,6 +12,7 @@
 namespace Mautic\LeadBundle\Entity;
 
 use Doctrine\DBAL\Query\Expression\CompositeExpression;
+use Doctrine\ORM\QueryBuilder;
 use Mautic\CoreBundle\Entity\CommonRepository;
 
 /**
@@ -44,10 +45,17 @@ class CompanyRepository extends CommonRepository implements CustomFieldRepositor
             $entity = null;
         }
 
-        if ($entity != null) {
-            $fieldValues = $this->getFieldValues($id, true, 'company');
-            $entity->setFields($fieldValues);
+        if (null === $entity) {
+            return $entity;
         }
+
+        if ($entity->getFields()) {
+            // Pulled from Doctrine memory so don't make unnecessary queries as this has already happened
+            return $entity;
+        }
+
+        $fieldValues = $this->getFieldValues($id, true, 'company');
+        $entity->setFields($fieldValues);
 
         return $entity;
     }
@@ -59,7 +67,7 @@ class CompanyRepository extends CommonRepository implements CustomFieldRepositor
      *
      * @return array
      */
-    public function getEntities($args = [])
+    public function getEntities(array $args = [])
     {
         return $this->getEntitiesWithCustomFields('company', $args);
     }
@@ -136,7 +144,7 @@ class CompanyRepository extends CommonRepository implements CustomFieldRepositor
     /**
      * {@inheritdoc}
      */
-    protected function addCatchAllWhereClause(&$q, $filter)
+    protected function addCatchAllWhereClause($q, $filter)
     {
         return $this->addStandardCatchAllWhereClause(
             $q,
@@ -151,7 +159,7 @@ class CompanyRepository extends CommonRepository implements CustomFieldRepositor
     /**
      * {@inheritdoc}
      */
-    protected function addSearchCommandWhereClause(&$q, $filter)
+    protected function addSearchCommandWhereClause($q, $filter)
     {
         return $this->addStandardSearchCommandWhereClause($q, $filter);
     }
@@ -302,6 +310,10 @@ class CompanyRepository extends CommonRepository implements CustomFieldRepositor
      */
     public function getCompaniesForContacts(array $contacts)
     {
+        if (!$contacts) {
+            return [];
+        }
+
         $qb = $this->getEntityManager()->getConnection()->createQueryBuilder();
         $qb->select('c.*, l.lead_id, l.is_primary')
             ->from(MAUTIC_TABLE_PREFIX.'companies', 'c')
@@ -402,11 +414,11 @@ class CompanyRepository extends CommonRepository implements CustomFieldRepositor
             }
         }
 
-        $q->select($prefix.$valueColumn.' as value, 
-        case 
+        $q->select($prefix.$valueColumn.' as value,
+        case
         when (comp.companycountry is not null and comp.companycity is not null) then concat(comp.companyname, " <small>", companycity,", ", companycountry, "</small>")
         when (comp.companycountry is not null) then concat(comp.companyname, " <small>", comp.companycountry, "</small>")
-        when (comp.companycity is not null) then concat(comp.companycity, " <small>", comp.companycity, "</small>")
+        when (comp.companycity is not null) then concat(comp.companyname, " <small>", comp.companycity, "</small>")
         else comp.companyname
         end
         as label')

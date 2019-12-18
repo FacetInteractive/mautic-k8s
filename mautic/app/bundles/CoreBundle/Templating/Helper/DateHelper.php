@@ -35,14 +35,19 @@ class DateHelper extends Helper
     /**
      * DateHelper constructor.
      *
-     * @param                     $dateFullFormat
-     * @param                     $dateShortFormat
-     * @param                     $dateOnlyFormat
-     * @param                     $timeOnlyFormat
+     * @param string              $dateFullFormat
+     * @param string              $dateShortFormat
+     * @param string              $dateOnlyFormat
+     * @param string              $timeOnlyFormat
      * @param TranslatorInterface $translator
      */
-    public function __construct($dateFullFormat, $dateShortFormat, $dateOnlyFormat, $timeOnlyFormat, TranslatorInterface $translator)
-    {
+    public function __construct(
+        $dateFullFormat,
+        $dateShortFormat,
+        $dateOnlyFormat,
+        $timeOnlyFormat,
+        TranslatorInterface $translator
+    ) {
         $this->formats = [
             'datetime' => $dateFullFormat,
             'short'    => $dateShortFormat,
@@ -206,8 +211,13 @@ class DateHelper extends Helper
                     $formated[] = $this->translator->transChoice(
                         'mautic.core.date.'.$unit,
                         $range->{$key},
-                        ['%count%' => $range->{$key}]);
+                        ['%count%' => $range->{$key}]
+                    );
                 }
+            }
+
+            if (empty($formated)) {
+                return $this->translator->trans('mautic.core.date.less.than.second');
             }
 
             return implode(' ', $formated);

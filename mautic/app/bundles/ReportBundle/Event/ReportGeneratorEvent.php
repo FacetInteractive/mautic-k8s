@@ -206,7 +206,7 @@ class ReportGeneratorEvent extends AbstractReportEvent
      */
     public function addCategoryLeftJoin(QueryBuilder $queryBuilder, $prefix, $categoryPrefix = 'c')
     {
-        $queryBuilder->leftJoin($prefix, MAUTIC_TABLE_PREFIX.'categories', $categoryPrefix, 'c.id = '.$prefix.'.category_id');
+        $queryBuilder->leftJoin($prefix, MAUTIC_TABLE_PREFIX.'categories', $categoryPrefix, $categoryPrefix.'.id = '.$prefix.'.category_id');
 
         return $this;
     }
@@ -222,7 +222,7 @@ class ReportGeneratorEvent extends AbstractReportEvent
      */
     public function addLeadLeftJoin(QueryBuilder $queryBuilder, $prefix, $leadPrefix = 'l')
     {
-        $queryBuilder->leftJoin($prefix, MAUTIC_TABLE_PREFIX.'leads', $leadPrefix, 'l.id = '.$prefix.'.lead_id');
+        $queryBuilder->leftJoin($prefix, MAUTIC_TABLE_PREFIX.'leads', $leadPrefix, $leadPrefix.'.id = '.$prefix.'.lead_id');
 
         return $this;
     }
@@ -238,7 +238,25 @@ class ReportGeneratorEvent extends AbstractReportEvent
      */
     public function addIpAddressLeftJoin(QueryBuilder $queryBuilder, $prefix, $ipPrefix = 'i')
     {
-        $queryBuilder->leftJoin($prefix, MAUTIC_TABLE_PREFIX.'ip_addresses', $ipPrefix, 'i.id = '.$prefix.'.ip_id');
+        $queryBuilder->leftJoin($prefix, MAUTIC_TABLE_PREFIX.'ip_addresses', $ipPrefix, $ipPrefix.'.id = '.$prefix.'.ip_id');
+
+        return $this;
+    }
+
+    /**
+     * Add IP left join with lead join.
+     *
+     * @param QueryBuilder $queryBuilder
+     * @param string       $ipXrefPrefix
+     * @param string       $ipPrefix
+     * @param string       $leadPrefix
+     *
+     * @return $this
+     */
+    public function addLeadIpAddressLeftJoin(QueryBuilder $queryBuilder, $ipXrefPrefix = 'lip', $ipPrefix = 'i', $leadPrefix = 'l')
+    {
+        $this->addIpAddressLeftJoin($queryBuilder, $ipXrefPrefix, $ipPrefix);
+        $queryBuilder->leftJoin($leadPrefix, MAUTIC_TABLE_PREFIX.'lead_ips_xref', $ipXrefPrefix, $ipXrefPrefix.'.lead_id = '.$leadPrefix.'.id');
 
         return $this;
     }
@@ -249,10 +267,11 @@ class ReportGeneratorEvent extends AbstractReportEvent
      * @param QueryBuilder $queryBuilder
      * @param              $prefix
      * @param string       $ipPrefix
+     * @param string       $leadPrefix
      *
      * @return $this
      */
-    public function addCampaignByChannelJoin(QueryBuilder $queryBuilder, $prefix, $channel)
+    public function addCampaignByChannelJoin(QueryBuilder $queryBuilder, $prefix, $channel, $leadPrefix = 'l')
     {
         $options = $this->getOptions();
         $cmpName = 'cmp.name';
@@ -260,12 +279,14 @@ class ReportGeneratorEvent extends AbstractReportEvent
 
         if ($this->hasColumn($cmpName)
             || $this->hasFilter($cmpName)
+            || $this->hasGroupByColumn($cmpName)
             || $this->hasColumn($cmpId)
             || $this->hasFilter($cmpId)
+            || $this->hasGroupByColumn($cmpId)
             || (!empty($options['order'][0]
                     && ($options['order'][0] === $cmpName
                         || $options['order'][0] === $cmpId)))) {
-            $queryBuilder->leftJoin($prefix, MAUTIC_TABLE_PREFIX.'campaign_lead_event_log', 'clel', $prefix.'.id = clel.channel_id AND clel.channel="'.$channel.'"')
+            $queryBuilder->leftJoin($prefix, MAUTIC_TABLE_PREFIX.'campaign_lead_event_log', 'clel', sprintf('clel.channel="%s" AND %s.id = clel.channel_id AND clel.lead_id = %s.id', $channel, $prefix, $leadPrefix))
                     ->leftJoin('clel', MAUTIC_TABLE_PREFIX.'campaigns', 'cmp', 'cmp.id = clel.campaign_id');
         }
 
@@ -309,6 +330,17 @@ class ReportGeneratorEvent extends AbstractReportEvent
     }
 
     /**
+     * Add company left join.
+     *
+     * @param QueryBuilder $queryBuilder
+     */
+    public function addCompanyLeftJoin(QueryBuilder $queryBuilder)
+    {
+        $queryBuilder->leftJoin('l', MAUTIC_TABLE_PREFIX.'companies_leads', 'companies_lead', 'l.id = companies_lead.lead_id');
+        $queryBuilder->leftJoin('companies_lead', MAUTIC_TABLE_PREFIX.'companies', 'comp', 'companies_lead.company_id = comp.id');
+    }
+
+    /**
      * Apply date filters to the query.
      *
      * @param QueryBuilder $queryBuilder
@@ -333,11 +365,11 @@ class ReportGeneratorEvent extends AbstractReportEvent
         }
 
         if ($dateOnly) {
-            $queryBuilder->andWhere('DATE('.$tablePrefix.$dateColumn.') BETWEEN :dateFrom AND :dateTo');
+            $queryBuilder->andWhere(sprintf('%1$s IS NULL OR (DATE(%1$s) BETWEEN :dateFrom AND :dateTo)', $tablePrefix.$dateColumn));
             $queryBuilder->setParameter('dateFrom', $this->options['dateFrom']->format('Y-m-d'));
             $queryBuilder->setParameter('dateTo', $this->options['dateTo']->format('Y-m-d'));
         } else {
-            $queryBuilder->andWhere($tablePrefix.$dateColumn.' BETWEEN :dateFrom AND :dateTo');
+            $queryBuilder->andWhere(sprintf('%1$s IS NULL OR (%1$s BETWEEN :dateFrom AND :dateTo)', $tablePrefix.$dateColumn));
             $queryBuilder->setParameter('dateFrom', $this->options['dateFrom']->format('Y-m-d H:i:s'));
             $queryBuilder->setParameter('dateTo', $this->options['dateTo']->format('Y-m-d H:i:s'));
         }
@@ -348,25 +380,17 @@ class ReportGeneratorEvent extends AbstractReportEvent
     /**
      * Check if the report has a specific column.
      *
-     * @param $column
+     * @param array|string $column
      *
      * @return bool
      */
     public function hasColumn($column)
     {
-        static $sorted;
-
-        if (null == $sorted) {
-            $columns = $this->getReport()->getColumns();
-
-            foreach ($columns as $field) {
-                $sorted[$field] = true;
-            }
-        }
+        $columns = $this->getReport()->getSelectAndAggregatorAndOrderAndGroupByColumns();
 
         if (is_array($column)) {
             foreach ($column as $checkMe) {
-                if (isset($sorted[$checkMe])) {
+                if (in_array($checkMe, $columns, true)) {
                     return true;
                 }
             }
@@ -374,13 +398,13 @@ class ReportGeneratorEvent extends AbstractReportEvent
             return false;
         }
 
-        return isset($sorted[$column]);
+        return in_array($column, $columns, true);
     }
 
     /**
      * Check if the report has a specific filter.
      *
-     * @param $column
+     * @param array|string $column
      *
      * @return bool
      */
@@ -410,6 +434,20 @@ class ReportGeneratorEvent extends AbstractReportEvent
     }
 
     /**
+     * Get filter value from a specific filter.
+     *
+     * @param string $column
+     *
+     * @return mixed
+     *
+     * @throws \UnexpectedValueException
+     */
+    public function getFilterValue($column)
+    {
+        return $this->getReport()->getFilterValue($column);
+    }
+
+    /**
      * Check if the report has a groupBy columns selected.
      *
      *
@@ -422,6 +460,18 @@ class ReportGeneratorEvent extends AbstractReportEvent
         }
 
         return false;
+    }
+
+    /**
+     * Check if the report has a specific column.
+     *
+     * @param string $column
+     *
+     * @return bool
+     */
+    private function hasGroupByColumn($column)
+    {
+        return in_array($column, $this->getReport()->getGroupBy(), true);
     }
 
     /**

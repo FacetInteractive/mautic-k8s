@@ -12,15 +12,21 @@
 namespace Mautic\CampaignBundle\Event;
 
 use Mautic\CampaignBundle\Entity\LeadEventLog;
+use Mautic\LeadBundle\Entity\Lead;
 use Symfony\Component\EventDispatcher\Event;
 
 /**
  * Class CampaignExecutionEvent.
+ *
+ * @deprecated 2.13.0; to be removed in 3.0
  */
 class CampaignExecutionEvent extends Event
 {
+    use EventArrayTrait;
+    use ContextTrait;
+
     /**
-     * @var \Mautic\LeadBundle\Entity\Lead
+     * @var Lead
      */
     protected $lead;
 
@@ -28,11 +34,6 @@ class CampaignExecutionEvent extends Event
      * @var array
      */
     protected $event;
-
-    /**
-     * @var array
-     */
-    protected $config;
 
     /**
      * @var array
@@ -45,7 +46,7 @@ class CampaignExecutionEvent extends Event
     protected $systemTriggered;
 
     /**
-     * @var bool
+     * @var bool|array
      */
     protected $result;
 
@@ -77,15 +78,14 @@ class CampaignExecutionEvent extends Event
     /**
      * CampaignExecutionEvent constructor.
      *
-     * @param                   $args
-     * @param                   $result
+     * @param array             $args
+     * @param bool              $result
      * @param LeadEventLog|null $log
      */
-    public function __construct($args, $result, LeadEventLog $log = null)
+    public function __construct(array $args, $result, LeadEventLog $log = null)
     {
         $this->lead            = $args['lead'];
         $this->event           = $args['event'];
-        $this->config          = $args['event']['properties'];
         $this->eventDetails    = $args['eventDetails'];
         $this->systemTriggered = $args['systemTriggered'];
         $this->eventSettings   = $args['eventSettings'];
@@ -94,7 +94,7 @@ class CampaignExecutionEvent extends Event
     }
 
     /**
-     * @return \Mautic\LeadBundle\Entity\Lead
+     * @return Lead
      */
     public function getLead()
     {
@@ -102,11 +102,32 @@ class CampaignExecutionEvent extends Event
     }
 
     /**
+     * Returns array with lead fields and owner ID if exist.
+     *
+     * @return array
+     */
+    public function getLeadFields()
+    {
+        $lead         = $this->getLead();
+        $isLeadEntity = ($lead instanceof Lead);
+
+        // In case Lead is a scalar value:
+        if (!$isLeadEntity && !is_array($lead)) {
+            $lead = [];
+        }
+
+        $leadFields             = $isLeadEntity ? $lead->getProfileFields() : $lead;
+        $leadFields['owner_id'] = $isLeadEntity && ($owner = $lead->getOwner()) ? $owner->getId() : 0;
+
+        return $leadFields;
+    }
+
+    /**
      * @return array
      */
     public function getEvent()
     {
-        return $this->event;
+        return ($this->event instanceof \Mautic\CampaignBundle\Entity\Event) ? $this->getEventArray($this->event) : $this->event;
     }
 
     /**
@@ -114,7 +135,7 @@ class CampaignExecutionEvent extends Event
      */
     public function getConfig()
     {
-        return $this->config;
+        return $this->getEvent()['properties'];
     }
 
     /**
@@ -212,18 +233,8 @@ class CampaignExecutionEvent extends Event
     }
 
     /**
-     * Check if an event is applicable.
-     *
-     * @param $eventType
-     */
-    public function checkContext($eventType)
-    {
-        return strtolower($eventType) == strtolower($this->event['type']);
-    }
-
-    /**
-     * @param      $channel
-     * @param null $channelId
+     * @param string          $channel
+     * @param string|int|null $channelId
      *
      * @return $this
      */

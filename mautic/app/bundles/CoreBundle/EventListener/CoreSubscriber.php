@@ -116,7 +116,7 @@ class CoreSubscriber extends CommonSubscriber
      */
     public function onKernelRequestAddGlobalJS(FilterControllerEvent $event)
     {
-        if (defined('MAUTIC_INSTALLER') || $this->userHelper->getUser()->isGuest || !$event->isMasterRequest()) {
+        if (defined('MAUTIC_INSTALLER') || $this->userHelper->getUser()->isGuest() || !$event->isMasterRequest()) {
             return;
         }
 
@@ -170,8 +170,8 @@ class CoreSubscriber extends CommonSubscriber
 
             //dispatch on login events
             if ($this->dispatcher->hasListeners(UserEvents::USER_LOGIN)) {
-                $event = new LoginEvent($this->userHelper->getUser());
-                $this->dispatcher->dispatch(UserEvents::USER_LOGIN, $event);
+                $loginEvent = new LoginEvent($this->userHelper->getUser());
+                $this->dispatcher->dispatch(UserEvents::USER_LOGIN, $loginEvent);
             }
         } else {
             $session->remove('mautic.user');
@@ -456,8 +456,8 @@ class CoreSubscriber extends CommonSubscriber
                 $defaults['objectId'] = 0;
             }
             if (!isset($requirements['objectId'])) {
-                // Only allow alphanumeric for objectId
-                $requirements['objectId'] = '[a-zA-Z0-9_]+';
+                // Only allow alphanumeric and _- for objectId
+                $requirements['objectId'] = '[a-zA-Z0-9_-]+';
             }
         }
         if ($type == 'api') {

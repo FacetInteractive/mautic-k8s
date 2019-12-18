@@ -41,14 +41,16 @@ class LoadRoleData extends AbstractFixture implements OrderedFixtureInterface, C
      */
     public function load(ObjectManager $manager)
     {
-        $role = new Role();
-        $role->setName('Administrators');
-        $role->setDescription('Has access to everything.');
-        $role->setIsAdmin(1);
-        $manager->persist($role);
-        $manager->flush();
+        if (!$this->hasReference('admin-role')) {
+            $role = new Role();
+            $role->setName('Administrators');
+            $role->setDescription('Has access to everything.');
+            $role->setIsAdmin(1);
+            $manager->persist($role);
+            $manager->flush();
 
-        $this->addReference('admin-role', $role);
+            $this->addReference('admin-role', $role);
+        }
 
         $role = new Role();
         $role->setName('Sales Team');
@@ -59,7 +61,7 @@ class LoadRoleData extends AbstractFixture implements OrderedFixtureInterface, C
             'user:profile' => ['editname'],
             'lead:leads'   => ['full'],
         ];
-        $this->container->get('mautic.factory')->getModel('user.role')->setRolePermissions($role, $permissions);
+        $this->container->get('mautic.user.model.role')->setRolePermissions($role, $permissions);
 
         $manager->persist($role);
         $manager->flush();

@@ -21,7 +21,7 @@ class PointRepository extends CommonRepository
     /**
      * {@inheritdoc}
      */
-    public function getEntities($args = [])
+    public function getEntities(array $args = [])
     {
         $q = $this->_em
             ->createQueryBuilder()
@@ -52,7 +52,7 @@ class PointRepository extends CommonRepository
     public function getPublishedByType($type)
     {
         $q = $this->createQueryBuilder('p')
-            ->select('partial p.{id, type, name, delta, properties}')
+            ->select('partial p.{id, type, name, delta, repeatable, properties}')
             ->setParameter('type', $type);
 
         //make sure the published up and down dates are good
@@ -96,6 +96,7 @@ class PointRepository extends CommonRepository
 
         return $return;
     }
+
     /**
      * @param int $leadId
      *
@@ -125,10 +126,11 @@ class PointRepository extends CommonRepository
 
         return $return;
     }
+
     /**
      * {@inheritdoc}
      */
-    protected function addCatchAllWhereClause(&$q, $filter)
+    protected function addCatchAllWhereClause($q, $filter)
     {
         return $this->addStandardCatchAllWhereClause($q, $filter, [
             'p.name',
@@ -139,7 +141,7 @@ class PointRepository extends CommonRepository
     /**
      * {@inheritdoc}
      */
-    protected function addSearchCommandWhereClause(&$q, $filter)
+    protected function addSearchCommandWhereClause($q, $filter)
     {
         return $this->addStandardSearchCommandWhereClause($q, $filter);
     }
