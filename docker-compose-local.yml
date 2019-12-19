@@ -33,8 +33,8 @@ services:
       image: phpmyadmin/phpmyadmin
       environment:
         PMA_HOST: db
-        PMA_USER: mautic
-        PMA_PASSWORD: mautic
+        PMA_USER: root
+        PMA_PASSWORD: root
         PHP_UPLOAD_MAX_FILESIZE: 1G
         PHP_MAX_INPUT_VARS: 1G
       ports:

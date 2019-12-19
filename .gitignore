@@ -3,4 +3,3 @@ db-data
 db-init
 .env
 mautic/app/cache/prod
-mautic/app/config/local.php
