@@ -64,5 +64,6 @@ The production docker compose uses Traefik as a web proxy.
 - ~~Make local.php more in tune with app specific settings.~~
 - ~~Update this mautic to latest stable version.~~
 - Explore separate caching tier like Redis. - Will be handled by stateful sets in Kubernetes.
+- Env specific settings.
 - Send logs to stdout.
 - Separate containers for running cronjobs.
