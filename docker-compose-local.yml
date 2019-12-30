@@ -12,11 +12,9 @@ services:
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     php:
-        build: php7-fpm
+        image: facet-mautic:2.15.3
         ports:
             - 9000:9000
-        volumes:
-            - ./mautic:/var/www/symfony
         environment:
             MYSQL_DB_HOST: db
             MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -24,11 +22,9 @@ services:
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
             SECRET_KEY: 5a3fb2216f200ad7598a149216f09f8c372e84ff033a35dadbcacd36af4d43ae
     nginx:
-        build: nginx
+        image: facet-mautic-nginx:1.0
         ports:
             - 8080:80
-        volumes_from:
-            - php
     pma:
       image: phpmyadmin/phpmyadmin
       environment:
