@@ -44,19 +44,26 @@ The production docker compose uses Traefik as a web proxy.
 	$ docker-compose -f docker-compose-local.yml run php app/console cache:warmup
 	```
 
-5. Update admin user password and reset it to `secret`.
+5. Run DB migrations.
+
+	```bash
+	$ docker-compose -f docker-compose-local.yml run php app/console doctrine:migrations:migrate
+	```
+
+6. Update admin user password and reset it to `secret`.
 
     ```sql
 	UPDATE users SET password = "$2a$04$LrQYZmEMFi7GghF0EIv4FOdNv8bFcnlXM9Bta0eb8BWLLlRwcKrUm" where id = 1;
     ```
 
-6. App can be accessed at "http://localhost:8080". Mautic will be installed in this step.
+7. App can be accessed at "http://localhost:8080". Mautic will be installed in this step.
 
 
 ## TODOs
 
 - ~~Make local.php more in tune with app specific settings.~~
-- Update this mautic to latest stable version.
-- Explore separate caching tier like Redis.
+- ~~Update this mautic to latest stable version.~~
+- Explore separate caching tier like Redis. - Will be handled by stateful sets in Kubernetes.
+- Env specific settings.
 - Send logs to stdout.
 - Separate containers for running cronjobs.
