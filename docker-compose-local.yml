@@ -22,7 +22,7 @@ services:
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
             SECRET_KEY: 5a3fb2216f200ad7598a149216f09f8c372e84ff033a35dadbcacd36af4d43ae
     nginx:
-        image: facet-mautic-nginx:1.0
+        image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.1
         ports:
             - 8080:80
     pma:

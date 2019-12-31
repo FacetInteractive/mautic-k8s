@@ -1,0 +1,180 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mautic 
+  labels:
+    app: facet-mautic
+spec:
+  replicas: 2
+  serviceName: "mautic"
+  selector:
+    matchLabels:
+      app: facet-mautic 
+  template:
+    metadata:
+      labels:
+        app: facet-mautic 
+    spec:
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: cache
+        - name: logs
+          persistentVolumeClaim:
+            claimName: logs
+      containers:
+        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.1
+          name: nginx
+          ports:
+            - containerPort: 8080
+              name: mautic        
+        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic:2.15.3
+          name: mautic
+          env:
+          - name: MYSQL_DB_HOST
+            value: db
+          - name: MYSQL_DATABASE
+            value: mautic
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: db-secret
+                key: database-user
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: db-secret
+                key: database-password
+          - name: SECRET_KEY
+            value: 5a3fb2216f200ad7598a149216f09f8c372e84ff033a35dadbcacd36af4d43ae
+          volumeMounts:
+            - name: cache
+              mountPath: /var/www/symfony/app/cache
+            - name: logs
+              mountPath: /var/www/symfony/app/logs
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cache
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---        
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: logs
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mautic
+spec:
+  ports:
+  - port: 8080
+    name: http
+  clusterIP: None
+  selector:
+    app: facet-mautic
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3306
+  selector:
+    app: facet-mautic-db
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: facet-mautic-db
+  template:
+    metadata:
+      labels:
+        app: facet-mautic-db
+    spec:
+      volumes:
+        - name: mysql-persistent-storage
+          persistentVolumeClaim:
+            claimName: mysql-pv-claim
+      containers:
+      - image: mysql:5
+        name: mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: database-root-password
+        - name: MYSQL_DATABASE
+          name: mautic
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: database-user
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: database-password
+        ports:
+          - containerPort: 3306
+            name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+---            
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---      
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-secret
+stringData:
+  database-user: user
+  database-password: foobar123
+  database-root-password: root123
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: mautic
+spec:
+  rules:
+  - host: mautic.k8s.facetinteractive.com
+    http:
+      paths:
+      - backend:
+          serviceName: mautic
+          servicePort: 8080
+# rabbitmq
+# cache??
