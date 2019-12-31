@@ -22,6 +22,13 @@ spec:
         - name: logs
           persistentVolumeClaim:
             claimName: logs
+      initContainers:
+        - name: init-cache
+          image: busybox:latest
+          command: ['/bin/chown', 'www-data:www-data', '/var/www/symfony/app/cache']
+        - name: init-logs
+          image: busybox:latest
+          command: ['/bin/chown', 'www-data:www-data', '/var/www/symfony/app/logs']
       containers:
         - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.1
           name: nginx
@@ -118,6 +125,8 @@ spec:
             claimName: mysql-pv-claim
       containers:
       - image: mysql:5
+        args:
+          - "--ignore-db-dir=lost+found"
         name: mysql
         env:
         - name: MYSQL_ROOT_PASSWORD
@@ -173,7 +182,8 @@ spec:
   - host: mautic.k8s.facetinteractive.com
     http:
       paths:
-      - backend:
+      - path: /
+        backend:
           serviceName: mautic
           servicePort: 8080
 # rabbitmq
