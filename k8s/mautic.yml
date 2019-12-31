@@ -25,10 +25,10 @@ spec:
       initContainers:
         - name: init-cache
           image: busybox:latest
-          command: ['/bin/chown', 'www-data:www-data', '/var/www/symfony/app/cache']
+          command: ['/bin/chown', '-R', 'www-data:www-data', '/var/www/symfony/app/cache']
         - name: init-logs
           image: busybox:latest
-          command: ['/bin/chown', 'www-data:www-data', '/var/www/symfony/app/logs']
+          command: ['/bin/chown', '-R', 'www-data:www-data', '/var/www/symfony/app/logs']
       containers:
         - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.1
           name: nginx
