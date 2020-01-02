@@ -38,4 +38,6 @@ RUN chown -R www-data:www-data /var/www/symfony/app/logs
 RUN chown -R www-data:www-data /var/www/symfony/app/cache
 WORKDIR /var/www/symfony
 RUN composer install
+RUN mkdir /cache && chown -R www-data:www-data /cache
+RUN mkdir /logs && chown -R www-data:www-data /logs
 USER www-data

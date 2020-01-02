@@ -5,8 +5,8 @@ metadata:
   labels:
     app: facet-mautic
 spec:
-  replicas: 2
-  serviceName: "mautic"
+  serviceName: mautic
+  replicas: 3
   selector:
     matchLabels:
       app: facet-mautic 
@@ -22,15 +22,8 @@ spec:
         - name: logs
           persistentVolumeClaim:
             claimName: logs
-      initContainers:
-        - name: init-cache
-          image: busybox:latest
-          command: ['/bin/chown', '-R', 'www-data:www-data', '/var/www/symfony/app/cache']
-        - name: init-logs
-          image: busybox:latest
-          command: ['/bin/chown', '-R', 'www-data:www-data', '/var/www/symfony/app/logs']
       containers:
-        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.1
+        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.5
           name: nginx
           ports:
             - containerPort: 8080
@@ -56,9 +49,20 @@ spec:
             value: 5a3fb2216f200ad7598a149216f09f8c372e84ff033a35dadbcacd36af4d43ae
           volumeMounts:
             - name: cache
-              mountPath: /var/www/symfony/app/cache
+              mountPath: /cache
             - name: logs
-              mountPath: /var/www/symfony/app/logs
+              mountPath: /logs
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - "/bin/sh"
+                  - "-c"
+                  - > 
+                    rm -rf /var/www/symfony/app/cache;
+                    ln -fs /cache /var/www/symfony/app/cache;
+                    rm -rf /var/www/symfony/app/logs;
+                    ln -fs /logs /var/www/symfony/app/logs;
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -88,9 +92,10 @@ metadata:
   name: mautic
 spec:
   ports:
-  - port: 8080
+  - port: 80
+    targetPort: 8080
     name: http
-  clusterIP: None
+  type: ClusterIP
   selector:
     app: facet-mautic
 ---
@@ -173,18 +178,19 @@ stringData:
   database-password: foobar123
   database-root-password: root123
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: mautic
+  annotations:
+    kubernetes.io/ingress.class: nginx  
 spec:
   rules:
   - host: mautic.k8s.facetinteractive.com
     http:
       paths:
-      - path: /
-        backend:
+      - backend:
           serviceName: mautic
-          servicePort: 8080
+          servicePort: 80
 # rabbitmq
 # cache??
