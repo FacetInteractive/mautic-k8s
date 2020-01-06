@@ -6,7 +6,7 @@ metadata:
     app: facet-mautic
 spec:
   serviceName: mautic
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: facet-mautic 
@@ -15,6 +15,9 @@ spec:
       labels:
         app: facet-mautic 
     spec:
+      securityContext:
+        runAsUser: 1001
+        fsGroup: 1000
       volumes:
         - name: cache
           persistentVolumeClaim:
@@ -28,7 +31,7 @@ spec:
           ports:
             - containerPort: 8080
               name: mautic        
-        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic:2.15.3
+        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic:2.15.3.1
           name: mautic
           env:
           - name: MYSQL_DB_HOST
@@ -52,17 +55,6 @@ spec:
               mountPath: /cache
             - name: logs
               mountPath: /logs
-          lifecycle:
-            postStart:
-              exec:
-                command:
-                  - "/bin/sh"
-                  - "-c"
-                  - > 
-                    rm -rf /var/www/symfony/app/cache;
-                    ln -fs /cache /var/www/symfony/app/cache;
-                    rm -rf /var/www/symfony/app/logs;
-                    ln -fs /logs /var/www/symfony/app/logs;
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

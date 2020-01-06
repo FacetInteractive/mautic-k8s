@@ -1,7 +1,7 @@
 <?php
 $parameters = array(
-	'cache_path' => '%kernel.root_dir%/cache',
-	'log_path' => '%kernel.root_dir%/logs',
+	'cache_path' => '/cache',
+	'log_path' => '/logs',
 	'site_url' => 'http://localhost:8080/',
 	'install_source' => 'Mautic',
 	'db_driver' => 'pdo_mysql',
@@ -191,7 +191,7 @@ Schedule a Meeting: https://calendly.com/facet-interactive',
 	'email_frequency_time' => 'DAY',
 	'sms_frequency_number' => null,
 	'sms_frequency_time' => null,
-	'tmp_path' => '%kernel.root_dir%/cache',
+	'tmp_path' => '/cache',
 	'api_enable_basic_auth' => true,
 	'show_contact_preferences' => 1,
 	'show_contact_frequency' => 0,

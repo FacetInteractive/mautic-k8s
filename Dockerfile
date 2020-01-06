@@ -34,10 +34,15 @@ RUN echo "xdebug.remote_port=9001" >> /usr/local/etc/php/conf.d/docker-php-ext-x
 
 COPY mautic /var/www/symfony
 
-RUN chown -R www-data:www-data /var/www/symfony/app/logs
-RUN chown -R www-data:www-data /var/www/symfony/app/cache
+RUN useradd -u 1001 -r -g 0 -d /app -s /bin/bash -c "Default Application User" default \
+    && chown -R 1001:0 /var/www/symfony && chmod -R g+rwX /var/www/symfony
+
+
+RUN mkdir /cache && chown -R 1001:0 /cache && chmod -R g+rwX /cache
+RUN mkdir /logs && chown -R 1001:0 /logs && chmod -R g+rwX /logs
+
 WORKDIR /var/www/symfony
+
 RUN composer install
-RUN mkdir /cache && chown -R www-data:www-data /cache
-RUN mkdir /logs && chown -R www-data:www-data /logs
-USER www-data
+
+USER 1001
