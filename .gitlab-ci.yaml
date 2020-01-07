@@ -1,0 +1,111 @@
+
+# Please make sure that your branch doesn't have '_' in the name.
+# This pipeline is tightly coupled with kubernetes namespace and Kubernetes dns, 
+# and a DNS-1123 label must consist of lower case alphanumeric characters or '-', 
+# and must start and end with an alphanumeric character.
+
+
+stages:
+
+  - build-facet-mautic
+  - build-mautic-nginx
+  - test
+  - release
+  - deploy
+
+variables:
+
+# Built images naming
+  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+
+# various stages, currently disabled, remove the variable to enable those steps
+  RELEASE_IMAGE_DISABLED: "true"
+  TEST_DISABLED: "true"
+  DEPLOY_DISABLED: "true"
+
+
+build-facet-mautic:
+  image: docker:latest
+
+  variables:
+    REPOSITORY_URL: <ECR_URL>
+
+  services:
+  - docker:dind
+
+  before_script:
+    - apk add --no-cache curl jq python py-pip
+    - pip install awscli
+
+  stages:
+    - build
+
+  build:
+    stage: build
+
+
+    script:
+      - $(aws ecr get-login --no-include-email --region us-east-1)
+      - docker build -t $REPOSITORY_URL 
+      - docker push $REPOSITORY_URL
+
+build-mautic-nginx:
+  image: docker:latest
+
+  variables:
+    REPOSITORY_URL: <ECR_URL>
+
+  services:
+  - docker:dind
+
+  before_script:
+    - apk add --no-cache curl jq python py-pip
+    - pip install awscli
+
+  stages:
+    - build
+  
+  build:
+    stage: build
+  
+    script:
+      - $(aws ecr get-login --no-include-email --region us-east-1)
+      - docker build -t $REPOSITORY_URL Dockerfile-nginx
+      - docker push $REPOSITORY_URL
+
+
+test:
+  stage: test
+  script:
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker run $CONTAINER_TEST_IMAGE /script/to/run/tests
+  except:
+    variables:
+      - $TEST_DISABLED
+
+release-image:
+  stage: release
+  script:
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE
+    - docker push $CONTAINER_RELEASE_IMAGE
+  only:
+    - master
+  except:
+    variables:
+      - $RELEASE_IMAGE_DISABLED
+
+deploy:
+  stage: deploy
+  image: lwolf/helm-kubectl-docker:v1.15.1-v2.14.3
+  # USe https://hub.docker.com/r/akashkaveti/base_image/tags
+
+  script:
+    - kubectl create ns mautic
+    - kubectl apply -f k8s/mautic.yml -n mautic
+
+  except:
+    variables:
+      - $DEPLOY_DISABLED
+  
