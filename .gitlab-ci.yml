@@ -94,7 +94,7 @@ deploy:
     - kubectl create ns mautic
     - kubectl apply -f k8s/mautic.yml -n mautic
 
-  except:
-    variables:
-      - $DEPLOY_DISABLED
+  # except:
+  #   variables:
+  #     - $DEPLOY_DISABLED
   
