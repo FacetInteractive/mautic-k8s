@@ -22,7 +22,7 @@ variables:
 # various stages, currently disabled, remove the variable to enable those steps
   RELEASE_IMAGE_DISABLED: "true"
   TEST_DISABLED: "true"
-  DEPLOY_DISABLED: "true"
+  DEPLOY_DISABLED: "false"
 
 
 build-facet-mautic:
@@ -87,7 +87,7 @@ release-image:
 
 deploy:
   stage: deploy
-  image: lwolf/helm-kubectl-docker:v1.15.1-v2.14.3
+  image: akashkaveti/base_image:latest
   # USe https://hub.docker.com/r/akashkaveti/base_image/tags
 
   script:
