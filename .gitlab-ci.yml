@@ -91,6 +91,8 @@ deploy:
   # USe https://hub.docker.com/r/akashkaveti/base_image/tags
 
   script:
+    - echo $KUBECONFIG
+    - kubectl get nodes
     - kubectl create ns mautic
     - kubectl apply -f k8s/mautic.yml -n mautic
 
