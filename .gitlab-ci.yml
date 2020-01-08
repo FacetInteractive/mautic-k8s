@@ -40,10 +40,9 @@ build-facet-mautic:
 
 
   script:
-    - echo $AWS_ACCESS_KEY_ID
-    - echo $AWS_ACCESS_SECRET_KEY
-    - $(aws ecr get-login --no-include-email --region us-east-1)
+    
     - docker build -t $REPOSITORY_URL .
+    - $(aws ecr get-login --no-include-email --region us-east-1)
     - docker push $REPOSITORY_URL
 
 build-mautic-nginx:
@@ -61,8 +60,8 @@ build-mautic-nginx:
     - pip install awscli
 
   script:
-    - $(aws ecr get-login --no-include-email --region us-east-1)
     - docker build -t $REPOSITORY_URL Dockerfile-nginx
+    - $(aws ecr get-login --no-include-email --region us-east-1)
     - docker push $REPOSITORY_URL 
 
 
