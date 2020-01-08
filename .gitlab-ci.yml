@@ -29,7 +29,7 @@ build-facet-mautic:
   image: docker:latest
   stage: build-facet-mautic
   variables:
-    REPOSITORY_URL: <ECR_URL>
+    REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
 
   services:
   - docker:dind
@@ -51,7 +51,7 @@ build-mautic-nginx:
   
   stage: build-mautic-nginx
   variables:
-    REPOSITORY_URL: <ECR_URL>
+    REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
 
   services:
   - docker:dind
