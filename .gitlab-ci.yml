@@ -27,7 +27,7 @@ variables:
 
 build-facet-mautic:
   image: docker:latest
-
+  stage: build-facet-mautic
   variables:
     REPOSITORY_URL: <ECR_URL>
 
@@ -38,21 +38,16 @@ build-facet-mautic:
     - apk add --no-cache curl jq python py-pip
     - pip install awscli
 
-  stages:
-    - build
 
-  build:
-    stage: build
-
-
-    script:
-      - $(aws ecr get-login --no-include-email --region us-east-1)
-      - docker build -t $REPOSITORY_URL 
-      - docker push $REPOSITORY_URL
+  script:
+    - $(aws ecr get-login --no-include-email --region us-east-1)
+    - docker build -t $REPOSITORY_URL 
+    - docker push $REPOSITORY_URL
 
 build-mautic-nginx:
   image: docker:latest
-
+  
+  stage: build-mautic-nginx
   variables:
     REPOSITORY_URL: <ECR_URL>
 
@@ -63,16 +58,10 @@ build-mautic-nginx:
     - apk add --no-cache curl jq python py-pip
     - pip install awscli
 
-  stages:
-    - build
-  
-  build:
-    stage: build
-  
-    script:
-      - $(aws ecr get-login --no-include-email --region us-east-1)
-      - docker build -t $REPOSITORY_URL Dockerfile-nginx
-      - docker push $REPOSITORY_URL
+  script:
+    - $(aws ecr get-login --no-include-email --region us-east-1)
+    - docker build -t $REPOSITORY_URL Dockerfile-nginx
+    - docker push $REPOSITORY_URL
 
 
 test:
