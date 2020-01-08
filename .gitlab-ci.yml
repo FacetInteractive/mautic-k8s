@@ -41,7 +41,7 @@ build-facet-mautic:
 
   script:
     - docker build -t $REPOSITORY_URL .
-    - $(aws ecr get-login --no-include-email --region us-east-1)
+    - $(aws ecr get-login --no-include-email --region us-west-1)
     - docker push $REPOSITORY_URL
 
 build-mautic-nginx:
@@ -60,7 +60,7 @@ build-mautic-nginx:
 
   script:
     - docker build -t $REPOSITORY_URL Dockerfile-nginx
-    - $(aws ecr get-login --no-include-email --region us-east-1)
+    - $(aws ecr get-login --no-include-email --region us-west-1)
     - docker push $REPOSITORY_URL 
 
 
