@@ -43,7 +43,7 @@ build-facet-mautic:
     - echo $AWS_ACCESS_KEY_ID
     - echo $AWS_ACCESS_SECRET_KEY
     - $(aws ecr get-login --no-include-email --region us-east-1)
-    - docker build -t $REPOSITORY_URL 
+    - docker build -t $REPOSITORY_URL .
     - docker push $REPOSITORY_URL
 
 build-mautic-nginx:
@@ -63,7 +63,7 @@ build-mautic-nginx:
   script:
     - $(aws ecr get-login --no-include-email --region us-east-1)
     - docker build -t $REPOSITORY_URL Dockerfile-nginx
-    - docker push $REPOSITORY_URL
+    - docker push $REPOSITORY_URL 
 
 
 test:
