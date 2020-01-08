@@ -40,7 +40,6 @@ build-facet-mautic:
 
 
   script:
-    
     - docker build -t $REPOSITORY_URL .
     - $(aws ecr get-login --no-include-email --region us-east-1)
     - docker push $REPOSITORY_URL
