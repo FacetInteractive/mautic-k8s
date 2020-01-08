@@ -59,7 +59,7 @@ build-mautic-nginx:
     - pip install awscli
 
   script:
-    - docker build -t $REPOSITORY_URL Dockerfile-nginx
+    - docker build -t $REPOSITORY_URL ./Dockerfile-nginx
     - $(aws ecr get-login --no-include-email --region us-west-1)
     - docker push $REPOSITORY_URL 
 
