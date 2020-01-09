@@ -100,9 +100,9 @@ deploy:
     CONTEXT: :"arn:aws:eks:us-east-1:993385208142:cluster/mautic-eks"
 
   script:
-    - echo $K8S_CONFIG
+    # - echo $K8S_CONFIG
     - mkdir /root/.kube
-    - echo ${kube_config} | base64 -d > /root/.kube/config
+    - echo ${K8S_CONFIG} | base64 -d > /root/.kube/config
     - cat /root/.kube/config
     - kubectl config get-contexts 
     - kubectl config use-context ${CONTEXT}
