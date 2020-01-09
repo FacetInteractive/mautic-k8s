@@ -23,7 +23,7 @@ variables:
   RELEASE_IMAGE_DISABLED: "true"
   TEST_DISABLED: "true"
   DEPLOY_DISABLED: "false"
-  # BUILDDISABLED: "false"
+  BUILDDISABLED: "false"
 
 build-facet-mautic:
   image: docker:latest
@@ -46,7 +46,7 @@ build-facet-mautic:
   
   except:
     variables:
-      - $BUILDDISABLED
+      - $BUILD_DISABLED
 
 build-mautic-nginx:
   image: docker:latest
@@ -69,7 +69,7 @@ build-mautic-nginx:
   
   except:
     variables:
-      - $BUILDDISABLED
+      - $BUILD_DISABLED
 
 test:
   stage: test
@@ -97,7 +97,6 @@ deploy:
   image: akashkaveti/base_image:latest
   
   script:
-    - kubectl get nodes
     # - kubectl create ns mautic
     - kubectl apply -f k8s/mautic.yml -n mautic
   environment:
