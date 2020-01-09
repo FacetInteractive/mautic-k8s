@@ -92,6 +92,7 @@ deploy:
 
   script:
     - echo $KUBECONFIG
+    - kubectl config view
     - kubectl get nodes
     - kubectl create ns mautic
     - kubectl apply -f k8s/mautic.yml -n mautic
