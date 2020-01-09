@@ -99,7 +99,7 @@ deploy:
   script:
     # - kubectl create ns mautic
     - sed -i s,#TAG#,$CI_COMMIT_SHORT_SHA,g k8s/mautic.yml
-    -cat k8s/mautic.yml
+    - cat k8s/mautic.yml
     - kubectl apply -f k8s/mautic.yml -n mautic
   environment:
     name: development
