@@ -49,7 +49,7 @@ build-mautic-nginx:
   
   stage: build-mautic-nginx
   variables:
-    REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
+    REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
 
   services:
   - docker:dind
