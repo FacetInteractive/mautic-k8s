@@ -23,7 +23,7 @@ variables:
   RELEASE_IMAGE_DISABLED: "true"
   TEST_DISABLED: "true"
   DEPLOY_DISABLED: "false"
-
+  BUILDDISABLED: "true"
 
 build-facet-mautic:
   image: docker:latest
@@ -43,6 +43,10 @@ build-facet-mautic:
     - docker build -t $REPOSITORY_URL .
     - $(aws ecr get-login --no-include-email --region us-west-1)
     - docker push $REPOSITORY_URL
+  
+  except:
+    variables:
+      $BUILDDISABLED
 
 build-mautic-nginx:
   image: docker:latest
@@ -62,7 +66,10 @@ build-mautic-nginx:
     - docker build -f Dockerfile-nginx -t $REPOSITORY_URL  .
     - $(aws ecr get-login --no-include-email --region us-west-1)
     - docker push $REPOSITORY_URL 
-
+  
+  except:
+    variables:
+      $BUILDDISABLED
 
 test:
   stage: test
@@ -93,7 +100,7 @@ deploy:
     CONTEXT: :"arn:aws:eks:us-east-1:993385208142:cluster/mautic-eks"
 
   script:
-    - echo ${K8S_CONFIG} | base64 -d > ${KUBECONFIG}
+    - echo ${K8S_CONFIG} | base64 -d > KUBECONFIG
     - kubectl config use-context ${CONTEXT}
     - kubectl config view
     - kubectl get nodes
