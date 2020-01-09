@@ -100,6 +100,7 @@ deploy:
     # - kubectl create ns mautic
     - echo $CI_COMMIT_SHORT_SHA
     - echo $CI_JOB_ID
+    - echo $CI_COMMIT_SHA
     - kubectl apply -f k8s/mautic.yml -n mautic
   environment:
     name: development
