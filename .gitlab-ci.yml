@@ -40,9 +40,9 @@ build-facet-mautic:
 
 
   script:
-    - docker build -t $REPOSITORY_URL .
+    - docker build -t $REPOSITORY_URL:$CI_COMMIT_SHORT_SHA .
     - $(aws ecr get-login --no-include-email --region us-west-1)
-    - docker push $REPOSITORY_URL
+    - docker push $REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
   
   except:
     variables:
@@ -63,22 +63,22 @@ build-mautic-nginx:
     - pip install awscli
 
   script:
-    - docker build -f Dockerfile-nginx -t $REPOSITORY_URL  .
+    - docker build -f Dockerfile-nginx -t $REPOSITORY_URL:$CI_COMMIT_SHORT_SHA  .
     - $(aws ecr get-login --no-include-email --region us-west-1)
-    - docker push $REPOSITORY_URL 
+    - docker push $REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
   
   except:
     variables:
       - $BUILD_DISABLED
 
-test:
-  stage: test
-  script:
-    - docker pull $CONTAINER_TEST_IMAGE
-    - docker run $CONTAINER_TEST_IMAGE /script/to/run/tests
-  except:
-    variables:
-      - $TEST_DISABLED
+# test:
+#   stage: test
+#   script:
+#     - docker pull $CONTAINER_TEST_IMAGE
+#     - docker run $CONTAINER_TEST_IMAGE /script/to/run/tests
+#   except:
+#     variables:
+#       - $TEST_DISABLED
 
 release-image:
   stage: release
@@ -98,8 +98,7 @@ deploy:
   
   script:
     # - kubectl create ns mautic
-    - echo $CI_COMMIT_SHORT_SHA
-    - sed -i s,#TAG#,$CI_COMMIT_SHORT_SHA,g $CI_COMMIT_SHORT_SHA
+    - sed -i s,#TAG#,$CI_COMMIT_SHORT_SHA,g k8s/mautic.yml
     - kubectl apply -f k8s/mautic.yml -n mautic
   environment:
     name: development
