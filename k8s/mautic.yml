@@ -181,6 +181,10 @@ metadata:
     nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
     nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
 spec:
+  tls:
+  - hosts: 
+    - mautic.k8s.facetinteractive.com
+    secretName: mautic-tls
   rules:
   - host: mautic.k8s.facetinteractive.com
     http:
