@@ -102,7 +102,8 @@ deploy:
   script:
     - echo $K8S_CONFIG
     - mkdir $HOME/.kube
-    - echo ${kube_config} | base64 -d > $HOME/.kube/config 
+    - echo ${kube_config} | base64 -d > $HOME/.kube/config
+    - kubectl config get-contexts 
     - kubectl config use-context ${CONTEXT}
     - kubectl config view
     - kubectl get nodes
