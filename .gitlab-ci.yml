@@ -101,15 +101,17 @@ deploy:
 
   script:
     # - echo $K8S_CONFIG
-    - mkdir /root/.kube
-    - echo ${K8S_CONFIG} | base64 -d > /root/.kube/config
-    - cat /root/.kube/config
+    # - mkdir /root/.kube
+    # - echo ${K8S_CONFIG} | base64 -d > /root/.kube/config
+    # - cat /root/.kube/config
     - kubectl config get-contexts 
     - kubectl config use-context ${CONTEXT}
     - kubectl config view
     - kubectl get nodes
     - kubectl create ns mautic
     - kubectl apply -f k8s/mautic.yml -n mautic
+  environment:
+    name: development
 
   # except:
   #   variables:
