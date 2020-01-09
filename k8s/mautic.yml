@@ -26,7 +26,7 @@ spec:
           persistentVolumeClaim:
             claimName: logs
       containers:
-        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.6
+        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.5
           name: nginx
           ports:
             - containerPort: 8080

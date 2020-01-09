@@ -23,7 +23,7 @@ variables:
   RELEASE_IMAGE_DISABLED: "true"
   TEST_DISABLED: "true"
   DEPLOY_DISABLED: "false"
-  BUILDDISABLED: "false"
+  BUILD_DISABLED: "false"
 
 build-facet-mautic:
   image: docker:latest
@@ -98,6 +98,8 @@ deploy:
   
   script:
     # - kubectl create ns mautic
+    - echo $CI_COMMIT_SHORT_SHA
+    - echo $CI_JOB_ID
     - kubectl apply -f k8s/mautic.yml -n mautic
   environment:
     name: development
