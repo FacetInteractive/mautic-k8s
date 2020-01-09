@@ -23,7 +23,7 @@ variables:
   RELEASE_IMAGE_DISABLED: "true"
   TEST_DISABLED: "true"
   DEPLOY_DISABLED: "false"
-  BUILDDISABLED: "true"
+  # BUILDDISABLED: "false"
 
 build-facet-mautic:
   image: docker:latest
@@ -95,15 +95,8 @@ release-image:
 deploy:
   stage: deploy
   image: akashkaveti/base_image:latest
-  # USe https://hub.docker.com/r/akashkaveti/base_image/tags
-  variables:
-    CONTEXT: :"arn:aws:eks:us-east-1:993385208142:cluster/mautic-eks"
-
+  
   script:
-    # - echo $K8S_CONFIG
-    # - mkdir /root/.kube
-    # - echo ${K8S_CONFIG} | base64 -d > /root/.kube/config
-    # - cat /root/.kube/config
     - kubectl get nodes
     # - kubectl create ns mautic
     - kubectl apply -f k8s/mautic.yml -n mautic
