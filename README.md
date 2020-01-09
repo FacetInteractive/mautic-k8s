@@ -102,9 +102,9 @@ docker push 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic:2.15.3
 Build, tag and deploy the nginx image.
 
 ```bash
-docker build -f Dockerfile-nginx -t facet-mautic-nginx:1.1 .
-docker tag facet-mautic-nginx:1.1 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.1
-docker push 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.1
+docker build -f Dockerfile-nginx -t facet-mautic-nginx:1.6 .
+docker tag facet-mautic-nginx:1.6 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.6
+docker push 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.6
 ```
 
 **Note** We might eliminate the need for a separate nginx image in future by co-mounting the same volume in both containers.
