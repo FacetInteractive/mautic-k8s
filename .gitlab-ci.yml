@@ -23,7 +23,7 @@ variables:
   RELEASE_IMAGE_DISABLED: "true"
   TEST_DISABLED: "true"
   DEPLOY_DISABLED: "false"
-  BUILD_DISABLED: "false"
+  # BUILD_DISABLED: "false"
 
 build-facet-mautic:
   image: docker:latest
