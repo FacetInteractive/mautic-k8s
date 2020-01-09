@@ -96,7 +96,7 @@ deploy:
   stage: deploy
   image: akashkaveti/base_image:latest
   
-  script:
+  sckript:
     - kubectl get nodes
     # - kubectl create ns mautic
     - kubectl apply -f k8s/mautic.yml -n mautic
