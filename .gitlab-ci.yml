@@ -101,6 +101,7 @@ deploy:
 
   script:
     - echo ${K8S_CONFIG} | base64 -d > KUBECONFIG
+    - echo $KUBECONFIG
     - kubectl config use-context ${CONTEXT}
     - kubectl config view
     - kubectl get nodes
