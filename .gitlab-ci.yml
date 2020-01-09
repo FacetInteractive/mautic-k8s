@@ -101,8 +101,7 @@ deploy:
 
   script:
     - echo $K8S_CONFIG
-    - echo ${kube_config} | base64 -d > ${KUBECONFIG}
-    - export KUBECONFIG=$KCONFIG
+    - echo ${kube_config} | base64 -d > "${KUBECONFIG}"
     - echo $KUBECONFIG
     - kubectl config use-context ${CONTEXT}
     - kubectl config view
