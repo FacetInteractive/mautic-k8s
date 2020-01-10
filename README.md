@@ -163,6 +163,95 @@ and apply the changes again.
 kubectl apply -f k8s/mautic.yml -n mautic
 ```
 
+
+# Kubernetes Integration with Gitlab
+
+## Add existing Cluster to Gitlab
+
+
+### Import the kube-config:
+
+`aws eks --region us-east-1 update-kubeconfig --name <cluster_name>`
+	
+Note: check if your AWS_PROFILE is set if you're using multiple aws profiles.
+
+Confirm if your able to read cluster resources:
+
+`kubectl get pods -A`
+
+
+### Get Kubernetes URL: 
+
+`kubectl cluster-info | grep 'Kubernetes master' | awk '/http/ {print $NF}'`
+
+
+### Get Kubernetes Certificate
+
+
+Get list of all secrets:	
+ 	
+`kubectl get secrets`
+ 	
+There is a secret named " `default-token-<random-string>` . get that secret:	
+ 			
+`kubectl get secret <secret-name> -o jsonpath="{['data']['ca\.crt']}" | base64 --decode`
+
+
+### Create a cluster-admin Service account
+
+Save the below code as a `eks-admin-service-account.yaml`
+
+```
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: eks-admin
+  namespace: kube-system
+``` 
+
+Then run
+`kubectl apply -f eks-admin-service-account.yaml`
+
+### Create a role binding
+
+Save the below code as `eks-admin-rolebinding.yaml`
+
+```
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: eks-admin
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: eks-admin
+  namespace: kube-system
+```
+
+Then run
+`kubectl apply -f eks-admin-rolebinding.yaml`
+
+### Retrieve the token fo eks-admin service account:
+
+`kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}')`
+
+Copy the Authentication token from the output
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## TODOs/Improvements
 - Expose logs through stdout/stderr
 - Add RabbitMQ service
@@ -171,3 +260,5 @@ kubectl apply -f k8s/mautic.yml -n mautic
 - Test with a from scratch Mautic setup
 - Periodic DB snapshot backups/restores
 - Convert ingress into TLS using ACME/Let's Encrypt.
+
+
