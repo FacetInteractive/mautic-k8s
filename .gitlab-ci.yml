@@ -1,0 +1,107 @@
+# Please make sure that your branch doesn't have '_' in the name.
+# This pipeline is tightly coupled with kubernetes namespace and Kubernetes dns, 
+# and a DNS-1123 label must consist of lower case alphanumeric characters or '-', 
+# and must start and end with an alphanumeric character.
+
+
+stages:
+
+  - build-facet-mautic
+  - build-mautic-nginx
+  - test
+  - release
+  - deploy
+
+variables:
+
+# Built images naming
+  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+
+# various stages, currently disabled, remove the variable to enable those steps
+  RELEASE_IMAGE_DISABLED: "true"
+  TEST_DISABLED: "true"
+  DEPLOY_DISABLED: "false"
+  # BUILD_DISABLED: "false"
+
+build-facet-mautic:
+  image: docker:latest
+  stage: build-facet-mautic
+  variables:
+    REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
+
+  services:
+  - docker:dind
+
+  before_script:
+    - apk add --no-cache curl jq python py-pip
+    - pip install awscli
+
+
+  script:
+    - docker build -t $REPOSITORY_URL:$CI_COMMIT_SHORT_SHA .
+    - $(aws ecr get-login --no-include-email --region us-west-1)
+    - docker push $REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
+  
+  except:
+    variables:
+      - $BUILD_DISABLED
+
+build-mautic-nginx:
+  image: docker:latest
+  
+  stage: build-mautic-nginx
+  variables:
+    REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
+
+  services:
+  - docker:dind
+
+  before_script:
+    - apk add --no-cache curl jq python py-pip
+    - pip install awscli
+
+  script:
+    - docker build -f Dockerfile-nginx -t $REPOSITORY_URL:$CI_COMMIT_SHORT_SHA  .
+    - $(aws ecr get-login --no-include-email --region us-west-1)
+    - docker push $REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
+  
+  except:
+    variables:
+      - $BUILD_DISABLED
+
+# test:
+#   stage: test
+#   script:
+#     - docker pull $CONTAINER_TEST_IMAGE
+#     - docker run $CONTAINER_TEST_IMAGE /script/to/run/tests
+#   except:
+#     variables:
+#       - $TEST_DISABLED
+
+release-image:
+  stage: release
+  script:
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE
+    - docker push $CONTAINER_RELEASE_IMAGE
+  only:
+    - master
+  except:
+    variables:
+      - $RELEASE_IMAGE_DISABLED
+
+deploy:
+  stage: deploy
+  image: akashkaveti/base_image:latest
+  
+  script:
+    - sed -i s,#TAG#,$CI_COMMIT_SHORT_SHA,g k8s/mautic.yml
+    - kubectl apply -f k8s/mautic.yml -n mautic
+  environment:
+    name: development
+
+  # except:
+  #   variables:
+  #     - $DEPLOY_DISABLED
+  
