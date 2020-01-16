@@ -279,5 +279,3 @@ Schedule a Meeting: https://calendly.com/facet-interactive',
 	'saml_idp_entity_id' => 'https://hello.facetinteractive.com',
 	'sms_transport' => null,
 );
-
-$container->setParameter('mautic.integration.keyfield.amazons3.bucket', getenv('S3_BUCKET'));

@@ -427,3 +427,5 @@ $container->setDefinition(
     'mautic.kernel.listener.command_terminate',
     $definitionConsoleExceptionListener
 );
+
+$container->setParameter('mautic.integration.keyfield.amazons3.bucket', getenv('S3_BUCKET'));
