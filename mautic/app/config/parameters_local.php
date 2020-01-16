@@ -23,6 +23,7 @@ $parameters = array(
 	'mailer_spool_type' => 'memory',
 	'mailer_spool_path' => '%kernel.root_dir%/spool',
 	'secret_key' => getenv('SECRET_KEY'),
+    'integration.keyfield.amazons3.bucket' => getenv('S3_BUCKET'),
 	'webroot' => null,
 	'image_path' => 'media/images',
 	'theme' => 'Mauve',

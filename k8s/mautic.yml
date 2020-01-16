@@ -50,6 +50,8 @@ spec:
                 key: database-password
           - name: SECRET_KEY
             value: 5a3fb2216f200ad7598a149216f09f8c372e84ff033a35dadbcacd36af4d43ae
+          - name: S3_BUCKET
+            value: from_env
           volumeMounts:
             - name: cache
               mountPath: /cache
