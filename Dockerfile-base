@@ -6,6 +6,9 @@ RUN apt-get update && apt-get install -y \
     libmcrypt-dev \
     zlib1g-dev \
     mariadb-client-10.3 \
+    libssl-dev \
+    libc-client-dev \
+    libkrb5-dev \    
     wget
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -16,7 +19,9 @@ RUN rm /etc/localtime
 RUN ln -s /usr/share/zoneinfo/Europe/Paris /etc/localtime
 RUN "date"
 
-# Type docker-php-ext-install to see available extensions  
+# Type docker-php-ext-install to see available extensions
+RUN docker-php-ext-configure  imap --with-kerberos --with-imap-ssl \
+    && docker-php-ext-install imap
 RUN docker-php-ext-install pdo pdo_mysql mcrypt bcmath zip \
     && docker-php-ext-enable pdo pdo_mysql mcrypt bcmath zip
 
