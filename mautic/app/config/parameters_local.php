@@ -23,7 +23,6 @@ $parameters = array(
 	'mailer_spool_type' => 'memory',
 	'mailer_spool_path' => '%kernel.root_dir%/spool',
 	'secret_key' => getenv('SECRET_KEY'),
-    'integration.keyfield.amazons3.bucket' => getenv('S3_BUCKET'),
 	'webroot' => null,
 	'image_path' => 'media/images',
 	'theme' => 'Mauve',
@@ -280,3 +279,5 @@ Schedule a Meeting: https://calendly.com/facet-interactive',
 	'saml_idp_entity_id' => 'https://hello.facetinteractive.com',
 	'sms_transport' => null,
 );
+
+$container->setParameter('mautic.integration.keyfield.amazons3.bucket', getenv('S3_BUCKET'));
