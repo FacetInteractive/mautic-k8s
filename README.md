@@ -1,8 +1,24 @@
 # Docker Mautic setup
 
-Includes PHP FPM 7.0, Facet's Mautic code base, Nginx, PHPMyAdmin and MySQL stacks consolidated into a docker-compose for both local and production use.
+Includes PHP FPM 7.1, Facet's Mautic code base, Nginx, PHPMyAdmin and MySQL stacks consolidated into a docker-compose for both local and production use.
 
 The production docker compose uses Traefik as a web proxy.
+
+## Required Access To Build
+
+* Have AWS CLI installed and configured
+    * Setup a profile for your AWS credentials
+    * Region: `us-west-1`
+
+* Login to AWS ECR
+
+    ```bash
+    # Request ECR Login
+    aws ecr get-login --no-include-email
+  
+    # With a profile
+    aws --profile {facet.mktg} ecr get-login --no-include-email
+    ```
 
 ## Installation
 
@@ -13,7 +29,6 @@ The production docker compose uses Traefik as a web proxy.
     ```
 
 2. Copy over DB dump into the `db-init` directory.
-
 
 3. Build/run containers with (with and without detached mode)
 
@@ -28,15 +43,12 @@ The production docker compose uses Traefik as a web proxy.
     $ docker-compose -f docker-compose-local.yml run php composer install
     ```
 
-
-
 5. Give appropriate permissions for cache and logs directories.
 
     ```bash
     $ docker-compose -f docker-compose-local.yml run php chown -R www-data:www-data app/cache
     $ docker-compose -f docker-compose-local.yml run php chown -R www-data:www-data app/logs
     ```
-
 
 4. Warm up cache.
 
