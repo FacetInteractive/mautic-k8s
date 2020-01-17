@@ -32,6 +32,6 @@ services:
         PMA_USER: root
         PMA_PASSWORD: root
         PHP_UPLOAD_MAX_FILESIZE: 1G
-        PHP_MAX_INPUT_VARS: 1G
+        PHP_MAX_INPUT_VARS: 1000
       ports:
         - "8081:80"
