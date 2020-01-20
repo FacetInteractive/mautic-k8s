@@ -30,27 +30,24 @@ The production docker compose uses Traefik as a web proxy.
 
 2. Copy over DB dump into the `db-init` directory.
 
-3. Build/run containers with (with and without detached mode)
+
+3. Replace the below line in `symfony.conf`,
+
+        fastcgi_pass 127.0.0.1:9000;
+with,
+
+        fastcgi_pass php:9000;
+
+For local, php and nginx run as 2 separate services. For K8s though, they are 2 processes part of the same container.
+
+4. Build/run containers with (with and without detached mode)
 
     ```bash
     $ docker-compose -f docker-compose-local.yml build
     $ docker-compose -f docker-compose-local.yml up -d
     ```
 
-4. Run composer.
-
-    ```bash
-    $ docker-compose -f docker-compose-local.yml run php composer install
-    ```
-
-5. Give appropriate permissions for cache and logs directories.
-
-    ```bash
-    $ docker-compose -f docker-compose-local.yml run php chown -R www-data:www-data app/cache
-    $ docker-compose -f docker-compose-local.yml run php chown -R www-data:www-data app/logs
-    ```
-
-4. Warm up cache.
+5. Warm up cache.
 
 	```bash
 	$ docker-compose -f docker-compose-local.yml run php app/console cache:warmup
@@ -77,7 +74,7 @@ The production docker compose uses Traefik as a web proxy.
 - ~~Update this mautic to latest stable version.~~
 - ~~Explore separate caching tier like Redis. - Will be handled by stateful sets in Kubernetes.~~
 - ~~Env specific settings.~~
-- Send logs to stdout.
+- ~~Send logs to stdout.~~
 - Separate containers for running cronjobs.
 
 
@@ -265,7 +262,7 @@ Copy the Authentication token from the output
 
 
 ## TODOs/Improvements
-- Expose logs through stdout/stderr
+- ~~Expose logs through stdout/stderr~~
 - Add RabbitMQ service
 - Convert the above YML into a Helm chart
 - Add a separate cron resource for runnning periodic tasks

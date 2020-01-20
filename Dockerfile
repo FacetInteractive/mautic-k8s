@@ -1,4 +1,4 @@
-FROM lakshminp/php-base:7.1 
+FROM lakshminp/php-base:7.2
 
 COPY mautic /var/www/symfony
 

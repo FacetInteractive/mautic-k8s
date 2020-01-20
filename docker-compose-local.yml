@@ -12,7 +12,8 @@ services:
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     php:
-        image: facet-mautic:2.15.3
+        build:
+          context: .
         ports:
             - 9000:9000
         environment:
@@ -21,10 +22,13 @@ services:
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
             SECRET_KEY: 5a3fb2216f200ad7598a149216f09f8c372e84ff033a35dadbcacd36af4d43ae
+            S3_BUCKET: env-var-bucket
     nginx:
-        image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.5
+        build:
+          context: .
+          dockerfile: Dockerfile-nginx
         ports:
-            - 8080:80
+            - 8080:8080
     pma:
       image: phpmyadmin/phpmyadmin
       environment:
