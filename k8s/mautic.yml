@@ -37,7 +37,7 @@ spec:
           - name: MYSQL_DB_HOST
             value: db
           - name: MYSQL_DATABASE
-            value: mautic
+            value: facetmautic
           - name: MYSQL_USER
             valueFrom:
               secretKeyRef:
@@ -49,9 +49,21 @@ spec:
                 name: db-secret
                 key: database-password
           - name: SECRET_KEY
-            value: 5a3fb2216f200ad7598a149216f09f8c372e84ff033a35dadbcacd36af4d43ae
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: secret-key
           - name: S3_BUCKET
             value: from_env
+          - name: SITE_URL
+            value: https://mautic.k8s.facetinteractive.com/
+          - name: MAILER_USER
+            value: AKIAIIL5EHY6A7ZEFL2A
+          - name: MAILER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: mailer-password
           volumeMounts:
             - name: cache
               mountPath: /cache
@@ -194,5 +206,14 @@ spec:
       - backend:
           serviceName: mautic
           servicePort: 80
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+stringData:
+  secret-key: 5a3fb2216f200ad7598a149216f09f8c372e84ff033a35dadbcacd36af4d43ae
+  mailer-password: AoGSYz36Iwah6MJd1yumYwMgBRIeRRMifTwoo1KnPPda
+
 # rabbitmq
 # cache??

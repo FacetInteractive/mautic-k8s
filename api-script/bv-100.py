@@ -75,7 +75,7 @@ create_contact(contact)
 
 get_email_id("bv-100")
 
-data = {"tokens" : {"lead": { "customer": { "first_name": "FOOBAR"}}}}
+data = {"tokens" : {"lead.customer.first_name" : "FOOBAR"} }
 send_email_to_contact(80592, 194, data)
 
 add_contact_to_segment(67, 80592)
