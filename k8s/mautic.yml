@@ -57,6 +57,8 @@ spec:
             value: from_env
           - name: SITE_URL
             value: https://mautic.k8s.facetinteractive.com/
+          - name: MAILER_HOST
+            value: email-smtp.us-east-1.amazonaws.com
           - name: MAILER_USER
             value: AKIAIIL5EHY6A7ZEFL2A
           - name: MAILER_PASSWORD
@@ -64,6 +66,12 @@ spec:
               secretKeyRef:
                 name: app-secret
                 key: mailer-password
+          - name: RABBITMQ_HOST
+            value: rabbitmq
+          - name: RABBITMQ_USER
+            value: usr
+          - name: RABBITMQ_PASSWORD
+            value: secret_pass
           volumeMounts:
             - name: cache
               mountPath: /cache

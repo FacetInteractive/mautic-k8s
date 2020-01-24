@@ -92,6 +92,16 @@ For local, php and nginx run as 2 separate services. For K8s though, they are 2 
 
 5. kubectl binary for interacting with Kubernetes cluster.
 
+## Building the RabbitMQ image
+
+```
+cd k8s/rabbitmq
+$(aws ecr get-login --no-include-email --region us-west-1)
+docker build -t rabbitmq:3.8 .
+docker tag rabbitmq:3.8 993385208142.dkr.ecr.us-west-1.amazonaws.com/rabbitmq:3.8
+docker push 993385208142.dkr.ecr.us-west-1.amazonaws.com/rabbitmq:3.8
+```
+
 ## Step 1: Build the containers
 
 Login to the AWS container registry.
@@ -135,6 +145,7 @@ kubectl create ns mautic
 Create the artifacts required to run Mautic in the cluster.
 
 ```bash
+kubectl apply -f k8s/rabbitmq/rabbitmq.yml -n mautic
 kubectl apply -f k8s/mautic.yml -n mautic
 ```
 
