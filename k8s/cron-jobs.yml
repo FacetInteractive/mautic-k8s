@@ -1,0 +1,72 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mautic-cron-trigger-campaign
+  labels:
+    app: facet-mautic
+spec:
+  schedule: "*/3 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsUser: 1001
+            fsGroup: 1000
+          volumes:
+            - name: cache
+              persistentVolumeClaim:
+                claimName: cache
+            - name: logs
+              persistentVolumeClaim:
+                claimName: logs
+          containers:
+            - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic:571bc541
+              command : ["app/console", "mautic:campaigns:trigger", "--campaign-id=42"]
+              name: mautic
+              env:
+              - name: MYSQL_DB_HOST
+                value: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
+              - name: MYSQL_DATABASE
+                value: facetmautic
+              - name: MYSQL_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-user
+              - name: MYSQL_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-password
+              - name: SECRET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: secret-key
+              - name: S3_BUCKET
+                value: from_env
+              - name: SITE_URL
+                value: https://mautic.k8s.facetinteractive.com/
+              - name: MAILER_HOST
+                value: email-smtp.us-east-1.amazonaws.com
+              - name: MAILER_USER
+                value: AKIAIIL5EHY6A7ZEFL2A
+              - name: MAILER_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: mailer-password
+              - name: RABBITMQ_HOST
+                value: rabbitmq
+              - name: RABBITMQ_USER
+                value: usr
+              - name: RABBITMQ_PASSWORD
+                value: secret_pass
+              volumeMounts:
+                - name: cache
+                  mountPath: /cache
+                - name: logs
+                  mountPath: /logs
+    

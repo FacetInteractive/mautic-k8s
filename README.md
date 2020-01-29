@@ -75,7 +75,7 @@ For local, php and nginx run as 2 separate services. For K8s though, they are 2 
 - ~~Explore separate caching tier like Redis. - Will be handled by stateful sets in Kubernetes.~~
 - ~~Env specific settings.~~
 - ~~Send logs to stdout.~~
-- Separate containers for running cronjobs.
+- ~~Separate containers for running cronjobs.~~
 
 
 # Kubernetes setup
@@ -262,23 +262,64 @@ Copy the Authentication token from the output
 
 
 
+## Cron jobs in Kubernetes
+
+Cron is managed by Kubernetes cron constructs. This creates a new pod with the same mautic PHP docker image as the running stateful set.
+
+The pod lifecycle is the duration of the cron job. The pod gets terminated upon ternmiation of the process which gets triggered from the cron job, successful or otherwise.
+
+The cron logs are stored and can be queried from the cli using the command:
+
+```
+$ kubectl logs mautic-cron-trigger-campaign-1580262660-b7fjl -n mautic
+Triggering events for campaign 42
+Triggering events for newly added contacts
+0 total events(s) to be processed in batches of 100 contacts
+
+0 total events were executed
+0 total events were scheduled
+
+Triggering scheduled events
+0 total events(s) to be processed in batches of 100 contacts
+
+0 total events were executed
+0 total events were scheduled
+
+Triggering events for inactive contacts
+
+0 total events were executed
+0 total events were scheduled
+```
 
 
+To get the pod name:
 
+```
+$ kubectl get pod -n mautic
+NAME                                            READY     STATUS              RESTARTS   AGE
+mautic-0                                        2/2       Running             0          34h
+mautic-1                                        2/2       Running             0          34h
+mautic-2                                        0/2       ContainerCreating   0          22h
+mautic-3                                        2/2       Running             0          22h
+mautic-cron-trigger-campaign-1580263740-sf2d2   0/1       Completed           0          9m3s
+mautic-cron-trigger-campaign-1580263920-6xvrb   0/1       Completed           0          6m3s
+mautic-cron-trigger-campaign-1580264100-c59l9   0/1       Completed           0          3m2s
+mautic-cron-trigger-campaign-1580264280-6gm6g   1/1       Running             0          2s
+``` 
 
+To alter cron schedule, edit the cron job and change the `spec/schedule` entry.
 
+To alter the cron process, edit the cron job and change the `jobTemplate/spec/template/containers/command` entry.
 
-
-
-
+**NOTE** Each crontab entry will be a new cron job construct in the cluster and they are all mutually exclusive.
 
 ## TODOs/Improvements
 - ~~Expose logs through stdout/stderr~~
-- Add RabbitMQ service
+- ~~Add RabbitMQ service~~
 - Convert the above YML into a Helm chart
-- Add a separate cron resource for runnning periodic tasks
+- ~~Add a separate cron resource for runnning periodic tasks~~
 - Test with a from scratch Mautic setup
 - Periodic DB snapshot backups/restores
-- Convert ingress into TLS using ACME/Let's Encrypt.
+- ~~Convert ingress into TLS using ACME/Let's Encrypt.~~
 
 
