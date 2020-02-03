@@ -22,8 +22,8 @@
     TEST_DISABLED: "true"
     DEPLOY_DISABLED: "false"
     BUILD_DISABLED: "false"
-    PROD_BUILD_DISABLED: "true"
-    PROD_RELEASE_DISABLED: "true"
+    # PROD_BUILD_DISABLED: "true"
+    # PROD_RELEASE_DISABLED: "true"
 
   dev-build:
     image: docker:latest

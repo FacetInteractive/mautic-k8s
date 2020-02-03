@@ -11,6 +11,8 @@ RUN mkdir /logs && chown -R 1001:0 /logs && chmod -R g+rwX /logs
 
 WORKDIR /var/www/symfony
 
+RUN mkdir -p /var/www/symfony/translations
+
 RUN composer install --no-dev --prefer-dist --no-interaction --no-ansi --optimize-autoloader
 
 USER 1001

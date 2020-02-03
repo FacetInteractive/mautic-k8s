@@ -6,7 +6,7 @@ metadata:
     app: facet-mautic
 spec:
   serviceName: mautic
-  replicas: 4
+  replicas: 1
   selector:
     matchLabels:
       app: facet-mautic 
