@@ -121,7 +121,7 @@
     script:
       - sed -i s,#TAG#,latest,g k8s/mautic-prod.yml
       - kubectl apply -f k8s/mautic-prod.yml -n mautic
-      - kubectl apply -f k8s/cronjobs.yml -n mautic
+      - kubectl apply -f k8s/cron-jobs.yml -n mautic
     environment:
       name: production
     only:
