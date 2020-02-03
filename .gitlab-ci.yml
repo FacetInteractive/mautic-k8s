@@ -65,9 +65,17 @@
     script:
       - sed -i s,#TAG#,$CI_COMMIT_SHORT_SHA,g k8s/mautic-dev.yml
       - kubectl apply -f k8s/mautic-dev.yml -n $KUBESPACE_NAME
+    only:
+      refs:
+        - branches
+    except:
+      refs:
+        - master
+      variables:
+        - $BUILD_DISABLED    
     environment:
       name: development
-
+    
 
 
   prod-build:
