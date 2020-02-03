@@ -28,11 +28,13 @@ spec:
       containers:
         - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:#TAG#
           name: nginx
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
               name: mautic        
         - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic:#TAG#
           name: mautic
+          imagePullPolicy: Always
           env:
           - name: MYSQL_DB_HOST
             value: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
