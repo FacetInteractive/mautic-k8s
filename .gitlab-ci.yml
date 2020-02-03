@@ -99,7 +99,7 @@
       - docker push $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
       - docker push $MAUTIC_REPOSITORY_URL:latest
       - docker build -f Dockerfile-nginx -t $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA  .
-      - docekr tag $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA $NGINX_REPOSITORY_URL:latest
+      - docker tag $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA $NGINX_REPOSITORY_URL:latest
       - docker push $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
       - docker push $NGINX_REPOSITORY_URL:latest
     
