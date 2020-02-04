@@ -26,13 +26,13 @@ spec:
           persistentVolumeClaim:
             claimName: logs
       containers:
-        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:latest
+        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:#TAG#
           name: nginx
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
               name: mautic        
-        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic:latest
+        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic:#TAG#
           name: mautic
           imagePullPolicy: Always
           env:

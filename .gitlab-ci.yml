@@ -18,10 +18,8 @@
     KUBESPACE_NAME: $CI_COMMIT_BRANCH
 
   # various stages, currently disabled, remove the variable to enable those steps
-    RELEASE_IMAGE_DISABLED: "true"
-    TEST_DISABLED: "true"
-    DEPLOY_DISABLED: "false"
-    BUILD_DISABLED: "false"
+    # DEPLOY_DISABLED: "false"
+    # BUILD_DISABLED: "false"
     # PROD_BUILD_DISABLED: "true"
     # PROD_RELEASE_DISABLED: "true"
 
