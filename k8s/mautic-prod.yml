@@ -26,18 +26,18 @@ spec:
           persistentVolumeClaim:
             claimName: logs
       containers:
-        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:#TAG#
+        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:latest
           name: nginx
           ports:
             - containerPort: 8080
               name: mautic        
-        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic:#TAG#
+        - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic:latest
           name: mautic
           env:
           - name: MYSQL_DB_HOST
             value: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
           - name: MYSQL_DATABASE
-            value: facetmautic
+            value: mautic
           - name: MYSQL_USER
             valueFrom:
               secretKeyRef:
