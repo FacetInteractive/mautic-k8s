@@ -94,12 +94,12 @@
 
     script:
       - docker build -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA .
-      - docker tag $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA $REPOSITORY_URL:latest
+      - docker tag $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA $MAUTIC_REPOSITORY_URL:latest
       - $(aws ecr get-login --no-include-email --region us-west-1)
       - docker push $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
       - docker push $MAUTIC_REPOSITORY_URL:latest
       - docker build -f Dockerfile-nginx -t $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA  .
-      - docekr tag $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA $NGINX_REPOSITORY_URL:latest
+      - docker tag $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA $NGINX_REPOSITORY_URL:latest
       - docker push $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
       - docker push $NGINX_REPOSITORY_URL:latest
     
