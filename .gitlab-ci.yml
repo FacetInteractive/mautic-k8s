@@ -16,7 +16,6 @@
   # K8s Namespaces Naming. 
 
     KUBESPACE_NAME: $CI_COMMIT_BRANCH
-
   # various stages, currently disabled, remove the variable to enable those steps
     # DEPLOY_DISABLED: "false"
     # BUILD_DISABLED: "false"
@@ -62,7 +61,7 @@
 
     script:
       - sed -i s,#TAG#,$CI_COMMIT_SHORT_SHA,g k8s/mautic-dev.yml
-      - kubectl apply -f k8s/mautic-dev.yml -n $KUBESPACE_NAME
+      - kubectl apply -f k8s/mautic.yml -n $KUBESPACE_NAME
     only:
       refs:
         - branches

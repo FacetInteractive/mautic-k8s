@@ -138,10 +138,10 @@ metadata:
 spec:
   tls:
   - hosts: 
-    - mautic.k8s.facetinteractive.com
-    secretName: mautic-tls
+    - hello.facetinteractive.com
+    secretName: prod-mautic-tls
   rules:
-  - host: mautic.k8s.facetinteractive.com
+  - host: hello.facetinteractive.com
     http:
       paths:
       - backend:

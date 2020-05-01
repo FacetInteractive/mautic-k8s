@@ -183,6 +183,36 @@ and apply the changes again.
 kubectl apply -f k8s/mautic.yml -n mautic
 ```
 
+## How to clear cache and then warm it
+
+Login to mautic shell.
+
+```
+kubectl exec -it  mautic-0 -n mautic  -c mautic -- /bin/bash
+```
+
+Remove cache dir contents.
+
+```
+cd /cache
+rm -rf *
+```
+
+Warm up cache.
+
+```
+cd /var/www/symfony
+app/console cache:warmup
+```
+
+If you get a PHP OOM error, re-run the last command.
+
+```
+app/console cache:warmup
+```
+
+
+
 
 # Kubernetes Integration with Gitlab
 
