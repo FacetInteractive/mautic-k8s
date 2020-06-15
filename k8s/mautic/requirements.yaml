@@ -1,0 +1,6 @@
+dependencies:
+- name: kubernetes-ingress
+
+  version: '1.17.1'
+  # This is the binaries repository, as documented in the GitHub repo
+  repository: 'https://github.com/nginxinc/kubernetes-ingress/'

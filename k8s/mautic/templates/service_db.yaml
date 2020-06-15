@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.dbservice.name}}
+spec:
+  type: {{ .Values.dbservice.type}}
+  ports:
+    - port: {{ .Values.dbservice.dbport }}
+  selector:
+    app.kubernetes.io/name: {{ include "db.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

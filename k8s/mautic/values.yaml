@@ -1,0 +1,93 @@
+# Default values for mautic.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 2
+namespace: #namespace#
+nginx-image:
+  repository: ${NGINX_REPOSITORY}
+  tag: #TAG#
+  pullPolicy: IfNotPresent
+
+mautic-image:
+  repository: ${MAUTIC_REPOSITORY}
+  tag: #TAG#
+  pullPolicy: IfNotPresent
+
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  fsGroup: 1000
+  runAsUser: 1001
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+dbservice:
+  type: ClusterIP
+  port: 3306
+
+
+
+
+ingress:
+  enabled: true
+  annotations: {}
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: #namespace#-mautic.axl8.xyz
+      paths: []
+
+  tls: []
+    - secretName: mautic-tls
+      hosts:
+        - #namespace#-mautic.axl8.xyz
+
+# Environment Variables for the Containers
+db:
+  host: axlmautic
+  database: MYSQL_DATABASE
+  secret: database-user
+app:
+  secret: secret-key
+
+s3-bucket: S3-bucket-nameOverride
+mailer-host: email-smtp.us-east-1.amazonaws.com
+mailer-password: ${MAILER_PASSWORD}
+rabbitmq_password: ${RABBITMQ_PASSWORD}
+
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
