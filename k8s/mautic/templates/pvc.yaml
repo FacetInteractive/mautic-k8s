@@ -1,0 +1,31 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: cache
+  labels:
+    name: cache
+  app: {{ .Values.project.name }}
+spec:
+  storageClassName: {{ .Values.project.stroageClass }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.project.pvc.cache.size | default "10G" | quote }}
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: logs
+  labels:
+    name: logs
+    app: {{ .Values.project.name }}
+spec:
+  storageClassName: {{ .Values.project.stroageClass }}
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.project.pvc.logs.size | default "10G" | quote }}

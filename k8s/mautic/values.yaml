@@ -1,72 +1,91 @@
 # Default values for mautic.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-
 replicaCount: 2
-namespace: #namespace#
-nginx-image:
-  repository: ${NGINX_REPOSITORY}
-  tag: #TAG#
-  pullPolicy: IfNotPresent
+namespace: #namespace#   # This will be replaced with the Branch name from GitlabCI
 
-mautic-image:
-  repository: ${MAUTIC_REPOSITORY}
-  tag: #TAG#
-  pullPolicy: IfNotPresent
-
-
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
-
-
-podSecurityContext: {}
+project:
+  name: facet
+  nginx-image:
+    repository: ${NGINX_REPOSITORY}  # This will be subsituted with Gitlab Environment variable
+    tag: #TAG#                       # This will be replaced with the Tag from GitlabCI
+    pullPolicy: IfNotPresent
+  mautic-image:
+    repository: ${MAUTIC_REPOSITORY}  # This will be subsituted with Gitlab Environment variable
+    tag: #TAG#                        # This will be replaced with the Tag from GitlabCI
+    pullPolicy: IfNotPresent
+  podSecurityContext: {}
   # fsGroup: 2000
+  securityContext: {}
+    fsGroup: 1000
+    runAsUser: 1001
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8080
+  # Database Values
+  External_DB_Host: ${External_DB_HOST} # Host address of the External DB instance
+  K8s_DB_Host: db
+  database: ${MYSQL_DATABASE}
+  secret: database-user
 
-securityContext: {}
-  fsGroup: 1000
-  runAsUser: 1001
 
-service:
-  type: ClusterIP
-  port: 80
-  targetPort: 8080
+  #  Ingress Details
+  # Ingress host name defines the url of your domain
+  # The name of the project name will be prefixed to the domain name of your website
+  # If your project name is markenting and domain is example.com the hostname of this application would be marketing.example.com
+  ingress:
+    enabled: true
+    domain: facetinteractive.com
+    class: nginx
+    annotations: {}
+      kubernetes.io/ingress.class: "traefik"
+      nginx.ingress.kubernetes.io/affinity: "cookie"
+      nginx.ingress.kubernetes.io/session-cookie-name: "route"
+      nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+      nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
 
-dbservice:
-  type: ClusterIP
-  port: 3306
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
 
 
+  # PVC values
+  storageClass: "aws-efs"
+  cache:
+    size: 10Gi
+  logs:
+    size: 10Gi
+
+
+
+
+
+db:
+  service:
+    name: db
+    type: ClusterIP
+    port: 3306
 
 
 ingress:
   enabled: true
   annotations: {}
-    kubernetes.io/ingress.class: nginx
-    kubernetes.io/tls-acme: "true"
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
   hosts:
-    - host: #namespace#-mautic.axl8.xyz
+    - host: #namespace#-mautic.facetinteractive.com
       paths: []
 
   tls: []
-    - secretName: mautic-tls
-      hosts:
+  #  - secretName: mautic-tls
+  #    hosts:
         - #namespace#-mautic.axl8.xyz
 
 # Environment Variables for the Containers
-db:
-  host: axlmautic
-  database: MYSQL_DATABASE
-  secret: database-user
-app:
-  secret: secret-key
+
 
 s3-bucket: S3-bucket-nameOverride
 mailer-host: email-smtp.us-east-1.amazonaws.com
@@ -85,9 +104,3 @@ resources: {}
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}

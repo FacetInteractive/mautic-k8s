@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mautic 
+  name: mautic
   labels:
     app: facet-mautic
 spec:
@@ -9,7 +9,7 @@ spec:
   replicas: 4
   selector:
     matchLabels:
-      app: facet-mautic 
+      app: facet-mautic
   template:
     metadata:
       labels:
@@ -30,7 +30,7 @@ spec:
           name: nginx
           ports:
             - containerPort: 8080
-              name: mautic        
+              name: mautic
         - image: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic:#TAG#
           name: mautic
           env:
@@ -88,7 +88,7 @@ spec:
   resources:
     requests:
       storage: 1Gi
----        
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -171,7 +171,7 @@ spec:
         volumeMounts:
         - name: mysql-persistent-storage
           mountPath: /var/lib/mysql
----            
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -182,7 +182,7 @@ spec:
   resources:
     requests:
       storage: 1Gi
----      
+---
 apiVersion: v1
 kind: Secret
 metadata:
@@ -197,14 +197,14 @@ kind: Ingress
 metadata:
   name: mautic
   annotations:
-    kubernetes.io/ingress.class: nginx  
+    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-name: "route"
     nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
     nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
 spec:
   tls:
-  - hosts: 
+  - hosts:
     - mautic.k8s.facetinteractive.com
     secretName: mautic-tls
   rules:

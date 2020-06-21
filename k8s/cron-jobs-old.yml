@@ -140,7 +140,7 @@ spec:
                 - name: cache
                   mountPath: /cache
                 - name: logs
-                  mountPath: /logs
+                  mountPath: /logs    
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -212,7 +212,7 @@ spec:
                 - name: cache
                   mountPath: /cache
                 - name: logs
-                  mountPath: /logs
+                  mountPath: /logs    
 ---
 apiVersion: batch/v1beta1
 kind: CronJob

@@ -1,6 +1,6 @@
 dependencies:
-- name: kubernetes-ingress
+- name: traefik
 
-  version: '1.17.1'
+  version: '1.7.23'
   # This is the binaries repository, as documented in the GitHub repo
-  repository: 'https://github.com/nginxinc/kubernetes-ingress/'
+  repository: 'https://github.com/helm/charts/tree/master/stable/traefik'
