@@ -1,11 +1,14 @@
 # Default values for mautic.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
-replicaCount: 2
+
 namespace: #namespace#   # This will be replaced with the Branch name from GitlabCI
 
 project:
+  replicaCount: 2
   name: facet
+  labels:
+    app: facetmautic
   nginx-image:
     repository: ${NGINX_REPOSITORY}  # This will be subsituted with Gitlab Environment variable
     tag: #TAG#                       # This will be replaced with the Tag from GitlabCI
@@ -23,11 +26,34 @@ project:
     type: ClusterIP
     port: 80
     targetPort: 8080
-  # Database Values
+  # Environment  Values
+   #Data base Variables
   External_DB_Host: ${External_DB_HOST} # Host address of the External DB instance
   K8s_DB_Host: db
+  # ToDo: Define a secret for MySQL DB
   database: ${MYSQL_DATABASE}
   secret: database-user
+  mailerHost: "email-smtp.us-east-1.amazonaws.com"
+  mailerUser: "AKIAIIL5EHY6A7ZEFL2A"
+  rabbitmqHost: "rabbitmq"
+  rabbitmqUser: "usr"
+  rabbitmqPassword: "" # Define a secret
+  mailerPassword: "" # Define a Secret
+
+
+  resources: {}
+
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
 
 
   #  Ingress Details
@@ -52,55 +78,54 @@ project:
   affinity: {}
 
 
-  # PVC values
-  storageClass: "aws-efs"
-  cache:
-    size: 10Gi
-  logs:
-    size: 10Gi
+  # Persistence - Persistence Volume claims an
+  persistence:
+    storageClass: "aws-efs"
+    cache:
+      name: "cache"
+      size: 10Gi
+    logs:
+      name: "logs"
+      size: 10Gi
 
-
-
-
+traefik:
+  default-ssl:true
 
 db:
+  image: mysql:5
+  name: mysql
+  labels:
+    app: facet-mautic-db
+  persistence:
+    name: mysql-pvc
+    size: 10Gi
   service:
-    name: db
     type: ClusterIP
     port: 3306
 
 
-ingress:
-  enabled: true
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts:
-    - host: #namespace#-mautic.facetinteractive.com
-      paths: []
 
-  tls: []
-  #  - secretName: mautic-tls
-  #    hosts:
-        - #namespace#-mautic.axl8.xyz
-
-# Environment Variables for the Containers
-
-
-s3-bucket: S3-bucket-nameOverride
-mailer-host: email-smtp.us-east-1.amazonaws.com
-mailer-password: ${MAILER_PASSWORD}
-rabbitmq_password: ${RABBITMQ_PASSWORD}
-
-
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+# Values for the Ingress Controller 
+traefik:
+  ssl:
+    enabled: true
+    enforced: true
+    permanentRedirect: false
+    upstream: false
+    insecureSkipVerify: false
+    generateTLS: false
+    # defaultCN: "example.com"
+      # or *.example.com
+    defaultSANList: []
+      # - example.com
+      # - test1.example.com
+    defaultIPList: []
+      # - 1.2.3.4
+    # cipherSuites: []
+    # https://docs.traefik.io/configuration/entrypoints/#specify-minimum-tls-version
+    # tlsMinVersion: VersionTLS12
+    # https://docs.traefik.io/configuration/entrypoints/#strict-sni-checking
+    # sniStrict: false
+    defaultCert: LS0tLS1CRUdJTiBDRxXCSXCDFasdfsafdfadwfasdfasdfsdrfawerfwesdfasdfaweretrfhghfghxcvbdfggfgfo=
+    defaultKey: LS0tLS1CRUdJTiBDRxXCSXCDFasdfsafdfadwfasdfasdfsdrfawerfwesdfasdfaweretrfhghfghxcsdfadfzsfgtafjcnv,nc;klasdfiojpioafjsd;kljfasd;iljfasd;ljfa;klsdj;fklasd;klfj;l
+    

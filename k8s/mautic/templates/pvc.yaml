@@ -9,7 +9,7 @@ metadata:
 spec:
   storageClassName: {{ .Values.project.stroageClass }}
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: {{ .Values.project.pvc.cache.size | default "10G" | quote }}
@@ -25,7 +25,19 @@ metadata:
 spec:
   storageClassName: {{ .Values.project.stroageClass }}
   accessModes:
-    - ReadWriteOnce
-  resources:
+    - ReadWriteMany
     requests:
       storage: {{ .Values.project.pvc.logs.size | default "10G" | quote }}
+
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ .Values.db.persistence.name }}
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.db.persistence.size }}

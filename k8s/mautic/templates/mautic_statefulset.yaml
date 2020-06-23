@@ -1,0 +1,83 @@
+{{ - if }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.Project.Name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{ include "project.labels" . | indent 4 }}
+spec:
+  serviceName: {{ .Values.project.serviceName }}
+  replicas: {{ .Values.project.replicas }}
+  selector:
+    matchLabels:
+      {{ include "project.labels" . | indent 4 }}
+  template:
+    metadata:
+      labels:
+        {{ include "project.labels" . | indent 4 }}
+    spec:
+      securityContext:
+    {{- toYaml .Values.securityContext | nindent 12 }}
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: {{ .Values.project.persistence.cache.name }}
+        - name: logs
+          persistentVolumeClaim:
+            claimName: {{ .Values.project.persistence.cache.name }}
+      containers:
+        - image: "{{ .Values.project.nginxImage.repository }}:{{ .Values.project.nginxImage.tag }}"
+          name: {{ .Values.project.name }}-ngix
+          ports:
+              name: {{ .Values.project.name }}-nginxPort
+              - containerPort: {{ Values.project.Service.targetPort }}
+        - image: "{{ .Values.nginxImage.repository }}:{{ .Values.nginxImage.tag }}"
+          name: {{ .Values.project.name }}-mautic
+          env:
+          - name: MYSQL_DB_HOST
+            {{ if .Values.project.Is_External_DB }}
+              value: {{ .Values.project.ExternalDBHOST }}
+            {{ end }}
+              value: {{ .Values.project.K8s_DB_Host }}
+          - name: MYSQL_DATABASE
+            value: {{ .Values.db.database }}
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: db-secret
+                key: {{ .Values.db.secret}}
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: db-secret
+                key: database-password
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: secret-key
+          - name: S3_BUCKET
+            value: {{ .Values.project.s3Bucket}}
+          - name: SITE_URL
+            value: {{ .values.ingress.spec.rules.host }} # Gets the value from ingress.yaml template
+          - name: MAILER_HOST
+            value: {{ .Values.project.mailerHost}}
+          - name: MAILER_USER
+            value: {{ .Values.project.mailerUser}}
+          - name: MAILER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: {{ .Values.project.appSecret}}
+          - name: RABBITMQ_HOST
+            value: {{ .Values.project.rabbitmqHost }}
+          - name: RABBITMQ_USER
+            value: {{ .Values.project.rabbitmqHost }}
+          - name: RABBITMQ_PASSWORD
+            value: {{ .Values.project.rabbitmqPassword }}
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+            - name: logs
+              mountPath: /logs

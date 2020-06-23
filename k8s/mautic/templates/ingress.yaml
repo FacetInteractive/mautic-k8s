@@ -8,7 +8,7 @@ metadata:
     {{- toYaml . | indent 4 }}
   {{- end }}
 
-    spec:
+spec:
   rules:
 {{ if eq  Values.project.branch "master" }}
   - host: {{ .Values.project.name }}.{{ .Values.project.ingress.host }}

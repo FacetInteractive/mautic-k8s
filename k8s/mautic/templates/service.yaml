@@ -5,12 +5,11 @@ metadata:
   labels:
 {{ include "mautic.labels" . | indent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.project.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
+    - port: {{ .Values.project.service.port }}
       targetPort: http
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/name: {{ include "mautic.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{ include "project.labels" . | indent 4 }}
