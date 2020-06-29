@@ -2,20 +2,17 @@
   # This pipeline is tightly coupled with kubernetes namespace and Kubernetes dns, 
   # and a DNS-1123 label must consist of lower case alphanumeric characters or '-', 
   # and must start and end with an alphanumeric character.
-
-
   stages:
-
     - dev-build
     - prod-build
-    - dev-deploy
-    - prod-deploy
+    - deploy
 
   variables:
 
   # K8s Namespaces Naming. 
 
     KUBESPACE_NAME: $CI_COMMIT_BRANCH
+    RELEASE_NAME: mautic
   # various stages, currently disabled, remove the variable to enable those steps
     # DEPLOY_DISABLED: "false"
     # BUILD_DISABLED: "false"
@@ -52,29 +49,6 @@
       variables:
         - $BUILD_DISABLED    
 
-  dev-deploy:
-    stage: dev-deploy
-    image: akashkaveti/base_image:latest
-    
-    before_script:
-      - kubectl describe namespace $KUBESPACE_NAME || kubectl create namespace $KUBESPACE_NAME
-
-    script:
-      - sed -i s,#TAG#,$CI_COMMIT_SHORT_SHA,g k8s/mautic-dev.yml
-      - kubectl apply -f k8s/mautic.yml -n $KUBESPACE_NAME
-    only:
-      refs:
-        - branches
-    except:
-      refs:
-        - master
-      variables:
-        - $BUILD_DISABLED    
-    environment:
-      name: development
-    
-
-
   prod-build:
     image: docker:latest
     stage: prod-build
@@ -105,6 +79,25 @@
     except:
       variables:
         - $PROD_BUILD_DISABLED
+
+
+  deploy:
+    stage: deploy
+    image: akashkaveti/base_image:latest
+    
+    before_script:
+      - kubectl describe namespace $KUBESPACE_NAME || kubectl create namespace $KUBESPACE_NAME
+
+    script:      
+      - helm upgrade --install k8s/mautic --name $RELEASE_NAME --namespace $KUBE_NAMESPACE --set project.branch=$CI_COMMIT_BRANCH
+    except:
+       variables:
+        - $BUILD_DISABLED    
+    environment:
+      name: development
+    
+
+
 
 
 
