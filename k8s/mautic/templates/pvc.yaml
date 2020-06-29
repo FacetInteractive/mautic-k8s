@@ -1,18 +1,17 @@
----
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: cache
+  name: cache  
   labels:
     name: cache
-  app: {{ .Values.project.name }}
 spec:
-  storageClassName: {{ .Values.project.stroageClass }}
   accessModes:
     - ReadWriteMany
+  storageClassName: {{ .Values.project.persistence.storageClass | quote }}
   resources:
     requests:
-      storage: {{ .Values.project.pvc.cache.size | default "10G" | quote }}
+      storage: {{ .Values.project.persistence.cache.size | default "10G" | quote }}
+
 
 ---
 kind: PersistentVolumeClaim
@@ -21,13 +20,13 @@ metadata:
   name: logs
   labels:
     name: logs
-    app: {{ .Values.project.name }}
 spec:
-  storageClassName: {{ .Values.project.stroageClass }}
+  storageClassName: {{ .Values.project.persistence.storageClass | quote }}
   accessModes:
     - ReadWriteMany
+  resources:
     requests:
-      storage: {{ .Values.project.pvc.logs.size | default "10G" | quote }}
+      storage: {{ .Values.project.persistence.logs.size | default "10G" | quote }}
 
 
 ---
@@ -36,6 +35,7 @@ apiVersion: v1
 metadata:
   name: {{ .Values.db.persistence.name }}
 spec:
+  storageClassName: {{ .Values.project.persistence.storageClass | quote }}
   accessModes:
   - ReadWriteMany
   resources:

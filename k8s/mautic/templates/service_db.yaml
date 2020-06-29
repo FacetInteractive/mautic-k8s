@@ -1,11 +1,12 @@
----
+{{- if not .Values.ExternalDbHost }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.db.service.name}}
+  name: {{ .Values.db.service.name }}  
 spec:
-  type: {{ .Values.db.service.type}}
+  type: {{ .Values.db.service.type }}
   ports:
     - port: {{ .Values.db.service.port }}
   selector:
-    app: {{ include "db.labels" . | indent 4 }}
+    {{ .Values.db.labels | toYaml }}
+{{- end }}

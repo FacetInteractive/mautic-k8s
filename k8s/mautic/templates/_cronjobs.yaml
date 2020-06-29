@@ -1,0 +1,740 @@
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mautic-cron-trigger-campaign
+  labels:
+{{- toYaml .Values.project.labels | nindent 4 }}
+spec:
+  schedule: {{ .Values.cron.triggerCampaignSchedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+{{- toYaml .Values.project.securityContext | nindent 12 }}
+          volumes:
+            - name: cache
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.cache.name }}
+            - name: logs
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.logs.name }}
+          containers:          
+            - command : ["app/console", "mautic:campaigns:trigger", "--env=prod"]
+              name: {{ .Values.project.name }}
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              env:
+              - name: MYSQL_DB_HOST
+                {{- if .Values.project.IsExternalDB }}
+                value: {{ .Values.project.ExternalDbHost }}
+                {{- else }}
+                value: {{ .Values.project.localDbHost }}
+                {{- end }}
+              - name: MYSQL_DATABASE
+                value: {{ .Values.db.database }}
+              - name: MYSQL_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-user
+              - name: MYSQL_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-password
+              - name: SECRET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: secret-key
+              {{- if .Values.project.s3Bucket }}
+              - name: S3_BUCKET
+                value: {{ .Values.project.s3Bucket }}
+              {{- end  }}
+              - name: SITE_URL
+                value: https://{{ .Values.ingress.domain }}
+              - name: MAILER_HOST
+                value: {{ .Values.project.mailerHost}}
+              - name: MAILER_USER
+                value: {{ .Values.project.mailerUser}}
+              - name: MAILER_PASSWORD            
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: mailer-password
+              - name: RABBITMQ_HOST
+                value: {{ .Release.Name }}-rabbitmq-headless
+              - name: RABBITMQ_USER
+                value: user
+              - name: RABBITMQ_PASSWORD
+                secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
+              volumeMounts:
+                - name: {{ .Values.project.persistence.cache.name }}
+                  mountPath: /cache
+                - name: {{ .Values.project.persistence.logs.name }}
+                  mountPath: /logs
+          imagePullSecrets:
+{{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
+
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mautic-cron-emails-send
+  labels:
+{{- toYaml .Values.project.labels | nindent 4 }}
+spec:
+  schedule: {{ .Values.cron.emailsSendSchedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+{{- toYaml .Values.project.securityContext | nindent 12 }}
+          volumes:
+            - name: cache
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.cache.name }}
+            - name: logs
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.logs.name }}
+          containers:          
+            - command : ["app/console", "mautic:emails:send", "--env=prod"]
+              name: {{ .Values.project.name }}
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              env:
+              - name: MYSQL_DB_HOST
+                {{- if .Values.project.IsExternalDB }}
+                value: {{ .Values.project.ExternalDbHost }}
+                {{- else }}
+                value: {{ .Values.project.localDbHost }}
+                {{- end }}
+              - name: MYSQL_DATABASE
+                value: {{ .Values.db.database }}
+              - name: MYSQL_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-user
+              - name: MYSQL_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-password
+              - name: SECRET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: secret-key
+              {{- if .Values.project.s3Bucket }}
+              - name: S3_BUCKET
+                value: {{ .Values.project.s3Bucket }}
+              {{- end  }}
+              - name: SITE_URL
+                value: https://{{ .Values.ingress.domain }}
+              - name: MAILER_HOST
+                value: {{ .Values.project.mailerHost}}
+              - name: MAILER_USER
+                value: {{ .Values.project.mailerUser}}
+              - name: MAILER_PASSWORD            
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: mailer-password
+              - name: RABBITMQ_HOST
+                value: {{ .Release.Name }}-rabbitmq-headless
+              - name: RABBITMQ_USER
+                value: user
+              - name: RABBITMQ_PASSWORD
+                secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
+              volumeMounts:
+                - name: {{ .Values.project.persistence.cache.name }}
+                  mountPath: /cache
+                - name: {{ .Values.project.persistence.logs.name }}
+                  mountPath: /logs
+          imagePullSecrets:
+{{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
+
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mautic-cron-email-fetch
+  labels:
+{{- toYaml .Values.project.labels | nindent 4 }}
+spec:
+  schedule: {{ .Values.cron.emailFetchSchedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+{{- toYaml .Values.project.securityContext | nindent 12 }}
+          volumes:
+            - name: cache
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.cache.name }}
+            - name: logs
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.logs.name }}
+          containers:          
+            - command : ["app/console", "mautic:email:fetch", "--env=prod"]
+              name: {{ .Values.project.name }}
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              env:
+              - name: MYSQL_DB_HOST
+                {{- if .Values.project.IsExternalDB }}
+                value: {{ .Values.project.ExternalDbHost }}
+                {{- else }}
+                value: {{ .Values.project.localDbHost }}
+                {{- end }}
+              - name: MYSQL_DATABASE
+                value: {{ .Values.db.database }}
+              - name: MYSQL_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-user
+              - name: MYSQL_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-password
+              - name: SECRET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: secret-key
+              {{- if .Values.project.s3Bucket }}
+              - name: S3_BUCKET
+                value: {{ .Values.project.s3Bucket }}
+              {{- end  }}
+              - name: SITE_URL
+                value: https://{{ .Values.ingress.domain }}
+              - name: MAILER_HOST
+                value: {{ .Values.project.mailerHost}}
+              - name: MAILER_USER
+                value: {{ .Values.project.mailerUser}}
+              - name: MAILER_PASSWORD            
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: mailer-password
+              - name: RABBITMQ_HOST
+                value: {{ .Release.Name }}-rabbitmq-headless
+              - name: RABBITMQ_USER
+                value: user
+              - name: RABBITMQ_PASSWORD
+                secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
+              volumeMounts:
+                - name: {{ .Values.project.persistence.cache.name }}
+                  mountPath: /cache
+                - name: {{ .Values.project.persistence.logs.name }}
+                  mountPath: /logs
+          imagePullSecrets:
+{{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
+
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mautic-cron-segments-update
+  labels:
+{{- toYaml .Values.project.labels | nindent 4 }}
+spec:
+  schedule: {{ .Values.cron.segmentsUpdateSchedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+{{- toYaml .Values.project.securityContext | nindent 12 }}
+          volumes:
+            - name: cache
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.cache.name }}
+            - name: logs
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.logs.name }}
+          containers:          
+            - command : ["app/console", "mautic:segments:update", "--env=prod"]
+              name: {{ .Values.project.name }}
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              env:
+              - name: MYSQL_DB_HOST
+                {{- if .Values.project.IsExternalDB }}
+                value: {{ .Values.project.ExternalDbHost }}
+                {{- else }}
+                value: {{ .Values.project.localDbHost }}
+                {{- end }}
+              - name: MYSQL_DATABASE
+                value: {{ .Values.db.database }}
+              - name: MYSQL_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-user
+              - name: MYSQL_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-password
+              - name: SECRET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: secret-key
+              {{- if .Values.project.s3Bucket }}
+              - name: S3_BUCKET
+                value: {{ .Values.project.s3Bucket }}
+              {{- end  }}
+              - name: SITE_URL
+                value: https://{{ .Values.ingress.domain }}
+              - name: MAILER_HOST
+                value: {{ .Values.project.mailerHost}}
+              - name: MAILER_USER
+                value: {{ .Values.project.mailerUser}}
+              - name: MAILER_PASSWORD            
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: mailer-password
+              - name: RABBITMQ_HOST
+                value: {{ .Release.Name }}-rabbitmq-headless
+              - name: RABBITMQ_USER
+                value: user
+              - name: RABBITMQ_PASSWORD
+                secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password 
+              volumeMounts:
+                - name: {{ .Values.project.persistence.cache.name }}
+                  mountPath: /cache
+                - name: {{ .Values.project.persistence.logs.name }}
+                  mountPath: /logs
+          imagePullSecrets:
+{{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
+
+
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mautic-cron-campaigns-rebuild
+  labels:
+{{- toYaml .Values.project.labels | nindent 4 }}
+spec:
+  schedule: {{ .Values.cron.campaignsRebuildSchedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+{{- toYaml .Values.project.securityContext | nindent 12 }}
+          volumes:
+            - name: cache
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.cache.name }}
+            - name: logs
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.logs.name }}
+          containers:          
+            - command : ["app/console", "mautic:campaigns:rebuild", "--env=prod"]
+              name: {{ .Values.project.name }}
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              env:
+              - name: MYSQL_DB_HOST
+                {{- if .Values.project.IsExternalDB }}
+                value: {{ .Values.project.ExternalDbHost }}
+                {{- else }}
+                value: {{ .Values.project.localDbHost }}
+                {{- end }}
+              - name: MYSQL_DATABASE
+                value: {{ .Values.db.database }}
+              - name: MYSQL_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-user
+              - name: MYSQL_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-password
+              - name: SECRET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: secret-key
+              {{- if .Values.project.s3Bucket }}
+              - name: S3_BUCKET
+                value: {{ .Values.project.s3Bucket }}
+              {{- end  }}
+              - name: SITE_URL
+                value: https://{{ .Values.ingress.domain }}
+              - name: MAILER_HOST
+                value: {{ .Values.project.mailerHost}}
+              - name: MAILER_USER
+                value: {{ .Values.project.mailerUser}}
+              - name: MAILER_PASSWORD            
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: mailer-password
+              - name: RABBITMQ_HOST
+                value: {{ .Release.Name }}-rabbitmq-headless
+              - name: RABBITMQ_USER
+                value: user
+              - name: RABBITMQ_PASSWORD
+                secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
+              volumeMounts:
+                - name: {{ .Values.project.persistence.cache.name }}
+                  mountPath: /cache
+                - name: {{ .Values.project.persistence.logs.name }}
+                  mountPath: /logs
+          imagePullSecrets:
+{{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
+
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mautic-cron-broadcasts-send
+  labels:
+{{- toYaml .Values.project.labels | nindent 4 }}
+spec:
+  schedule: {{ .Values.cron.broadcastsSendSchedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+{{- toYaml .Values.project.securityContext | nindent 12 }}
+          volumes:
+            - name: cache
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.cache.name }}
+            - name: logs
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.logs.name }}
+          containers:          
+            - command : ["app/console", "mautic:social:monitoring", "--env=prod"]
+              name: {{ .Values.project.name }}
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              env:
+              - name: MYSQL_DB_HOST
+                {{- if .Values.project.IsExternalDB }}
+                value: {{ .Values.project.ExternalDbHost }}
+                {{- else }}
+                value: {{ .Values.project.localDbHost }}
+                {{- end }}
+              - name: MYSQL_DATABASE
+                value: {{ .Values.db.database }}
+              - name: MYSQL_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-user
+              - name: MYSQL_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-password
+              - name: SECRET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: secret-key
+              {{- if .Values.project.s3Bucket }}
+              - name: S3_BUCKET
+                value: {{ .Values.project.s3Bucket }}
+              {{- end  }}
+              - name: SITE_URL
+                value: https://{{ .Values.ingress.domain }}
+              - name: MAILER_HOST
+                value: {{ .Values.project.mailerHost}}
+              - name: MAILER_USER
+                value: {{ .Values.project.mailerUser}}
+              - name: MAILER_PASSWORD            
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: mailer-password
+              - name: RABBITMQ_HOST
+                value: {{ .Release.Name }}-rabbitmq-headless
+              - name: RABBITMQ_USER
+                value: user
+              - name: RABBITMQ_PASSWORD
+                secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
+              volumeMounts:
+                - name: {{ .Values.project.persistence.cache.name }}
+                  mountPath: /cache
+                - name: {{ .Values.project.persistence.logs.name }}
+                  mountPath: /logs
+          imagePullSecrets:
+{{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
+
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mautic-cron-social-monitoring
+  labels:
+{{- toYaml .Values.project.labels | nindent 4 }}
+spec:
+  schedule: {{ .Values.cron.socialMonitoringSchedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+{{- toYaml .Values.project.securityContext | nindent 12 }}
+          volumes:
+            - name: cache
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.cache.name }}
+            - name: logs
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.logs.name }}
+          containers:          
+            - command : ["app/console", "mautic:social:monitoring", "--env=prod"]
+              name: {{ .Values.project.name }}
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              env:
+              - name: MYSQL_DB_HOST
+                {{- if .Values.project.IsExternalDB }}
+                value: {{ .Values.project.ExternalDbHost }}
+                {{- else }}
+                value: {{ .Values.project.localDbHost }}
+                {{- end }}
+              - name: MYSQL_DATABASE
+                value: {{ .Values.db.database }}
+              - name: MYSQL_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-user
+              - name: MYSQL_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-password
+              - name: SECRET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: secret-key
+              {{- if .Values.project.s3Bucket }}
+              - name: S3_BUCKET
+                value: {{ .Values.project.s3Bucket }}
+              {{- end  }}
+              - name: SITE_URL
+                value: https://{{ .Values.ingress.domain }}
+              - name: MAILER_HOST
+                value: {{ .Values.project.mailerHost}}
+              - name: MAILER_USER
+                value: {{ .Values.project.mailerUser}}
+              - name: MAILER_PASSWORD            
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: mailer-password
+              - name: RABBITMQ_HOST
+                value: {{ .Release.Name }}-rabbitmq-headless
+              - name: RABBITMQ_USER
+                value: user
+              - name: RABBITMQ_PASSWORD
+                secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
+              volumeMounts:
+                - name: {{ .Values.project.persistence.cache.name }}
+                  mountPath: /cache
+                - name: {{ .Values.project.persistence.logs.name }}
+                  mountPath: /logs
+          imagePullSecrets:
+{{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
+
+
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mautic-cron-integration-fetchleads-hubspot
+  labels:
+{{- toYaml .Values.project.labels | nindent 4 }}
+spec:
+  schedule: {{ .Values.cron.integrationFetchleadsHubspotSchedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+{{- toYaml .Values.project.securityContext | nindent 12 }}
+          volumes:
+            - name: cache
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.cache.name }}
+            - name: logs
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.logs.name }}
+          containers:          
+            - command : ["app/console", "mautic:integration:fetchleads", "--integration=Hubspot"]
+              name: {{ .Values.project.name }}
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              env:
+              - name: MYSQL_DB_HOST
+                {{- if .Values.project.IsExternalDB }}
+                value: {{ .Values.project.ExternalDbHost }}
+                {{- else }}
+                value: {{ .Values.project.localDbHost }}
+                {{- end }}
+              - name: MYSQL_DATABASE
+                value: {{ .Values.db.database }}
+              - name: MYSQL_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-user
+              - name: MYSQL_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-password
+              - name: SECRET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: secret-key
+              {{- if .Values.project.s3Bucket }}
+              - name: S3_BUCKET
+                value: {{ .Values.project.s3Bucket }}
+              {{- end  }}
+              - name: SITE_URL
+                value: https://{{ .Values.ingress.domain }}
+              - name: MAILER_HOST
+                value: {{ .Values.project.mailerHost}}
+              - name: MAILER_USER
+                value: {{ .Values.project.mailerUser}}
+              - name: MAILER_PASSWORD            
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: mailer-password
+              - name: RABBITMQ_HOST
+                value: {{ .Release.Name }}-rabbitmq-headless
+              - name: RABBITMQ_USER
+                value: user
+              - name: RABBITMQ_PASSWORD
+                secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
+              volumeMounts:
+                - name: {{ .Values.project.persistence.cache.name }}
+                  mountPath: /cache
+                - name: {{ .Values.project.persistence.logs.name }}
+                  mountPath: /logs
+          imagePullSecrets:
+{{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
+
+
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: mautic-cron-integration-pushactivity-hubspot
+  labels:
+{{- toYaml .Values.project.labels | nindent 4 }}
+spec:
+  schedule: {{ .Values.cron.integrationPushactivityleadsHubspotSchedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+{{- toYaml .Values.project.securityContext | nindent 12 }}
+          volumes:
+            - name: cache
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.cache.name }}
+            - name: logs
+              persistentVolumeClaim:
+                claimName: {{ .Values.project.persistence.logs.name }}
+          containers:          
+            - command : ["app/console", "mautic:integration:pushactivity", "--integration=Hubspot"]
+              name: {{ .Values.project.name }}
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              env:
+              - name: MYSQL_DB_HOST
+                {{- if .Values.project.IsExternalDB }}
+                value: {{ .Values.project.ExternalDbHost }}
+                {{- else }}
+                value: {{ .Values.project.localDbHost }}
+                {{- end }}
+              - name: MYSQL_DATABASE
+                value: {{ .Values.db.database }}
+              - name: MYSQL_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-user
+              - name: MYSQL_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: db-secret
+                    key: database-password
+              - name: SECRET_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: secret-key
+              {{- if .Values.project.s3Bucket }}
+              - name: S3_BUCKET
+                value: {{ .Values.project.s3Bucket }}
+              {{- end  }}
+              - name: SITE_URL
+                value: https://{{ .Values.ingress.domain }}
+              - name: MAILER_HOST
+                value: {{ .Values.project.mailerHost}}
+              - name: MAILER_USER
+                value: {{ .Values.project.mailerUser}}
+              - name: MAILER_PASSWORD            
+                valueFrom:
+                  secretKeyRef:
+                    name: app-secret
+                    key: mailer-password
+              - name: RABBITMQ_HOST
+                value: {{ .Release.Name }}-rabbitmq-headless
+              - name: RABBITMQ_USER
+                value: user
+              - name: RABBITMQ_PASSWORD
+                secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
+              volumeMounts:
+                - name: {{ .Values.project.persistence.cache.name }}
+                  mountPath: /cache
+                - name: {{ .Values.project.persistence.logs.name }}
+                  mountPath: /logs
+          imagePullSecrets:
+{{- toYaml .Values.project.imagePullSecrets | nindent 10 }}

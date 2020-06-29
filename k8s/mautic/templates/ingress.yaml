@@ -1,26 +1,27 @@
-{{- if .Values.project.ingress.enabled }}
+{{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: {{ .Values.project.name }}-ingress
-{{- with .Values.project.ingress.annotations }}
+  namespace: {{ .Values.namespace }}
   annotations:
-    {{- toYaml . | indent 4 }}
+  {{- range $key, $value := .Values.ingress.annotations }}
+  {{ $key }}: {{ $value | quote }}
   {{- end }}
-
 spec:
   rules:
-{{ if eq  Values.project.branch "master" }}
-  - host: {{ .Values.project.name }}.{{ .Values.project.ingress.host }}
-{{ end }}
-  - host: {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.project.ingress.host }}
+{{- if eq  .Values.project.branch "master" }}
+  - host: {{ .Values.project.name }}.{{ .Values.ingress.domain }}
+{{- else if .Values.project.branch }}
+  - host: {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
+{{- else }}
+  - host:  {{- .Values.ingress.domain }}
+{{- end }}
     http:
       paths:
       - path: /
         backend:
-{{ if .Values.project.branch }}
-          serviceName: {{ .Values.project.name }}-{{ .Values.project.branch }}
-{{ end }}
           serviceName: {{ .Values.project.name }}
           servicePort: 80
+
 {{- end }}

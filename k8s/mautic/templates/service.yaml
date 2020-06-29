@@ -1,15 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "mautic.fullname" . }}
+  name: {{ .Values.project.name }}
+  namespace: {{ .Values.namespace }}
   labels:
-{{ include "mautic.labels" . | indent 4 }}
+    {{ .Values.project.labels | toYaml -}}
 spec:
   type: {{ .Values.project.service.type }}
   ports:
     - port: {{ .Values.project.service.port }}
-      targetPort: http
+      targetPort: {{ .Values.project.service.targetPort }}
       protocol: TCP
       name: http
   selector:
-    {{ include "project.labels" . | indent 4 }}
+    {{ .Values.project.labels | toYaml }}

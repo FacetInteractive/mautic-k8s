@@ -1,0 +1,54 @@
+{{- if not .Values.ExternalDBHOST }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Values.db.name }}  
+spec:
+  volumes:
+    - name: mysql
+      persistentVolumeClaim: {{ .Values.db.persistence.name }}
+  service: {{ .Values.db.name }}
+  replicas: {{ .Values.db.replicas }}
+  selector:
+    matchLabels:
+      {{ .Values.db.labels | toYaml }}
+  template:
+    metadata:
+      labels:
+        {{ .Values.db.labels | toYaml }}
+    spec:
+      volumes:
+        - name: {{ .Values.db.persistence.name }}
+          persistentVolumeClaim:
+            claimName: {{ .Values.db.persistence.name}}
+      containers:
+      - image: {{ .Values.db.image }}
+        args:
+          - "--ignore-db-dir=lost+found"
+        name: mysql
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: database-root-password
+        - name: MYSQL_DATABASE
+          value: mautic
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: database-user
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: database-password
+        ports:
+          - containerPort: {{ .Values.db.service.port }}
+            name: mysql
+        volumeMounts:
+        - name: {{ .Values.db.persistence.name }}
+          mountPath: /var/lib/mysql
+
+{{- end }}

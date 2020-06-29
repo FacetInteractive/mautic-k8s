@@ -1,52 +1,52 @@
-{{ - if }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Values.Project.Name }}
-  namespace: {{ .Values.namespace }}
+  name: {{ .Values.project.name }}  
   labels:
-    {{ include "project.labels" . | indent 4 }}
+{{- toYaml .Values.project.labels | nindent 4 }}
 spec:
-  serviceName: {{ .Values.project.serviceName }}
+  serviceName: {{ .Values.project.name }}
   replicas: {{ .Values.project.replicas }}
   selector:
     matchLabels:
-      {{ include "project.labels" . | indent 4 }}
+{{- toYaml .Values.project.labels | nindent 6 }}
   template:
     metadata:
+      name: {{ .Values.project.name }}
       labels:
-        {{ include "project.labels" . | indent 4 }}
+{{- toYaml .Values.project.labels | nindent 8 }}
     spec:
       securityContext:
-    {{- toYaml .Values.securityContext | nindent 12 }}
+{{- toYaml .Values.project.securityContext | nindent 8 }}
       volumes:
         - name: cache
           persistentVolumeClaim:
             claimName: {{ .Values.project.persistence.cache.name }}
         - name: logs
           persistentVolumeClaim:
-            claimName: {{ .Values.project.persistence.cache.name }}
+            claimName: {{ .Values.project.persistence.logs.name }}
       containers:
         - image: "{{ .Values.project.nginxImage.repository }}:{{ .Values.project.nginxImage.tag }}"
-          name: {{ .Values.project.name }}-ngix
+          name: {{ .Values.project.name }}-nginx
           ports:
-              name: {{ .Values.project.name }}-nginxPort
-              - containerPort: {{ Values.project.Service.targetPort }}
-        - image: "{{ .Values.nginxImage.repository }}:{{ .Values.nginxImage.tag }}"
+            - containerPort: {{ .Values.project.service.targetPort }}
+              name: {{ .Values.project.name }}-nginxport
+        - image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
           name: {{ .Values.project.name }}-mautic
           env:
           - name: MYSQL_DB_HOST
-            {{ if .Values.project.Is_External_DB }}
-              value: {{ .Values.project.ExternalDBHOST }}
-            {{ end }}
-              value: {{ .Values.project.K8s_DB_Host }}
+            {{- if .Values.project.IsExternalDB }}
+            value: {{ .Values.project.ExternalDbHost }}
+            {{- else }}
+            value: {{ .Values.project.localDbHost }}
+            {{- end }}
           - name: MYSQL_DATABASE
             value: {{ .Values.db.database }}
           - name: MYSQL_USER
             valueFrom:
               secretKeyRef:
                 name: db-secret
-                key: {{ .Values.db.secret}}
+                key: database-user
           - name: MYSQL_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -57,27 +57,33 @@ spec:
               secretKeyRef:
                 name: app-secret
                 key: secret-key
+          {{- if .Values.project.s3Bucket }}
           - name: S3_BUCKET
-            value: {{ .Values.project.s3Bucket}}
+            value: {{ .Values.project.s3Bucket }}
+          {{- end  }}
           - name: SITE_URL
-            value: {{ .values.ingress.spec.rules.host }} # Gets the value from ingress.yaml template
+            value: https://{{ .Values.ingress.domain }}
           - name: MAILER_HOST
             value: {{ .Values.project.mailerHost}}
           - name: MAILER_USER
             value: {{ .Values.project.mailerUser}}
-          - name: MAILER_PASSWORD
+          - name: MAILER_PASSWORD            
             valueFrom:
               secretKeyRef:
                 name: app-secret
-                key: {{ .Values.project.appSecret}}
+                key: mailer-password
           - name: RABBITMQ_HOST
-            value: {{ .Values.project.rabbitmqHost }}
+            value: {{ .Release.Name }}-rabbitmq-headless
           - name: RABBITMQ_USER
-            value: {{ .Values.project.rabbitmqHost }}
+            value: user
           - name: RABBITMQ_PASSWORD
-            value: {{ .Values.project.rabbitmqPassword }}
+            secretKeyRef:
+                name: {{ .Release.Name }}-rabbitmq
+                key: rabbitmq-password
           volumeMounts:
-            - name: cache
+            - name: {{ .Values.project.persistence.cache.name }}
               mountPath: /cache
-            - name: logs
+            - name: {{ .Values.project.persistence.logs.name }}
               mountPath: /logs
+      imagePullSecrets:
+{{- toYaml .Values.project.imagePullSecrets | nindent 6 }}
