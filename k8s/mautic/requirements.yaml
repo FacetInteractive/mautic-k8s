@@ -6,6 +6,6 @@ dependencies:
   # repository: 'https://containous.github.io/traefik-helm-chart/'
   repository: 'https://kubernetes-charts.storage.googleapis.com'
 
-# - name: rabbitmq
-#   version: '7.2.1'
-#   repository: 'https://charts.bitnami.com/bitnami'
+- name: rabbitmq
+  version: '7.2.1'
+  repository: 'https://charts.bitnami.com/bitnami'
