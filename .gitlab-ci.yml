@@ -88,8 +88,8 @@
       - kubectl describe namespace $KUBESPACE_NAME || kubectl create namespace $KUBESPACE_NAME
 
     script:    
-      - /bin/bash pwd  
-      - /bin/bash ls -l
+      - echo $PWD 
+      - ls -l
       # - helm upgrade --install k8s/mautic $RELEASE_NAME --namespace $KUBE_NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
     except:
        variables:
