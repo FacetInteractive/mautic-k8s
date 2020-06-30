@@ -90,7 +90,7 @@
     script:    
       - echo $PWD 
       - ls -l k8s/mautic/
-      # - helm upgrade --install k8s/mautic $RELEASE_NAME --namespace $KUBE_NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
+      - helm upgrade --install ./k8s/mautic $RELEASE_NAME --namespace $KUBE_NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
     except:
        variables:
         - $DEPLPOY_DISABLED    
