@@ -80,7 +80,6 @@
       variables:
         - $PROD_BUILD_DISABLED
 
-
   deploy:
     stage: deploy
     image: akashkaveti/base_image:latest
@@ -89,34 +88,11 @@
       - kubectl describe namespace $KUBESPACE_NAME || kubectl create namespace $KUBESPACE_NAME
 
     script:      
-      - helm upgrade --install k8s/mautic --name $RELEASE_NAME --namespace $KUBE_NAMESPACE --set project.branch=$CI_COMMIT_BRANCH
+      - helm upgrade --install k8s/mautic --name $RELEASE_NAME --namespace $KUBE_NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
     except:
        variables:
         - $BUILD_DISABLED    
     environment:
       name: development
-    
-
-
-
-
-
-
-  prod-deploy:
-    stage: prod-deploy
-    image: akashkaveti/base_image:latest
-    
-    before_script:
-      - kubectl describe namespace mautic || kubectl create namespace mautic
-    script:
-      - sed -i s,#TAG#,latest,g k8s/mautic-prod.yml
-      - kubectl apply -f k8s/mautic-prod.yml -n mautic
-      - kubectl apply -f k8s/cron-jobs.yml -n mautic
-    environment:
-      name: production
-    only:
-      - master
-    except:
-      variables:
-        - $PROD_RELEASE_DISABLED
+   
 

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Values.project.name }}  
+  name: mautic 
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -27,12 +27,12 @@ spec:
             claimName: {{ .Values.project.persistence.logs.name }}
       containers:
         - image: "{{ .Values.project.nginxImage.repository }}:{{ .Values.project.nginxImage.tag }}"
-          name: {{ .Values.project.name }}-nginx
+          name: nginx
           ports:
             - containerPort: {{ .Values.project.service.targetPort }}
               name: {{ .Values.project.name }}-nginxport
         - image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
-          name: {{ .Values.project.name }}-mautic
+          name: mautic
           env:
           - name: MYSQL_DB_HOST
             {{- if .Values.project.IsExternalDB }}
@@ -62,7 +62,13 @@ spec:
             value: {{ .Values.project.s3Bucket }}
           {{- end  }}
           - name: SITE_URL
-            value: https://{{ .Values.ingress.domain }}
+          {{- if eq  .Values.project.branch "master" }}
+            value: https://{{ .Values.project.name }}.{{ .Values.ingress.domain }}
+            {{- else if .Values.project.branch }}
+            value: https://{{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
+            {{- else }}
+            value:  https://{{ .Values.ingress.domain }}
+            {{- end }}            
           - name: MAILER_HOST
             value: {{ .Values.project.mailerHost}}
           - name: MAILER_USER
