@@ -15,7 +15,7 @@ The production docker compose uses Traefik as a web proxy.
     ```bash
     # Request ECR Login
     aws ecr get-login --no-include-email
-  
+
     # With a profile
     aws --profile {facet.mktg} ecr get-login --no-include-email
     ```
@@ -86,7 +86,7 @@ For local, php and nginx run as 2 separate services. For K8s though, they are 2 
 
 2. AWS ECR. Used to push the Mautic and Nginx docker images we build. This can be substituted with Gitlab registry or any other container registry provider we give the appropriate image pull secrets in the Deployment spec.
 
-3. You are logged into your AWS account using the aws cli tool. 
+3. You are logged into your AWS account using the aws cli tool.
 
 4. docker installed on your local.
 
@@ -149,7 +149,7 @@ kubectl apply -f k8s/rabbitmq/rabbitmq.yml -n mautic
 kubectl apply -f k8s/mautic.yml -n mautic
 ```
 
-This will create 
+This will create
 1. a highly available stateful set for mautic, running 2 containers, one each for mautic(php-fpm) and nginx.
 2. expose the above statefulset as a service
 3. a persistent volume each for cache and logs directory.(logs will be emitted to stdout/stderr in the near future).
@@ -169,7 +169,7 @@ To increase the number of HA replicas, change the count in the yaml file,
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mautic 
+  name: mautic
   labels:
     app: facet-mautic
 spec:
@@ -222,7 +222,7 @@ app/console cache:warmup
 ### Import the kube-config:
 
 `aws eks --region us-east-1 update-kubeconfig --name <cluster_name>`
-	
+
 Note: check if your AWS_PROFILE is set if you're using multiple aws profiles.
 
 Confirm if your able to read cluster resources:
@@ -230,7 +230,7 @@ Confirm if your able to read cluster resources:
 `kubectl get pods -A`
 
 
-### Get Kubernetes URL: 
+### Get Kubernetes URL:
 
 `kubectl cluster-info | grep 'Kubernetes master' | awk '/http/ {print $NF}'`
 
@@ -238,12 +238,12 @@ Confirm if your able to read cluster resources:
 ### Get Kubernetes Certificate
 
 
-Get list of all secrets:	
- 	
+Get list of all secrets:
+
 `kubectl get secrets`
- 	
-There is a secret named " `default-token-<random-string>` . get that secret:	
- 			
+
+There is a secret named " `default-token-<random-string>` . get that secret:
+
 `kubectl get secret <secret-name> -o jsonpath="{['data']['ca\.crt']}" | base64 --decode`
 
 
@@ -257,7 +257,7 @@ kind: ServiceAccount
 metadata:
   name: eks-admin
   namespace: kube-system
-``` 
+```
 
 Then run
 `kubectl apply -f eks-admin-service-account.yaml`
@@ -290,6 +290,18 @@ Then run
 
 Copy the Authentication token from the output
 
+
+After successfully adding the cluster, Add the `Helm Tiller` application 
+
+In the Project Menu, go to Operations --> Kubernetes --> <clustername> --> Applications --> Install Helm Tiller
+
+Cluster role to Gitlab Project to run ci-cd
+
+```bash
+kubectl create clusterrolebinding gitlabci-rolebinding \
+  --clusterrole=cluster-admin \
+  --serviceaccount=mautic-268:mautic-268-service-account
+```
 
 
 ## Cron jobs in Kubernetes
@@ -335,7 +347,7 @@ mautic-cron-trigger-campaign-1580263740-sf2d2   0/1       Completed           0 
 mautic-cron-trigger-campaign-1580263920-6xvrb   0/1       Completed           0          6m3s
 mautic-cron-trigger-campaign-1580264100-c59l9   0/1       Completed           0          3m2s
 mautic-cron-trigger-campaign-1580264280-6gm6g   1/1       Running             0          2s
-``` 
+```
 
 To alter cron schedule, edit the cron job and change the `spec/schedule` entry.
 
@@ -351,5 +363,110 @@ To alter the cron process, edit the cron job and change the `jobTemplate/spec/te
 - Test with a from scratch Mautic setup
 - Periodic DB snapshot backups/restores
 - ~~Convert ingress into TLS using ACME/Let's Encrypt.~~
+
+
+### Install helm and tiller
+
+
+Create a Service Account and cluster rolebinding with cluster-admin roe
+
+1. Create a Service Account for Tiller
+
+
+Create a file with below content and save it as `tiller_service_account.yaml`
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tiller
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tiller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: tiller
+    namespace: kube-system
+```
+
+kubectl apply -f tiller_service_account.yaml
+
+2. Install helm
+
+```bash
+curl -Lo https://git.io/get_helm.sh /tmp/get_helm.sh
+chmod 700 /tmp/get_helm.sh
+bash /tmp/get_helm.sh
+```
+
+
+3. Initialize helm with tiller
+
+```bash
+helm init --service-account tiller
+```
+
+4. Confirm installation by checking the pods in the `kube-system` namespace
+
+```bash
+kubectl get pods --namespace kube-system
+```
+A successful helm initialization creates a  pod with the name `tiller-deploy-xxxxxxx-xxxx` and it should in running status.
+
+
+
+
+## Create aws storage class with efs
+
+1. Create a EFS File system in aws. 
+2. Make sure the Worker Node group has connectivity to the EFS cluster.
+
+```bash
+helm install stable/efs-provisioner --set efsProvisioner.efsFileSystemId=fs-12345678 --set efsProvisioner.awsRegion=us-east-2
+```
+
+
+
+In the above command replace FileSytemId with your EFS File system ID and the region.
+
+## Install Mautic with helm charts
+
+helm is a package manager for kubernetes. More about helm here[https://www.cncf.io/cncf-helm-project-journey/]
+
+helm is the client side component and tiller is the server side component
+
+
+## Update configuration details
+
+1. The `values.yaml` file is the single point to load all configuration details for your application. Replace all the relevant  details and  
+
+2. These values can be overridden in  `.gitlabci.yml` with the set command. For example, if you would like to update the variable `ExternalDbHost` which is under project header, you use the set command like below:
+
+
+helm upgrade --install $RELEASE_NAME --namespace $KUBE_NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA                          --set project.ExternalDbHost="<ExternalDBHostName>" .
+
+
+Note: the Variable Name is denoted along with the parent item as defined in Values.yaml
+
+For instance to get the `key` value as defined below, we use `foo.name.key`
+```yaml
+foo:
+  name: bar
+  dict:
+    key: somevalue
+```
+
+
+
+
+
+
 
 
