@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.db.service.name }}  
+  name: {{ .Values.db.name }} 
 spec:
   type: {{ .Values.db.service.type }}
   ports:
