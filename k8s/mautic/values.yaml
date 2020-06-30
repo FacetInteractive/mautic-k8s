@@ -37,10 +37,10 @@ project:
   mailerHost: "email-smtp.us-east-1.amazonaws.com"
   mailerUser: "AKIAIIL5EHY6A7ZEFL2A"
   rabbitmqUser: "user"
-  rabbitmqPassword: "R^mdons1pP" 
+  rabbitmqPassword: 
   mailerUser: AKIAIIL5EHY6A7ZEFL2A
-  mailerPassword: "moDn2ryEk"
-  secretKey: "Gn0r5t"
+  mailerPassword: 
+  secretKey: 
 # Persistence - Persistence Volume claims an
   persistence:
     storageClass: "aws-efs"
@@ -132,12 +132,12 @@ clusterDomain: cluster.local
 rabbitmq:
 ## RabbitMQ Authentication parameters
 ##
-auth:
-  ## RabbitMQ application username
-  ## ref: https://github.com/bitnami/bitnami-docker-rabbitmq#environment-variables
-  ##
-  username: user
-  existingPasswordSecret: rabbitmqPassword
+  auth:
+    ## RabbitMQ application username
+    ## ref: https://github.com/bitnami/bitnami-docker-rabbitmq#environment-variables
+    ##
+    username: user
+    existingPasswordSecret: rabbitmqPassword
 
 # Cron Job values
 cron:
