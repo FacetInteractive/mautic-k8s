@@ -15,8 +15,8 @@
     RELEASE_NAME: mautic
   # various stages, currently disabled, remove the variable to enable those steps
     # DEPLOY_DISABLED: "false"
-    # BUILD_DISABLED: "false"
-    # PROD_BUILD_DISABLED: "true"
+    BUILD_DISABLED: "false"
+    PROD_BUILD_DISABLED: "true"
     # PROD_RELEASE_DISABLED: "true"
 
   dev-build:
@@ -91,7 +91,7 @@
       - helm upgrade --install k8s/mautic --name $RELEASE_NAME --namespace $KUBE_NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
     except:
        variables:
-        - $BUILD_DISABLED    
+        - $DEPLPOY_DISABLED    
     environment:
       name: development
    
