@@ -8,12 +8,10 @@
     - deploy
 
   variables:
-
-  # K8s Namespaces Naming. 
-
-    KUBESPACE_NAME: $CI_COMMIT_BRANCH
+    # K8s Namespaces Naming. 
+    KUBE_NAMESPACE: $CI_COMMIT_BRANCH
     RELEASE_NAME: mautic
-  # various stages, currently disabled, remove the variable to enable those steps
+    # various stages, currently disabled, remove the variable to enable those steps
     # DEPLOY_DISABLED: "false"
     BUILD_DISABLED: "false"
     PROD_BUILD_DISABLED: "true"
@@ -89,7 +87,9 @@
 
     script:    
       - cd k8s/mautic
-      - helm upgrade --install $RELEASE_NAME --namespace $KUBE_NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA .
+      - echo $CI_COMMIT_BRANCH
+      - echo $KUBE_NAMESPACE
+      - helm upgrade --install $RELEASE_NAME --namespace $KUBE_NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest .
     except:
        variables:
         - $DEPLPOY_DISABLED    
