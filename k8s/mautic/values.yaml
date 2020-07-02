@@ -30,7 +30,6 @@ project:
   # Host address of the External DB instance. 
   # If ExternalDbHost is left empty , a local DB (K8s)is created.
   ExternalDbHost:   
-  localDbHost: db
   # ToDo: Define a secret for MySQL DB
   s3Bucket: {}
   secret: database-user
@@ -84,14 +83,16 @@ ingress:
     nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
     nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
 
+
+# This configuration is for the Kubernetes DB host. 
+# If ExternalDBHost is provided this can be ignored.
 db:
   image: mysql:5
   repicas: 3
-  name: mysql
-  user: mautic
+  name: db
   database: mautic
   labels:
-    app: facet-mautic-db
+    app: mautic-db
   persistence:
     name: mysql-pvc
     size: 10Gi
@@ -137,7 +138,7 @@ rabbitmq:
     ## ref: https://github.com/bitnami/bitnami-docker-rabbitmq#environment-variables
     ##
     username: user
-    existingPasswordSecret: rabbitmqPassword
+    existingPasswordSecret: rabbitmq-password
 
 # Cron Job values
 cron:
