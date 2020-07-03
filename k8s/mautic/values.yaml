@@ -42,7 +42,7 @@ project:
   secretKey: 
 # Persistence - Persistence Volume claims an
   persistence:
-    storageClass: "aws-efs"
+    storageClass: "az-files"
     cache:
       name: "cache"
       size: 10Gi
