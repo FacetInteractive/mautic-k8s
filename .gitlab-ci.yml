@@ -84,12 +84,11 @@
     
     before_script:
       - kubectl describe namespace $KUBE_NAMESPACE || kubectl create namespace $KUBE_NAMESPACE
-      - kubectl get secret regcred -n default -o yaml | sed s/"namespace: default"/"namespace: $KUBE_NAMESPACE"/  | kubectl apply -n dev -f 
+      - $(aws ecr get-login --no-include-email --region us-west-1)
+      - cat ${HOME}/.docker/config.json
+      - kubectl create secret generic regcred --from-file=.dockerconfigjson=${HOME}/.docker/config.json --type=kubernetes.io/dockerconfigjson
 
     script:    
-      - cd k8s/mautic
-      - echo $CI_COMMIT_BRANCH
-      - echo $KUBE_NAMESPACE
       - helm upgrade --install $RELEASE_NAME --namespace $KUBE_NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest .
     except:
        variables:
