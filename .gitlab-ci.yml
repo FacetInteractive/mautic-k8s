@@ -83,7 +83,8 @@
     image: akashkaveti/base_image:latest
     
     before_script:
-      - kubectl describe namespace $KUBESPACE_NAME || kubectl create namespace $KUBESPACE_NAME
+      - kubectl describe namespace $KUBE_NAMESPACE || kubectl create namespace $KUBE_NAMESPACE
+      - kubectl get secret regcred -n default -o yaml | sed s/"namespace: default"/"namespace: $KUBE_NAMESPACE"/  | kubectl apply -n dev -f 
 
     script:    
       - cd k8s/mautic
