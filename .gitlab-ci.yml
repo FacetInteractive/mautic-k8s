@@ -84,7 +84,7 @@
     
     before_script:
       - kubectl describe namespace $NAMESPACE || kubectl create namespace $NAMESPACE
-      - kubectl get secret regcred -n default -o yaml | sed s,"default","${NAMESPACE}" | kubectl apply -n $NAMESPACE -f - 
+      - kubectl get secret regcred -n default -o yaml | sed s,"default","${NAMESPACE}",g | kubectl apply -n $NAMESPACE -f - 
 
     script:    
       - cd k8s/mautic
