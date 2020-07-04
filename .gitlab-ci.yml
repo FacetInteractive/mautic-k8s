@@ -9,7 +9,7 @@
 
   variables:
     # K8s Namespaces Naming. 
-    KUBE_NAMESPACE: $CI_COMMIT_BRANCH
+    NAMESPACE: $CI_COMMIT_BRANCH
     RELEASE_NAME: mautic
     # various stages, currently disabled, remove the variable to enable those steps
     # DEPLOY_DISABLED: "false"
@@ -83,13 +83,12 @@
     image: akashkaveti/base_image:latest
     
     before_script:
-      - kubectl describe namespace $KUBE_NAMESPACE || kubectl create namespace $KUBE_NAMESPACE
-      - $(aws ecr get-login --no-include-email --region us-west-1)
-      - cat ${HOME}/.docker/config.json
-      - kubectl create secret generic regcred --from-file=.dockerconfigjson=${HOME}/.docker/config.json --type=kubernetes.io/dockerconfigjson
+      - kubectl describe namespace $NAMESPACE || kubectl create namespace $NAMESPACE
+      - kubectl get secret regcred -n default -o yaml | sed s,"default","$NAMESPACE" | kubectl apply -n dev -f 
 
     script:    
-      - helm upgrade --install $RELEASE_NAME --namespace $KUBE_NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest .
+      - cd k8s/mautic
+      - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest .
     except:
        variables:
         - $DEPLPOY_DISABLED    
