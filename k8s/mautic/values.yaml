@@ -42,7 +42,7 @@ project:
   secretKey: 
 # Persistence - Persistence Volume claims an
   persistence:
-    storageClass: "az-files"
+    storageClass: "aws-efs"
     cache:
       name: "cache"
       size: 10Gi
@@ -137,7 +137,7 @@ rabbitmq:
     ## RabbitMQ application username
     ## ref: https://github.com/bitnami/bitnami-docker-rabbitmq#environment-variables
     ##
-    username: user
+    username: user  
     existingPasswordSecret: rabbitmq-password
 
 # Cron Job values

@@ -249,24 +249,15 @@ There is a secret named " `default-token-<random-string>` . get that secret:
 
 ### Create a cluster-admin Service account
 
-Save the below code as a `eks-admin-service-account.yaml`
-
+Save the below code as `eks-admin.yaml`
 ```
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: eks-admin
   namespace: kube-system
-```
 
-Then run
-`kubectl apply -f eks-admin-service-account.yaml`
-
-### Create a role binding
-
-Save the below code as `eks-admin-rolebinding.yaml`
-
-```
+---
 apiVersion: rbac.authorization.k8s.io/v1beta1
 kind: ClusterRoleBinding
 metadata:
@@ -282,7 +273,7 @@ subjects:
 ```
 
 Then run
-`kubectl apply -f eks-admin-rolebinding.yaml`
+`kubectl apply -f eks-admin.yaml`
 
 ### Retrieve the token fo eks-admin service account:
 
@@ -455,7 +446,7 @@ helm upgrade --install $RELEASE_NAME --namespace $KUBE_NAMESPACE --set project.b
 
 Note: the Variable Name is denoted along with the parent item as defined in Values.yaml
 
-For instance to get the `key` value as defined below, we use `foo.name.key`
+For instance to get the `key` value as defined below, use `foo.name.key`
 ```yaml
 foo:
   name: bar
@@ -463,8 +454,28 @@ foo:
     key: somevalue
 ```
 
+to override the above value, 
 
 
+
+### Import Existing Database
+
+Once the deployment is completed. Retrieve the Databse password by running the below commands
+
+```bash
+kubectl -n <namespace> get secrets db-secret -o yaml
+```
+The key `database-password` is base64 encoded. Decode it with the below command
+
+```bash
+echo <database-password-value> | base64 -d
+```
+
+Now restore the DB with the existing SQL dump
+
+```
+kubectl -n <namespace> exec -i mysql-0 -c mysql -- mysql -u user -p mautic < /path/to/my_local_dump.sql
+```
 
 
 

@@ -15,7 +15,7 @@ spec:
 {{- else if .Values.project.branch }}
   - host: {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
 {{- else }}
-  - host:  {{- .Values.ingress.domain }}
+  - host:  {{ .Values.ingress.domain }}
 {{- end }}
     http:
       paths:

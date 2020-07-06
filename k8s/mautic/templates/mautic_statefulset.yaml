@@ -38,7 +38,7 @@ spec:
             {{- if .Values.project.IsExternalDB }}
             value: {{ .Values.project.ExternalDbHost }}
             {{- else }}
-            value: {{ .Values.project.localDbHost }}
+            value: {{ .Values.db.name }}
             {{- end }}
           - name: MYSQL_DATABASE
             value: {{ .Values.db.database }}
