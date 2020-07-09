@@ -1,0 +1,45 @@
+name: mautic
+recipe: lemp
+config:
+  webroot: mautic
+  php: '7.2'
+  database: mysql:5.7
+  xdebug: true
+env_file:
+  - .env
+
+services:
+  appserver:
+    build:
+      - "cd /app/mautic && composer install"
+    overrides:
+      environment:
+        PHP_IDE_CONFIG: "serverName=mautic.lndo.site"
+        # Other Environment variables included via .env
+
+tooling:
+  php:
+    service: appserver
+  segment-update:
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:segments:update
+  campaigns-update:
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:campaigns:update
+  campaigns-trigger:
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:campaigns:trigger
+  hubspot-push:
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:integration:pushleadactivity --integration=Hubspot
+  hubspot-fetch:
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:integration:fetchleads --integration=Hubspot
+  phpunit:
+    service: appserver
+    cmd: /app/mautic/bin/phpunit
+  test:
+    service: appserver
+    description: Run Tests Locally
+    cmd:
+      - appserver: composer test
