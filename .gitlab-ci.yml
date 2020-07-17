@@ -10,7 +10,7 @@
   variables:
     # K8s Namespaces Naming. 
     NAMESPACE: $CI_COMMIT_BRANCH
-    RELEASE_NAME: mautic-$CI_PIPELINE_ID
+    RELEASE_NAME: mautic
     RDS_HOST: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
     
     # various stages, currently disabled, remove the variable to enable those steps
