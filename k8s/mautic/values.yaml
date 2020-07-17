@@ -31,8 +31,8 @@ project:
   # If ExternalDbHost is left empty , a local DB (K8s)is created.
   ExternalDbHost:   
   # Replace this with GitlabCI variable
-  password: S#ckreet
-  rootPassword: T0P$#ckreet
+    password: S#ckreet
+    rootPassword: T0P$#ckreet
   rds_secret: rds-secret
   s3Bucket: {}
   secret: database-user
