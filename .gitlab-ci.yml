@@ -15,7 +15,7 @@
     
     # various stages, currently disabled, remove the variable to enable those steps
     
-    # DEV_BUILD_DISABLED: "true"
+    DEV_BUILD_DISABLED: "true"
     PROD_BUILD_DISABLED: "true"
     # DEV_RELEASE_DISABLED: "true"
     PROD_RELEASE_DISABLED: "true"
@@ -93,13 +93,20 @@
   # This stage is triggered when code is commited from any branch other than master and the Vairable DEV_RELEASE_DISABLED is commented out.   
   dev-deploy:
     stage: deploy
-    image: akashkaveti/base_image:latest
+    image: kbaddi/awscli:k8s
+    variables:
+      REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com
+      CI_COMMIT_BRANCH: 64a0eb40
+    services:
+    - docker:dind  
     
     before_script:
-      # Create namespace with the name $CI_COMMIT_BRANCH if it doesn't exist 
-      - kubectl describe namespace $NAMESPACE || kubectl create namespace $NAMESPACE
-      # Generates Regesitry Credentials in the $CI_COMMIT_BRANCH namesapce 
-      - kubectl describe secret regcred -n $NAMESPACE 2>&1 /dev/null || kubectl get secret regcred -n default -o yaml | sed s,"default","${NAMESPACE}",g | kubectl apply -n $NAMESPACE -f - 
+      
+      #Docker-login to ecr
+      - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS  $REGISTRY
+      # Create namespace with the name $CI_COMMIT_BRANCH if it doesn't exist and create regcred secret in that namespace
+      - kubectl describe namespace $NAMESPACE || kubectl create namespace $NAMESPACE 
+      - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
 
     script:    
       - cd k8s/mautic
