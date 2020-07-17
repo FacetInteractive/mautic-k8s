@@ -2,7 +2,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: mautic-cron-trigger-campaign
+  name: {{ .Release.Name }}-mautic-cron-trigger-campaign
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -17,10 +17,10 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.cache.name }}
+                claimName: {{ .Release.Name }}-cache 
             - name: logs
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.logs.name }}
+                claimName: {{ .Release.Name }}-logs
           containers:          
             - command : ["app/console", "mautic:campaigns:trigger", "--env=prod"]
               name: {{ .Values.project.name }}
@@ -30,24 +30,24 @@ spec:
                 {{- if .Values.project.IsExternalDB }}
                 value: {{ .Values.project.ExternalDbHost }}
                 {{- else }}
-                value: {{ .Values.project.localDbHost }}
+                value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
               - name: MYSQL_DATABASE
                 value: {{ .Values.db.database }}
               - name: MYSQL_USER
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-user
               - name: MYSQL_PASSWORD
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-password
               - name: SECRET_KEY
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: secret-key
               {{- if .Values.project.s3Bucket }}
               - name: S3_BUCKET
@@ -68,7 +68,7 @@ spec:
               - name: MAILER_PASSWORD            
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
                 value: {{ .Release.Name }}-rabbitmq-headless
@@ -79,9 +79,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Values.project.persistence.cache.name }}
+                - name: {{ .Release.Name }}-cache 
                   mountPath: /cache
-                - name: {{ .Values.project.persistence.logs.name }}
+                - name: {{ .Release.Name }}-logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -105,10 +105,10 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.cache.name }}
+                claimName: {{ .Release.Name }}-cache 
             - name: logs
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.logs.name }}
+                claimName: {{ .Release.Name }}-logs
           containers:          
             - command : ["app/console", "mautic:emails:send", "--env=prod"]
               name: {{ .Values.project.name }}
@@ -118,24 +118,24 @@ spec:
                 {{- if .Values.project.IsExternalDB }}
                 value: {{ .Values.project.ExternalDbHost }}
                 {{- else }}
-                value: {{ .Values.project.localDbHost }}
+                value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
               - name: MYSQL_DATABASE
                 value: {{ .Values.db.database }}
               - name: MYSQL_USER
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-user
               - name: MYSQL_PASSWORD
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-password
               - name: SECRET_KEY
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: secret-key
               {{- if .Values.project.s3Bucket }}
               - name: S3_BUCKET
@@ -156,7 +156,7 @@ spec:
               - name: MAILER_PASSWORD            
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
                 value: {{ .Release.Name }}-rabbitmq-headless
@@ -167,9 +167,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Values.project.persistence.cache.name }}
+                - name: {{ .Release.Name }}-cache 
                   mountPath: /cache
-                - name: {{ .Values.project.persistence.logs.name }}
+                - name: {{ .Release.Name }}-logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -193,10 +193,10 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.cache.name }}
+                claimName: {{ .Release.Name }}-cache 
             - name: logs
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.logs.name }}
+                claimName: {{ .Release.Name }}-logs
           containers:          
             - command : ["app/console", "mautic:email:fetch", "--env=prod"]
               name: {{ .Values.project.name }}
@@ -206,24 +206,24 @@ spec:
                 {{- if .Values.project.IsExternalDB }}
                 value: {{ .Values.project.ExternalDbHost }}
                 {{- else }}
-                value: {{ .Values.project.localDbHost }}
+                value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
               - name: MYSQL_DATABASE
                 value: {{ .Values.db.database }}
               - name: MYSQL_USER
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-user
               - name: MYSQL_PASSWORD
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-password
               - name: SECRET_KEY
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: secret-key
               {{- if .Values.project.s3Bucket }}
               - name: S3_BUCKET
@@ -244,7 +244,7 @@ spec:
               - name: MAILER_PASSWORD            
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
                 value: {{ .Release.Name }}-rabbitmq-headless
@@ -255,9 +255,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Values.project.persistence.cache.name }}
+                - name: {{ .Release.Name }}-cache 
                   mountPath: /cache
-                - name: {{ .Values.project.persistence.logs.name }}
+                - name: {{ .Release.Name }}-logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -281,10 +281,10 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.cache.name }}
+                claimName: {{ .Release.Name }}-cache 
             - name: logs
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.logs.name }}
+                claimName: {{ .Release.Name }}-logs
           containers:          
             - command : ["app/console", "mautic:segments:update", "--env=prod"]
               name: {{ .Values.project.name }}
@@ -294,24 +294,24 @@ spec:
                 {{- if .Values.project.IsExternalDB }}
                 value: {{ .Values.project.ExternalDbHost }}
                 {{- else }}
-                value: {{ .Values.project.localDbHost }}
+                value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
               - name: MYSQL_DATABASE
                 value: {{ .Values.db.database }}
               - name: MYSQL_USER
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-user
               - name: MYSQL_PASSWORD
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-password
               - name: SECRET_KEY
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: secret-key
               {{- if .Values.project.s3Bucket }}
               - name: S3_BUCKET
@@ -332,7 +332,7 @@ spec:
               - name: MAILER_PASSWORD            
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
                 value: {{ .Release.Name }}-rabbitmq-headless
@@ -343,9 +343,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password 
               volumeMounts:
-                - name: {{ .Values.project.persistence.cache.name }}
+                - name: {{ .Release.Name }}-cache 
                   mountPath: /cache
-                - name: {{ .Values.project.persistence.logs.name }}
+                - name: {{ .Release.Name }}-logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -370,10 +370,10 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.cache.name }}
+                claimName: {{ .Release.Name }}-cache 
             - name: logs
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.logs.name }}
+                claimName: {{ .Release.Name }}-logs
           containers:          
             - command : ["app/console", "mautic:campaigns:rebuild", "--env=prod"]
               name: {{ .Values.project.name }}
@@ -383,24 +383,24 @@ spec:
                 {{- if .Values.project.IsExternalDB }}
                 value: {{ .Values.project.ExternalDbHost }}
                 {{- else }}
-                value: {{ .Values.project.localDbHost }}
+                value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
               - name: MYSQL_DATABASE
                 value: {{ .Values.db.database }}
               - name: MYSQL_USER
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-user
               - name: MYSQL_PASSWORD
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-password
               - name: SECRET_KEY
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: secret-key
               {{- if .Values.project.s3Bucket }}
               - name: S3_BUCKET
@@ -421,7 +421,7 @@ spec:
               - name: MAILER_PASSWORD            
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
                 value: {{ .Release.Name }}-rabbitmq-headless
@@ -432,9 +432,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Values.project.persistence.cache.name }}
+                - name: {{ .Release.Name }}-cache 
                   mountPath: /cache
-                - name: {{ .Values.project.persistence.logs.name }}
+                - name: {{ .Release.Name }}-logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -458,10 +458,10 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.cache.name }}
+                claimName: {{ .Release.Name }}-cache 
             - name: logs
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.logs.name }}
+                claimName: {{ .Release.Name }}-logs
           containers:          
             - command : ["app/console", "mautic:social:monitoring", "--env=prod"]
               name: {{ .Values.project.name }}
@@ -471,24 +471,24 @@ spec:
                 {{- if .Values.project.IsExternalDB }}
                 value: {{ .Values.project.ExternalDbHost }}
                 {{- else }}
-                value: {{ .Values.project.localDbHost }}
+                value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
               - name: MYSQL_DATABASE
                 value: {{ .Values.db.database }}
               - name: MYSQL_USER
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-user
               - name: MYSQL_PASSWORD
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-password
               - name: SECRET_KEY
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: secret-key
               {{- if .Values.project.s3Bucket }}
               - name: S3_BUCKET
@@ -509,7 +509,7 @@ spec:
               - name: MAILER_PASSWORD            
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
                 value: {{ .Release.Name }}-rabbitmq-headless
@@ -520,9 +520,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Values.project.persistence.cache.name }}
+                - name: {{ .Release.Name }}-cache 
                   mountPath: /cache
-                - name: {{ .Values.project.persistence.logs.name }}
+                - name: {{ .Release.Name }}-logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -546,10 +546,10 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.cache.name }}
+                claimName: {{ .Release.Name }}-cache 
             - name: logs
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.logs.name }}
+                claimName: {{ .Release.Name }}-logs
           containers:          
             - command : ["app/console", "mautic:social:monitoring", "--env=prod"]
               name: {{ .Values.project.name }}
@@ -559,24 +559,24 @@ spec:
                 {{- if .Values.project.IsExternalDB }}
                 value: {{ .Values.project.ExternalDbHost }}
                 {{- else }}
-                value: {{ .Values.project.localDbHost }}
+                value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
               - name: MYSQL_DATABASE
                 value: {{ .Values.db.database }}
               - name: MYSQL_USER
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-user
               - name: MYSQL_PASSWORD
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-password
               - name: SECRET_KEY
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: secret-key
               {{- if .Values.project.s3Bucket }}
               - name: S3_BUCKET
@@ -597,7 +597,7 @@ spec:
               - name: MAILER_PASSWORD            
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
                 value: {{ .Release.Name }}-rabbitmq-headless
@@ -608,9 +608,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Values.project.persistence.cache.name }}
+                - name: {{ .Release.Name }}-cache 
                   mountPath: /cache
-                - name: {{ .Values.project.persistence.logs.name }}
+                - name: {{ .Release.Name }}-logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -635,10 +635,10 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.cache.name }}
+                claimName: {{ .Release.Name }}-cache 
             - name: logs
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.logs.name }}
+                claimName: {{ .Release.Name }}-logs
           containers:          
             - command : ["app/console", "mautic:integration:fetchleads", "--integration=Hubspot"]
               name: {{ .Values.project.name }}
@@ -648,24 +648,24 @@ spec:
                 {{- if .Values.project.IsExternalDB }}
                 value: {{ .Values.project.ExternalDbHost }}
                 {{- else }}
-                value: {{ .Values.project.localDbHost }}
+                value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
               - name: MYSQL_DATABASE
                 value: {{ .Values.db.database }}
               - name: MYSQL_USER
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-user
               - name: MYSQL_PASSWORD
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-password
               - name: SECRET_KEY
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: secret-key
               {{- if .Values.project.s3Bucket }}
               - name: S3_BUCKET
@@ -686,7 +686,7 @@ spec:
               - name: MAILER_PASSWORD            
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
                 value: {{ .Release.Name }}-rabbitmq-headless
@@ -697,9 +697,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Values.project.persistence.cache.name }}
+                - name: {{ .Release.Name }}-cache 
                   mountPath: /cache
-                - name: {{ .Values.project.persistence.logs.name }}
+                - name: {{ .Release.Name }}-logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -724,10 +724,10 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.cache.name }}
+                claimName: {{ .Release.Name }}-cache 
             - name: logs
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.logs.name }}
+                claimName: {{ .Release.Name }}-logs
           containers:          
             - command : ["app/console", "mautic:integration:pushactivity", "--integration=Hubspot"]
               name: {{ .Values.project.name }}
@@ -737,24 +737,24 @@ spec:
                 {{- if .Values.project.IsExternalDB }}
                 value: {{ .Values.project.ExternalDbHost }}
                 {{- else }}
-                value: {{ .Values.project.localDbHost }}
+                value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
               - name: MYSQL_DATABASE
                 value: {{ .Values.db.database }}
               - name: MYSQL_USER
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-user
               - name: MYSQL_PASSWORD
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-password
               - name: SECRET_KEY
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: secret-key
               {{- if .Values.project.s3Bucket }}
               - name: S3_BUCKET
@@ -775,7 +775,7 @@ spec:
               - name: MAILER_PASSWORD            
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
                 value: {{ .Release.Name }}-rabbitmq-headless
@@ -786,9 +786,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Values.project.persistence.cache.name }}
+                - name: {{ .Release.Name }}-cache 
                   mountPath: /cache
-                - name: {{ .Values.project.persistence.logs.name }}
+                - name: {{ .Release.Name }}-logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -814,10 +814,10 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.cache.name }}
+                claimName: {{ .Release.Name }}-cache 
             - name: logs
               persistentVolumeClaim:
-                claimName: {{ .Values.project.persistence.logs.name }}
+                claimName: {{ .Release.Name }}-logs
           containers:          
             - command : ["app/console", "mautic:import", "--env=prod"]
               name: {{ .Values.project.name }}
@@ -827,24 +827,24 @@ spec:
                 {{- if .Values.project.IsExternalDB }}
                 value: {{ .Values.project.ExternalDbHost }}
                 {{- else }}
-                value: {{ .Values.project.localDbHost }}
+                value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
               - name: MYSQL_DATABASE
                 value: {{ .Values.db.database }}
               - name: MYSQL_USER
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-user
               - name: MYSQL_PASSWORD
                 valueFrom:
                   secretKeyRef:
-                    name: db-secret
+                    name: {{ .Release.Name }}-db-secret
                     key: database-password
               - name: SECRET_KEY
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: secret-key
               {{- if .Values.project.s3Bucket }}
               - name: S3_BUCKET
@@ -865,7 +865,7 @@ spec:
               - name: MAILER_PASSWORD            
                 valueFrom:
                   secretKeyRef:
-                    name: app-secret
+                    name: {{ .Release.Name }}-app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
                 value: {{ .Release.Name }}-rabbitmq-headless
@@ -876,9 +876,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Values.project.persistence.cache.name }}
+                - name: {{ .Release.Name }}-cache 
                   mountPath: /cache
-                - name: {{ .Values.project.persistence.logs.name }}
+                - name: {{ .Release.Name }}-logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}

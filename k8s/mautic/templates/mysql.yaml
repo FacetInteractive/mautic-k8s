@@ -2,12 +2,12 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mysql   
+  name: {{ .Release.Name }}-mysql   
 spec:
   volumes:
     - name: mysql
       persistentVolumeClaim: {{ .Values.db.persistence.name }}
-  service: {{ .Values.db.name }}
+  service: {{ .Release.Name }}-{{ .Values.db.name }} 
   replicas: {{ .Values.db.replicas }}
   selector:
     matchLabels:
@@ -30,19 +30,19 @@ spec:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: db-secret
+              name: {{ .Release.Name }}-db-secret
               key: database-root-password
         - name: MYSQL_DATABASE
           value: mautic
         - name: MYSQL_USER
           valueFrom:
             secretKeyRef:
-              name: db-secret
+              name: {{ .Release.Name }}-db-secret
               key: database-user
         - name: MYSQL_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: db-secret
+              name: {{ .Release.Name }}-db-secret
               key: database-password
         ports:
           - containerPort: {{ .Values.db.service.port }}

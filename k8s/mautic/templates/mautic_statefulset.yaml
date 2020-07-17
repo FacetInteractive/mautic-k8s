@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mautic 
+  name: {{ .Release.Name }}-mautic 
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -38,24 +38,24 @@ spec:
             {{- if .Values.project.IsExternalDB }}
             value: {{ .Values.project.ExternalDbHost }}
             {{- else }}
-            value: {{ .Values.db.name }}
+            value: {{ .Release.Name }}-{{ .Values.db.name }} 
             {{- end }}
           - name: MYSQL_DATABASE
             value: {{ .Values.db.database }}
           - name: MYSQL_USER
             valueFrom:
               secretKeyRef:
-                name: db-secret
+                name: {{ .Release.Name }}-db-secret
                 key: database-user
           - name: MYSQL_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: db-secret
+                name: {{ .Release.Name }}-db-secret
                 key: database-password
           - name: SECRET_KEY
             valueFrom:
               secretKeyRef:
-                name: app-secret
+                name: {{ .Release.Name }}-app-secret
                 key: secret-key
           {{- if .Values.project.s3Bucket }}
           - name: S3_BUCKET
@@ -76,7 +76,7 @@ spec:
           - name: MAILER_PASSWORD            
             valueFrom:
               secretKeyRef:
-                name: app-secret
+                name: {{ .Release.Name }}-app-secret
                 key: mailer-password
           - name: RABBITMQ_HOST
             value: {{ .Release.Name }}-rabbitmq-headless
@@ -87,9 +87,9 @@ spec:
                 name: {{ .Release.Name }}-rabbitmq
                 key: rabbitmq-password
           volumeMounts:
-            - name: {{ .Values.project.persistence.cache.name }}
+            - name: {{ .Release.Name }}-cache  
               mountPath: /cache
-            - name: {{ .Values.project.persistence.logs.name }}
+            - name: {{ .Release.Name }}-logs
               mountPath: /logs
       imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 6 }}

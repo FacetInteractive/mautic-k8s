@@ -30,7 +30,9 @@ project:
   # Host address of the External DB instance. 
   # If ExternalDbHost is left empty , a local DB (K8s)is created.
   ExternalDbHost:   
-  # If an ExternalDbHost is used, create a secret with RDS mysql user and password
+  # Replace this with GitlabCI variable
+  password: S#ckreet
+  rootPassword: T0P$#ckreet
   rds_secret: rds-secret
   s3Bucket: {}
   secret: database-user

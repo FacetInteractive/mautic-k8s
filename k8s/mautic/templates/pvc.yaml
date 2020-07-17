@@ -1,7 +1,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: cache  
+  name: {{ .Release.Name }}-cache  
   labels:
     name: cache
 spec:
@@ -17,7 +17,7 @@ spec:
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: logs
+  name: {{ .Release.Name }}-logs
   labels:
     name: logs
 spec:
@@ -33,9 +33,9 @@ spec:
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: {{ .Values.db.persistence.name }}
+  name: {{ .Release.Name }}-{{ .Values.db.persistence.name }}
 spec:
-  storageClassName: {{ .Values.project.persistence.storageClass | quote }}
+  storageClassName: "gp2"
   accessModes:
   - ReadWriteMany
   resources:
