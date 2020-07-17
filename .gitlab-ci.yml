@@ -68,7 +68,7 @@
 
     before_script:
       - apk update
-      - apk add --no-cache curl python jq  py-pip
+      - apk add --no-cache python curl jq py-pip
       - pip install awscli
 
     script:
