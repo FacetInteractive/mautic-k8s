@@ -30,7 +30,8 @@ project:
   # Host address of the External DB instance. 
   # If ExternalDbHost is left empty , a local DB (K8s)is created.
   ExternalDbHost:   
-  # ToDo: Define a secret for MySQL DB
+  # If an ExternalDbHost is used, create a secret with RDS mysql user and password
+  rds_secret: rds-secret
   s3Bucket: {}
   secret: database-user
   mailerHost: "email-smtp.us-east-1.amazonaws.com"
@@ -40,7 +41,7 @@ project:
   mailerUser: AKIAIIL5EHY6A7ZEFL2A
   mailerPassword: 
   secretKey: 
-# Persistence - Persistence Volume claims an
+  # Persistence - Persistence Volume claims an
   persistence:
     storageClass: "aws-efs"
     cache:
@@ -142,12 +143,13 @@ rabbitmq:
 
 # Cron Job values
 cron:
-  triggerCampaignSchedule: "* 0 * * *"
-  emailsSendSchedule: "* 0 * * *"
-  emailFetchSchedule: "*/5 0 * * *"
-  segmentsUpdateSchedule: "*/4 0 * * *"
-  campaignsRebuildSchedule: "*/3 0 * * *" 
-  broadcastsSendSchedule: "*/5 0 * * *"
-  socialMonitoringSchedule: "*/5 0 * * *"
+  triggerCampaignSchedule: "10,25,40,55 * * * *"
+  emailsSendSchedule: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
+  emailFetchSchedule: "9,14,19,24,29,34,39,44,49,54 * * * *"
+  segmentsUpdateSchedule: "0,15,30,45 * * * *"
+  campaignsRebuildSchedule: "0 * * * *" 
+  broadcastsSendSchedule: "0 * * * *"
+  socialMonitoringSchedule: "0 * * * *"
   integrationFetchleadsHubspotSchedule: "10,40 0 * * *"
   integrationPushactivityleadsHubspotSchedule: "16,46 0 * * *"
+  mauticImportSchedule: "3,8,13,18,23,28,33,38,43,48,53,58 * * * *"
