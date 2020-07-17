@@ -10,7 +10,7 @@
   variables:
     # K8s Namespaces Naming. 
     NAMESPACE: $CI_COMMIT_BRANCH
-    RELEASE_NAME: mautic
+    RELEASE_NAME: mautic-$CI_PIPELINE_ID
     RDS_HOST: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
     
     # various stages, currently disabled, remove the variable to enable those steps
@@ -103,10 +103,7 @@
 
     script:    
       - cd k8s/mautic
-      - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=$CI_COMMIT_BRANCH \
-                     --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA  \
-                     --set traefik.defaultCert=$TLS_CERT --set traefik.defaultKey=$TLS_KEY  --set project.ExternalDbHost=$RDS_HOST \
-                     --set project.ExternalDbHost.password=$RDS_PASSWORD --set project.ExternalDbHost.rootPassword=$RDS_ROOT_PASSWORD .
+      - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA  --set traefik.defaultCert=$TLS_CERT --set traefik.defaultKey=$TLS_KEY  --set project.ExternalDbHost=$RDS_HOST --set ExternalDbHost.password=$RDS_PASSWORD --set ExternalDbHost.rootPassword=$RDS_ROOT_PASSWORD .
     only:
       refs:
         - branches
@@ -127,7 +124,7 @@
       before_script:        
         
         - kubectl describe namespace mautic || kubectl create namespace mautic
-        # Generates Regesitry Credentials in the mautic namesapce 
+        # Generates Regesitry Credentials in the mautic namespace 
         - kubectl get secret regcred -n mautic 2>&1 /dev/null || kubectl get secret regcred -n default -o yaml | sed s,"default","${NAMESPACE}",g | kubectl apply -n $NAMESPACE -f - 
 
       script:    
