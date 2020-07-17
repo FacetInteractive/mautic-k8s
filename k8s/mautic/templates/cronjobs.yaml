@@ -79,9 +79,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Release.Name }}-cache 
+                - name: cache 
                   mountPath: /cache
-                - name: {{ .Release.Name }}-logs
+                - name: logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -90,7 +90,7 @@ spec:
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: mautic-cron-emails-send
+  name: {{ .Release.Name }}-mautic-cron-emails-send
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -167,9 +167,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Release.Name }}-cache 
+                - name: cache 
                   mountPath: /cache
-                - name: {{ .Release.Name }}-logs
+                - name: logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -178,7 +178,7 @@ spec:
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: mautic-cron-email-fetch
+  name: {{ .Release.Name }}-mautic-cron-email-fetch
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -255,9 +255,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Release.Name }}-cache 
+                - name: cache 
                   mountPath: /cache
-                - name: {{ .Release.Name }}-logs
+                - name: logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -266,7 +266,7 @@ spec:
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: mautic-cron-segments-update
+  name: {{ .Release.Name }}-mautic-cron-segments-update
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -343,9 +343,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password 
               volumeMounts:
-                - name: {{ .Release.Name }}-cache 
+                - name: cache 
                   mountPath: /cache
-                - name: {{ .Release.Name }}-logs
+                - name: logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -355,7 +355,7 @@ spec:
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: mautic-cron-campaigns-rebuild
+  name: {{ .Release.Name }}-mautic-cron-campaigns-rebuild
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -432,9 +432,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Release.Name }}-cache 
+                - name: cache 
                   mountPath: /cache
-                - name: {{ .Release.Name }}-logs
+                - name: logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -443,7 +443,7 @@ spec:
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: mautic-cron-broadcasts-send
+  name: {{ .Release.Name }}-mautic-cron-broadcasts-send
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -520,9 +520,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Release.Name }}-cache 
+                - name: cache 
                   mountPath: /cache
-                - name: {{ .Release.Name }}-logs
+                - name: logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -531,7 +531,7 @@ spec:
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: mautic-cron-social-monitoring
+  name: {{ .Release.Name }}-mautic-cron-social-monitoring
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -608,9 +608,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Release.Name }}-cache 
+                - name: cache 
                   mountPath: /cache
-                - name: {{ .Release.Name }}-logs
+                - name: logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -620,7 +620,7 @@ spec:
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: mautic-cron-integration-fetchleads-hubspot
+  name: {{ .Release.Name }}-mautic-cron-integration-fetchleads-hubspot
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -697,9 +697,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Release.Name }}-cache 
+                - name: cache 
                   mountPath: /cache
-                - name: {{ .Release.Name }}-logs
+                - name: logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -709,7 +709,7 @@ spec:
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: mautic-cron-integration-pushactivity-hubspot
+  name: {{ .Release.Name }}-mautic-cron-integration-pushactivity-hubspot
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -786,9 +786,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Release.Name }}-cache 
+                - name: cache 
                   mountPath: /cache
-                - name: {{ .Release.Name }}-logs
+                - name: logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
@@ -799,7 +799,7 @@ spec:
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: mautic-cron-emails-send
+  name: {{ .Release.Name }}-mautic-cron-import
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -876,9 +876,9 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: {{ .Release.Name }}-cache 
+                - name: cache 
                   mountPath: /cache
-                - name: {{ .Release.Name }}-logs
+                - name: logs
                   mountPath: /logs
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}

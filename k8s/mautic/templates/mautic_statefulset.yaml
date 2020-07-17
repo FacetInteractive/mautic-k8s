@@ -22,10 +22,10 @@ spec:
       volumes:
         - name: cache
           persistentVolumeClaim:
-            claimName: {{ .Values.project.persistence.cache.name }}
+            claimName: {{ .Release.Name }}-cache
         - name: logs
           persistentVolumeClaim:
-            claimName: {{ .Values.project.persistence.logs.name }}
+            claimName: {{ .Release.Name }}-logs
       containers:
         - image: "{{ .Values.project.nginxImage.repository }}:{{ .Values.project.nginxImage.tag }}"
           name: nginx
@@ -88,9 +88,9 @@ spec:
                 name: {{ .Release.Name }}-rabbitmq
                 key: rabbitmq-password
           volumeMounts:
-            - name: {{ .Release.Name }}-cache  
+            - name: cache  
               mountPath: /cache
-            - name: {{ .Release.Name }}-logs
+            - name: logs
               mountPath: /logs
       imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 6 }}
