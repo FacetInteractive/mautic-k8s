@@ -103,7 +103,10 @@
 
     script:    
       - cd k8s/mautic
-      - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA --set traefik.defaultCert=$TLS_CERT --set traefik.defaultKey=$TLS_KEY .
+      - helm upgrade --install . $RELEASE_NAME --namespace $NAMESPACE --set project.branch=$CI_COMMIT_BRANCH \
+                     --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA  \
+                     --set traefik.defaultCert=$TLS_CERT --set traefik.defaultKey=$TLS_KEY  --set project.ExternalDbHost=$RDS_HOST \
+                     --set .Values.ExternalDbHost.password=$RDS_PASSWORD --set .Values.ExternalDbHost.rootPassword=$RDS_ROOT_PASSWORD 
     only:
       refs:
         - branches
@@ -129,7 +132,8 @@
 
       script:    
         - cd k8s/mautic
-        - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=mautic --set project.ExternalDbHost=$RDS_HOST --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest --set traefik.defaultCert=$TLS_CERT --set traefik.defaultKey=$TLS_KEY  .
+        - helm upgrade --install . $RELEASE_NAME --namespace $NAMESPACE --set project.branch=mautic --set project.ExternalDbHost=$RDS_HOST --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest --set traefik.defaultCert=$TLS_CERT --set traefik.defaultKey=$TLS_KEY \
+                       --set .Values.ExternalDbHost.password=$RDS_PASSWORD --set .Values.ExternalDbHost.password=$RDS_ROOT_PASSWORD  
 
       only:
         - master
