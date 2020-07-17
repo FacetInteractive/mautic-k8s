@@ -1,4 +1,4 @@
-{{- if not .Values.ExternalDBHOST }}
+{{- if not .Values.project.ExternalDBHOST }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
