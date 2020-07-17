@@ -1,4 +1,5 @@
 {{- if not .Values.ExternalDbHost }}
+---
 apiVersion: v1
 kind: Service
 metadata:
