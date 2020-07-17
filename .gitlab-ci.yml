@@ -11,11 +11,13 @@
     # K8s Namespaces Naming. 
     NAMESPACE: $CI_COMMIT_BRANCH
     RELEASE_NAME: mautic
+    RDS_HOST: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
+    
     # various stages, currently disabled, remove the variable to enable those steps
     
-    DEV_BUILD_DISABLED: "true"
+    # DEV_BUILD_DISABLED: "true"
     PROD_BUILD_DISABLED: "true"
-    DEV_RELEASE_DISABLED: "true"
+    # DEV_RELEASE_DISABLED: "true"
     PROD_RELEASE_DISABLED: "true"
 
 
@@ -49,7 +51,7 @@
       refs:
         - master
       variables:
-        - $BUILD_DISABLED    
+        - $DEV_BUILD_DISABLED    
 
   # Production Build stage: Builds mautic and nginx images with the tag "latest". 
   # Runs only when code is commited from master and the Vairable PROD_BUILD_DISABLED is commented out.          
@@ -99,7 +101,7 @@
 
     script:    
       - cd k8s/mautic
-      - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA .
+      - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA --set traefik.defaultCert=$TLS_CERT --set traefik.defaultKey=$TLS_KEY .
     only:
       refs:
         - branches
@@ -125,7 +127,7 @@
 
       script:    
         - cd k8s/mautic
-        - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=mautic --set project.ExternalDbHost=$RDS_HOST --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest . 
+        - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=mautic --set project.ExternalDbHost=$RDS_HOST --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest --set traefik.defaultCert=$TLS_CERT --set traefik.defaultKey=$TLS_KEY  .
 
       only:
         - master
