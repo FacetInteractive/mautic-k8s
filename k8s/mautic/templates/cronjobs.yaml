@@ -17,18 +17,18 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Release.Name }}-cache 
+                claimName: {{ .Release.Name }}-cache
             - name: logs
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-logs
-          containers:          
+          containers:
             - command : ["app/console", "mautic:campaigns:trigger", "--env=prod"]
               name: {{ .Values.project.name }}
-              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
               env:
               - name: MYSQL_DB_HOST
-                {{- if .Values.project.IsExternalDB }}
-                value: {{ .Values.project.ExternalDbHost }}
+                {{- if .Values.ExternalDb.host }}
+                value: {{ .Values.ExternalDb.host }}
                 {{- else }}
                 value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
@@ -60,12 +60,12 @@ spec:
                 value: https://{{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
               {{- else }}
                 value:  https://{{ .Values.ingress.domain }}
-              {{- end }}            
+              {{- end }}
               - name: MAILER_HOST
                 value: {{ .Values.project.mailerHost}}
               - name: MAILER_USER
                 value: {{ .Values.project.mailerUser}}
-              - name: MAILER_PASSWORD            
+              - name: MAILER_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: {{ .Release.Name }}-app-secret
@@ -79,7 +79,7 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: cache 
+                - name: cache
                   mountPath: /cache
                 - name: logs
                   mountPath: /logs
@@ -105,18 +105,18 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Release.Name }}-cache 
+                claimName: {{ .Release.Name }}-cache
             - name: logs
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-logs
-          containers:          
+          containers:
             - command : ["app/console", "mautic:emails:send", "--env=prod"]
               name: {{ .Values.project.name }}
-              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
               env:
               - name: MYSQL_DB_HOST
-                {{- if .Values.project.IsExternalDB }}
-                value: {{ .Values.project.ExternalDbHost }}
+                {{- if .Values.ExternalDb.host }}
+                value: {{ .Values.ExternalDb.host }}
                 {{- else }}
                 value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
@@ -148,12 +148,12 @@ spec:
                 value: https://{{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
               {{- else }}
                 value:  https://{{ .Values.ingress.domain }}
-              {{- end }}            
+              {{- end }}
               - name: MAILER_HOST
                 value: {{ .Values.project.mailerHost}}
               - name: MAILER_USER
                 value: {{ .Values.project.mailerUser}}
-              - name: MAILER_PASSWORD            
+              - name: MAILER_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: {{ .Release.Name }}-app-secret
@@ -167,7 +167,7 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: cache 
+                - name: cache
                   mountPath: /cache
                 - name: logs
                   mountPath: /logs
@@ -193,18 +193,18 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Release.Name }}-cache 
+                claimName: {{ .Release.Name }}-cache
             - name: logs
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-logs
-          containers:          
+          containers:
             - command : ["app/console", "mautic:email:fetch", "--env=prod"]
               name: {{ .Values.project.name }}
-              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
               env:
               - name: MYSQL_DB_HOST
-                {{- if .Values.project.IsExternalDB }}
-                value: {{ .Values.project.ExternalDbHost }}
+                {{- if .Values.ExternalDb.host }}
+                value: {{ .Values.ExternalDb.host }}
                 {{- else }}
                 value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
@@ -236,12 +236,12 @@ spec:
                 value: https://{{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
               {{- else }}
                 value:  https://{{ .Values.ingress.domain }}
-              {{- end }}            
+              {{- end }}
               - name: MAILER_HOST
                 value: {{ .Values.project.mailerHost}}
               - name: MAILER_USER
                 value: {{ .Values.project.mailerUser}}
-              - name: MAILER_PASSWORD            
+              - name: MAILER_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: {{ .Release.Name }}-app-secret
@@ -255,7 +255,7 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: cache 
+                - name: cache
                   mountPath: /cache
                 - name: logs
                   mountPath: /logs
@@ -281,18 +281,18 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Release.Name }}-cache 
+                claimName: {{ .Release.Name }}-cache
             - name: logs
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-logs
-          containers:          
+          containers:
             - command : ["app/console", "mautic:segments:update", "--env=prod"]
               name: {{ .Values.project.name }}
-              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
               env:
               - name: MYSQL_DB_HOST
-                {{- if .Values.project.IsExternalDB }}
-                value: {{ .Values.project.ExternalDbHost }}
+                {{- if .Values.ExternalDb.host }}
+                value: {{ .Values.ExternalDb.host }}
                 {{- else }}
                 value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
@@ -324,12 +324,12 @@ spec:
                 value: https://{{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
               {{- else }}
                 value:  https://{{ .Values.ingress.domain }}
-              {{- end }}            
+              {{- end }}
               - name: MAILER_HOST
                 value: {{ .Values.project.mailerHost}}
               - name: MAILER_USER
                 value: {{ .Values.project.mailerUser}}
-              - name: MAILER_PASSWORD            
+              - name: MAILER_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: {{ .Release.Name }}-app-secret
@@ -341,9 +341,9 @@ spec:
               - name: RABBITMQ_PASSWORD
                 secretKeyRef:
                     name: {{ .Release.Name }}-rabbitmq
-                    key: rabbitmq-password 
+                    key: rabbitmq-password
               volumeMounts:
-                - name: cache 
+                - name: cache
                   mountPath: /cache
                 - name: logs
                   mountPath: /logs
@@ -370,18 +370,18 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Release.Name }}-cache 
+                claimName: {{ .Release.Name }}-cache
             - name: logs
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-logs
-          containers:          
+          containers:
             - command : ["app/console", "mautic:campaigns:rebuild", "--env=prod"]
               name: {{ .Values.project.name }}
-              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
               env:
               - name: MYSQL_DB_HOST
-                {{- if .Values.project.IsExternalDB }}
-                value: {{ .Values.project.ExternalDbHost }}
+                {{- if .Values.ExternalDb.host }}
+                value: {{ .Values.ExternalDb.host }}
                 {{- else }}
                 value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
@@ -413,12 +413,12 @@ spec:
                 value: https://{{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
               {{- else }}
                 value:  https://{{ .Values.ingress.domain }}
-              {{- end }}            
+              {{- end }}
               - name: MAILER_HOST
                 value: {{ .Values.project.mailerHost}}
               - name: MAILER_USER
                 value: {{ .Values.project.mailerUser}}
-              - name: MAILER_PASSWORD            
+              - name: MAILER_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: {{ .Release.Name }}-app-secret
@@ -432,7 +432,7 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: cache 
+                - name: cache
                   mountPath: /cache
                 - name: logs
                   mountPath: /logs
@@ -458,18 +458,18 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Release.Name }}-cache 
+                claimName: {{ .Release.Name }}-cache
             - name: logs
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-logs
-          containers:          
+          containers:
             - command : ["app/console", "mautic:social:monitoring", "--env=prod"]
               name: {{ .Values.project.name }}
-              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
               env:
               - name: MYSQL_DB_HOST
-                {{- if .Values.project.IsExternalDB }}
-                value: {{ .Values.project.ExternalDbHost }}
+                {{- if .Values.ExternalDb.host }}
+                value: {{ .Values.ExternalDb.host }}
                 {{- else }}
                 value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
@@ -501,12 +501,12 @@ spec:
                 value: https://{{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
               {{- else }}
                 value:  https://{{ .Values.ingress.domain }}
-              {{- end }}            
+              {{- end }}
               - name: MAILER_HOST
                 value: {{ .Values.project.mailerHost}}
               - name: MAILER_USER
                 value: {{ .Values.project.mailerUser}}
-              - name: MAILER_PASSWORD            
+              - name: MAILER_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: {{ .Release.Name }}-app-secret
@@ -520,7 +520,7 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: cache 
+                - name: cache
                   mountPath: /cache
                 - name: logs
                   mountPath: /logs
@@ -546,18 +546,18 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Release.Name }}-cache 
+                claimName: {{ .Release.Name }}-cache
             - name: logs
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-logs
-          containers:          
+          containers:
             - command : ["app/console", "mautic:social:monitoring", "--env=prod"]
               name: {{ .Values.project.name }}
-              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
               env:
               - name: MYSQL_DB_HOST
-                {{- if .Values.project.IsExternalDB }}
-                value: {{ .Values.project.ExternalDbHost }}
+                {{- if .Values.ExternalDb.host }}
+                value: {{ .Values.ExternalDb.host }}
                 {{- else }}
                 value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
@@ -589,12 +589,12 @@ spec:
                 value: https://{{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
               {{- else }}
                 value:  https://{{ .Values.ingress.domain }}
-              {{- end }}            
+              {{- end }}
               - name: MAILER_HOST
                 value: {{ .Values.project.mailerHost}}
               - name: MAILER_USER
                 value: {{ .Values.project.mailerUser}}
-              - name: MAILER_PASSWORD            
+              - name: MAILER_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: {{ .Release.Name }}-app-secret
@@ -608,7 +608,7 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: cache 
+                - name: cache
                   mountPath: /cache
                 - name: logs
                   mountPath: /logs
@@ -635,18 +635,18 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Release.Name }}-cache 
+                claimName: {{ .Release.Name }}-cache
             - name: logs
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-logs
-          containers:          
+          containers:
             - command : ["app/console", "mautic:integration:fetchleads", "--integration=Hubspot"]
               name: {{ .Values.project.name }}
-              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
               env:
               - name: MYSQL_DB_HOST
-                {{- if .Values.project.IsExternalDB }}
-                value: {{ .Values.project.ExternalDbHost }}
+                {{- if .Values.ExternalDb.host }}
+                value: {{ .Values.ExternalDb.host }}
                 {{- else }}
                 value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
@@ -678,12 +678,12 @@ spec:
                 value: https://{{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
               {{- else }}
                 value:  https://{{ .Values.ingress.domain }}
-              {{- end }}            
+              {{- end }}
               - name: MAILER_HOST
                 value: {{ .Values.project.mailerHost}}
               - name: MAILER_USER
                 value: {{ .Values.project.mailerUser}}
-              - name: MAILER_PASSWORD            
+              - name: MAILER_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: {{ .Release.Name }}-app-secret
@@ -697,7 +697,7 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: cache 
+                - name: cache
                   mountPath: /cache
                 - name: logs
                   mountPath: /logs
@@ -724,18 +724,18 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Release.Name }}-cache 
+                claimName: {{ .Release.Name }}-cache
             - name: logs
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-logs
-          containers:          
+          containers:
             - command : ["app/console", "mautic:integration:pushactivity", "--integration=Hubspot"]
               name: {{ .Values.project.name }}
-              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
               env:
               - name: MYSQL_DB_HOST
-                {{- if .Values.project.IsExternalDB }}
-                value: {{ .Values.project.ExternalDbHost }}
+                {{- if .Values.ExternalDb.host }}
+                value: {{ .Values.ExternalDb.host }}
                 {{- else }}
                 value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
@@ -767,12 +767,12 @@ spec:
                 value: https://{{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
               {{- else }}
                 value:  https://{{ .Values.ingress.domain }}
-              {{- end }}            
+              {{- end }}
               - name: MAILER_HOST
                 value: {{ .Values.project.mailerHost}}
               - name: MAILER_USER
                 value: {{ .Values.project.mailerUser}}
-              - name: MAILER_PASSWORD            
+              - name: MAILER_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: {{ .Release.Name }}-app-secret
@@ -786,7 +786,7 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: cache 
+                - name: cache
                   mountPath: /cache
                 - name: logs
                   mountPath: /logs
@@ -814,18 +814,18 @@ spec:
           volumes:
             - name: cache
               persistentVolumeClaim:
-                claimName: {{ .Release.Name }}-cache 
+                claimName: {{ .Release.Name }}-cache
             - name: logs
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-logs
-          containers:          
+          containers:
             - command : ["app/console", "mautic:import", "--env=prod"]
               name: {{ .Values.project.name }}
-              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"          
+              image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
               env:
               - name: MYSQL_DB_HOST
-                {{- if .Values.project.IsExternalDB }}
-                value: {{ .Values.project.ExternalDbHost }}
+                {{- if .Values.ExternalDb.host }}
+                value: {{ .Values.ExternalDb.host }}
                 {{- else }}
                 value: {{ .Release.Name }}-{{ .Values.db.name }}
                 {{- end }}
@@ -857,12 +857,12 @@ spec:
                 value: https://{{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
               {{- else }}
                 value:  https://{{ .Values.ingress.domain }}
-              {{- end }}            
+              {{- end }}
               - name: MAILER_HOST
                 value: {{ .Values.project.mailerHost}}
               - name: MAILER_USER
                 value: {{ .Values.project.mailerUser}}
-              - name: MAILER_PASSWORD            
+              - name: MAILER_PASSWORD
                 valueFrom:
                   secretKeyRef:
                     name: {{ .Release.Name }}-app-secret
@@ -876,7 +876,7 @@ spec:
                     name: {{ .Release.Name }}-rabbitmq
                     key: rabbitmq-password
               volumeMounts:
-                - name: cache 
+                - name: cache
                   mountPath: /cache
                 - name: logs
                   mountPath: /logs

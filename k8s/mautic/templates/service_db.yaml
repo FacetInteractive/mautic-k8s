@@ -1,9 +1,8 @@
-{{- if not .Values.project.ExternalDbHost }}
----
+{{- if not .Values.ExternalDb.host }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.db.name }} 
+  name: {{ .Release.Name }}-{{ .Values.db.name }}
 spec:
   type: {{ .Values.db.service.type }}
   ports:

@@ -27,22 +27,22 @@ project:
     targetPort: 8080
   # Environment  Values
    #Data base Variables
-  # Host address of the External DB instance. 
+  # Host address of the External DB instance.
   # If ExternalDbHost is left empty , a local DB (K8s)is created.
-  ExternalDbHost:   
-  # Replace this with GitlabCI variable
-    password: S#ckreet
-    rootPassword: T0P$#ckreet
+  ExternalDb: 
+    host:
+    password:
+    rootPassword:
   rds_secret: rds-secret
   s3Bucket: {}
   secret: database-user
   mailerHost: "email-smtp.us-east-1.amazonaws.com"
   mailerUser: "AKIAIIL5EHY6A7ZEFL2A"
   rabbitmqUser: "user"
-  rabbitmqPassword: 
+  rabbitmqPassword:
   mailerUser: AKIAIIL5EHY6A7ZEFL2A
-  mailerPassword: 
-  secretKey: 
+  mailerPassword:
+  secretKey:
   # Persistence - Persistence Volume claims an
   persistence:
     storageClass: "aws-efs"
@@ -87,8 +87,8 @@ ingress:
     nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
 
 
-# This configuration is for the Kubernetes DB host. 
-# If ExternalDBHost is provided this can be ignored.
+# This configuration is for the Kubernetes DB host.
+# If ExternalDbHost is provided this can be ignored.
 db:
   image: mysql:5
   repicas: 3
@@ -126,8 +126,8 @@ traefik:
     # tlsMinVersion: VersionTLS12
     # https://docs.traefik.io/configuration/entrypoints/#strict-sni-checking
     # sniStrict: false
-    defaultCert: 
-    defaultKey: 
+    defaultCert:
+    defaultKey:
 
 
 # Rabbit MQ
@@ -140,7 +140,7 @@ rabbitmq:
     ## RabbitMQ application username
     ## ref: https://github.com/bitnami/bitnami-docker-rabbitmq#environment-variables
     ##
-    username: user  
+    username: user
     existingPasswordSecret: rabbitmq-password
 
 # Cron Job values
@@ -149,7 +149,7 @@ cron:
   emailsSendSchedule: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
   emailFetchSchedule: "9,14,19,24,29,34,39,44,49,54 * * * *"
   segmentsUpdateSchedule: "0,15,30,45 * * * *"
-  campaignsRebuildSchedule: "2 * * * *" 
+  campaignsRebuildSchedule: "2 * * * *"
   broadcastsSendSchedule: "5 * * * *"
   socialMonitoringSchedule: "7 * * * *"
   integrationFetchleadsHubspotSchedule: "10,40 0 * * *"

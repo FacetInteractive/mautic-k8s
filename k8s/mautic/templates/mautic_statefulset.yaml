@@ -36,8 +36,8 @@ spec:
           name: mautic
           env:
           - name: MYSQL_DB_HOST
-            {{- if .Values.project.IsExternalDB }}
-            value: {{ .Values.project.ExternalDbHost }}
+            {{- if .Values.ExternalDb.host }}
+            value: {{ .Values.ExternalDb.host }}
             {{- else }}
             value: {{ .Release.Name }}-{{ .Values.db.name }} 
             {{- end }}

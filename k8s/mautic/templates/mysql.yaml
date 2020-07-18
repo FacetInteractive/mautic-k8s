@@ -1,13 +1,13 @@
-{{- if not .Values.project.ExternalDBHOST }}
+{{- if not .Values.ExternalDb.host }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Release.Name }}-mysql   
+  name: {{ .Release.Name }}-mysql
 spec:
   volumes:
     - name: mysql
       persistentVolumeClaim: {{ .Values.db.persistence.name }}
-  service: {{ .Release.Name }}-{{ .Values.db.name }} 
+  service: {{ .Release.Name }}-{{ .Values.db.name }}
   replicas: {{ .Values.db.replicas }}
   selector:
     matchLabels:
@@ -20,7 +20,7 @@ spec:
       volumes:
         - name: {{ .Values.db.persistence.name }}
           persistentVolumeClaim:
-            claimName: {{ .Values.db.persistence.name}}
+            claimName: {{ .Values.db.persistence.name }}
       containers:
       - image: {{ .Values.db.image }}
         args:
