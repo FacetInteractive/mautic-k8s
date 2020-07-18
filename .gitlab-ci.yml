@@ -109,7 +109,7 @@
 
     script:    
       - cd k8s/mautic
-      - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest  --set traefik.defaultCert=$TLS_CERT --set traefik.defaultKey=$TLS_KEY  --set ExternalDb.host=$RDS_HOST --set ExternalDb.password=$RDS_PASSWORD --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD .
+      - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest  --set traefik.defaultCert=$TLS_CERT --set traefik.defaultKey=$TLS_KEY  --set ExternalDb.host=$RDS_HOST --set ExternalDb.password=$RDS_PASSWORD --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password .
     only:
       refs:
         - branches
