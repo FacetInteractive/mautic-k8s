@@ -95,7 +95,7 @@
     image: kbaddi/awscli:k8s
     variables:
       REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com
-      CI_COMMIT_BRANCH: 64a0eb40
+      
     services:
     - docker:dind  
     
