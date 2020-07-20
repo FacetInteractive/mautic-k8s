@@ -76,7 +76,7 @@ spec:
                 value: user
               - name: RABBITMQ_PASSWORD
                 secretKeyRef:
-                    name: {{ .Release.Name }}-rabbitmq
+                    name: {{ .Release.Name }}-rabbitmq-password
                     key: rabbitmq-password
               volumeMounts:
                 - name: cache
@@ -164,7 +164,7 @@ spec:
                 value: user
               - name: RABBITMQ_PASSWORD
                 secretKeyRef:
-                    name: {{ .Release.Name }}-rabbitmq
+                    name: {{ .Release.Name }}-rabbitmq-password
                     key: rabbitmq-password
               volumeMounts:
                 - name: cache
@@ -252,7 +252,7 @@ spec:
                 value: user
               - name: RABBITMQ_PASSWORD
                 secretKeyRef:
-                    name: {{ .Release.Name }}-rabbitmq
+                    name: {{ .Release.Name }}-rabbitmq-password
                     key: rabbitmq-password
               volumeMounts:
                 - name: cache
@@ -340,7 +340,7 @@ spec:
                 value: user
               - name: RABBITMQ_PASSWORD
                 secretKeyRef:
-                    name: {{ .Release.Name }}-rabbitmq
+                    name: {{ .Release.Name }}-rabbitmq-password
                     key: rabbitmq-password
               volumeMounts:
                 - name: cache
@@ -429,7 +429,7 @@ spec:
                 value: user
               - name: RABBITMQ_PASSWORD
                 secretKeyRef:
-                    name: {{ .Release.Name }}-rabbitmq
+                    name: {{ .Release.Name }}-rabbitmq-password
                     key: rabbitmq-password
               volumeMounts:
                 - name: cache
@@ -517,7 +517,7 @@ spec:
                 value: user
               - name: RABBITMQ_PASSWORD
                 secretKeyRef:
-                    name: {{ .Release.Name }}-rabbitmq
+                    name: {{ .Release.Name }}-rabbitmq-password
                     key: rabbitmq-password
               volumeMounts:
                 - name: cache
@@ -605,7 +605,7 @@ spec:
                 value: user
               - name: RABBITMQ_PASSWORD
                 secretKeyRef:
-                    name: {{ .Release.Name }}-rabbitmq
+                    name: {{ .Release.Name }}-rabbitmq-password
                     key: rabbitmq-password
               volumeMounts:
                 - name: cache
@@ -694,7 +694,7 @@ spec:
                 value: user
               - name: RABBITMQ_PASSWORD
                 secretKeyRef:
-                    name: {{ .Release.Name }}-rabbitmq
+                    name: {{ .Release.Name }}-rabbitmq-password
                     key: rabbitmq-password
               volumeMounts:
                 - name: cache
@@ -783,7 +783,7 @@ spec:
                 value: user
               - name: RABBITMQ_PASSWORD
                 secretKeyRef:
-                    name: {{ .Release.Name }}-rabbitmq
+                    name: {{ .Release.Name }}-rabbitmq-password
                     key: rabbitmq-password
               volumeMounts:
                 - name: cache
@@ -873,7 +873,7 @@ spec:
                 value: user
               - name: RABBITMQ_PASSWORD
                 secretKeyRef:
-                    name: {{ .Release.Name }}-rabbitmq
+                    name: {{ .Release.Name }}-rabbitmq-password
                     key: rabbitmq-password
               volumeMounts:
                 - name: cache
