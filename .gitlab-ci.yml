@@ -5,7 +5,8 @@
   stages:
     - dev-build
     - prod-build
-    - deploy
+    - dev-deploy
+    - prod-deploy
 
   variables:
     # K8s Namespaces Naming. 
@@ -14,7 +15,7 @@
     RDS_HOST: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
     
     # various stages, currently disabled, remove the variable to enable those steps
-    DEV_BUILD_DISABLED: "true"
+    # DEV_BUILD_DISABLED: "true"
     PROD_BUILD_DISABLED: "true"
     # DEV_RELEASE_DISABLED: "true"
     PROD_RELEASE_DISABLED: "true"
@@ -24,7 +25,7 @@
   # This stage is triggered when code is commited from any branch other than master and the Vairable DEV_BUILD_DISABLED is commented out.   
     
   dev-build:
-    image: docker:latest
+    image: kbaddi/awscli
     stage: dev-build
     variables:
       MAUTIC_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
@@ -32,10 +33,10 @@
     services:
     - docker:dind
 
-    before_script:
-      - apk update
-      - apk add --no-cache --update  python2 curl jq  py-pip
-      - pip install awscli
+    # before_script:
+    #   - apk update
+    #   - apk add --no-cache --update  python2 curl jq  py-pip
+    #   - pip install awscli
 
     script:
       - docker build -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA .
@@ -56,7 +57,7 @@
   # Production Build stage: Builds mautic and nginx images with the tag "latest". 
   # Runs only when code is commited from master and the Vairable PROD_BUILD_DISABLED is commented out.          
   prod-build:
-    image: docker:19.03
+    image: kbaddi/awscli
     stage: prod-build
     variables:
       MAUTIC_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
@@ -65,10 +66,10 @@
     services:
     - docker:dind
 
-    before_script:
-      - apk update
-      - apk add --no-cache --update  python2 curl jq  py-pip
-      - pip install awscli
+    # before_script:
+    #   - apk update
+    #   - apk add --no-cache --update  python2 curl jq  py-pip
+    #   - pip install awscli
 
     script:
       - docker build -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA .
@@ -91,7 +92,7 @@
   # Dev Release stage. Deploys application in a namespace named after the branch from which the code is commited. 
   # This stage is triggered when code is commited from any branch other than master and the Vairable DEV_RELEASE_DISABLED is commented out.   
   dev-deploy:
-    stage: deploy
+    stage: dev-deploy
     image: kbaddi/awscli:k8s
     variables:
       REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com
@@ -99,17 +100,22 @@
     services:
     - docker:dind  
     
-    before_script:
-      
+    before_script:      
       #Docker-login to ecr
       - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS  $REGISTRY
-      # Create namespace with the name $CI_COMMIT_BRANCH if it doesn't exist and create regcred secret in that namespace
+      # Create namespace with the name $CI_COMMIT_BRANCH if it doesn't exist 
       - kubectl describe namespace $NAMESPACE || kubectl create namespace $NAMESPACE 
+      # Create secret for registry credentials in the namespace if it doesn't exist
       - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
 
     script:    
       - cd k8s/mautic
-      - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=$CI_COMMIT_BRANCH --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest  --set traefik.defaultCert=$TLS_CERT --set traefik.defaultKey=$TLS_KEY  --set ExternalDb.host=$RDS_HOST --set ExternalDb.password=$RDS_PASSWORD --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password .
+      - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=$CI_COMMIT_BRANCH 
+        --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA  
+        --set traefik.defaultCert=$TLS_CERT --set traefik.defaultKey=$TLS_KEY 
+        --set ExternalDb.host=$RDS_HOST --set ExternalDb.password=$RDS_PASSWORD --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD 
+        --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password .
+
     only:
       refs:
         - branches
@@ -124,8 +130,8 @@
 # Production Release stage: Deploys application in prod (mautic) namespace. 
 # Runs only when code is commited from master and the Vairable PROD_RELEASE_DISABLED is commented out.   
   prod-deploy:
-      stage: deploy
-      image: akashkaveti/base_image:latest
+      stage: prod-deploy
+      image: kbaddi/awscli
       
       before_script:        
         
@@ -135,8 +141,12 @@
 
       script:    
         - cd k8s/mautic
-        - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=mautic --set project.ExternalDbHost=$RDS_HOST --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest --set traefik.defaultCert=$TLS_CERT --set traefik.defaultKey=$TLS_KEY \
-                       --set .Values.ExternalDbHost.password=$RDS_PASSWORD --set .Values.ExternalDbHost.password=$RDS_ROOT_PASSWORD  .
+        - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=mautic  
+          --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest 
+          --set traefik.defaultCert=$TLS_CERT --set traefik.defaultKey=$TLS_KEY  --set ExternalDb.host=$RDS_HOST 
+          --set ExternalDb.password=$RDS_PASSWORD --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD 
+          --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password .
+          
 
       only:
         - master
