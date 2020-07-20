@@ -7,13 +7,16 @@ project:
   name: facet
   labels:
     app: facetmautic
-  branch: develop  # This has to be replaced with Gitlab $COMMIT_BRANCH_NAME During deploy
+  # This can be replaced with Gitlab $COMMIT_BRANCH_NAME During deploy  
+  branch: develop  
   nginxImage:
-    repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx  # This will be subsituted with Gitlab Environment variable
+    # This will be subsituted with Gitlab Environment variable
+    repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx  
     tag: latest                       # This will be replaced with the Tag from GitlabCI
     pullPolicy: IfNotPresent
   mauticImage:
-    repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic  # This will be subsituted with Gitlab Environment variable
+    # This can be replaced with Gitlab Environment variable
+    repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic  
     tag: latest                        # This will be replaced with the Tag from GitlabCI
     pullPolicy: IfNotPresent
   # podSecurityContext: {}
@@ -26,14 +29,13 @@ project:
     port: 80
     targetPort: 8080
   # Environment  Values
-   #Data base Variables
+  #Data base Variables
   # Host address of the External DB instance.
   # If ExternalDbHost is left empty , a local DB (K8s)is created.
   ExternalDb: 
     host:
     password:
     rootPassword:
-  rds_secret: rds-secret
   s3Bucket: {}
   secret: database-user
   mailerHost: "email-smtp.us-east-1.amazonaws.com"
@@ -91,7 +93,7 @@ ingress:
 # If ExternalDbHost is provided this can be ignored.
 db:
   image: mysql:5
-  repicas: 3
+  repicas: 1
   name: db
   database: mautic
   labels:
@@ -154,4 +156,4 @@ cron:
   socialMonitoringSchedule: "7 * * * *"
   integrationFetchleadsHubspotSchedule: "10,40 0 * * *"
   integrationPushactivityleadsHubspotSchedule: "16,46 0 * * *"
-  mauticImportSchedule: "3,8,13,18,23,28,33,38,43,48,53,58 * * * *"
+  mauticImportSchedule: "3,11,19,27,34,42,50 * * * *"
