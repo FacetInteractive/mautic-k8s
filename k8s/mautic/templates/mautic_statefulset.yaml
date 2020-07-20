@@ -84,7 +84,8 @@ spec:
           - name: RABBITMQ_USER
             value: user
           - name: RABBITMQ_PASSWORD
-            secretKeyRef:
+            valueFrom:
+              secretKeyRef:
                 name: {{ .Release.Name }}-rabbitmq-password
                 key: rabbitmq-password
           volumeMounts:
