@@ -20,7 +20,7 @@ spec:
       paths:
       - path: /
         backend:
-          serviceName: {{ .Values.project.name }}
+          serviceName: {{ .Release.Name }}-{{ .Values.project.name }}
           servicePort: 80
 
 {{- end }}
