@@ -34,7 +34,7 @@ spec:
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: {{ .Release.Name }}-{{ .Values.db.persistence.name }}
+  name: {{ .Release.Name }}-mysql
 spec:
   storageClassName: "gp2"
   accessModes:

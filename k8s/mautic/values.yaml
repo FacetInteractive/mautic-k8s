@@ -88,8 +88,7 @@ db:
   database: mautic
   labels:
     app: mautic-db
-  persistence:
-    name: mysql-pvc
+  persistence:    
     size: 10Gi
   service:
     type: ClusterIP

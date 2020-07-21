@@ -20,7 +20,7 @@ spec:
       volumes:
         - name: {{ .Values.db.persistence.name }}
           persistentVolumeClaim:
-            claimName: {{ .Values.db.persistence.name }}
+            claimName: {{ .Release.Name }}-mysql
       containers:
       - image: {{ .Values.db.image }}
         args:
