@@ -1,8 +1,9 @@
+#job1
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ .Release.Name }}-mautic-cron-trigger-campaign
+  name: {{ .Release.Name }}-trigger-campaign
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -87,11 +88,12 @@ spec:
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
 
+#job2
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ .Release.Name }}-mautic-cron-emails-send
+  name: {{ .Release.Name }}-emails-send
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -176,11 +178,12 @@ spec:
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
 
+#job3
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ .Release.Name }}-mautic-cron-email-fetch
+  name: {{ .Release.Name }}-email-fetch
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -265,11 +268,12 @@ spec:
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
 
+#job4
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ .Release.Name }}-mautic-cron-segments-update
+  name: {{ .Release.Name }}-segments-update
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -354,12 +358,12 @@ spec:
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
 
-
+#job5
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ .Release.Name }}-mautic-cron-campaigns-rebuild
+  name: {{ .Release.Name }}-campaigns-rebuild
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -444,11 +448,12 @@ spec:
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
 
+#job6
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ .Release.Name }}-mautic-cron-broadcasts-send
+  name: {{ .Release.Name }}-broadcasts-send
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -468,7 +473,7 @@ spec:
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-logs
           containers:
-            - command : ["app/console", "mautic:social:monitoring", "--env=prod"]
+            - command : ["app/console", "mautic:broadcasts:send", "--env=prod"]
               name: {{ .Values.project.name }}
               image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
               env:
@@ -533,11 +538,12 @@ spec:
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
 
+#job7
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ .Release.Name }}-mautic-cron-social-monitoring
+  name: {{ .Release.Name }}-social-monitoring
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -622,12 +628,12 @@ spec:
           imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
 
-
+#job8
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ .Release.Name }}-mautic-cron-integration-fetchleads-hubspot
+  name: {{ .Release.Name }}-integration-fetchleads-hubspot
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -713,11 +719,12 @@ spec:
 {{- toYaml .Values.project.imagePullSecrets | nindent 10 }}
 
 
+#job9
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ .Release.Name }}-mautic-cron-integration-pushactivity-hubspot
+  name: {{ .Release.Name }}-integration-pushactivity-hubspot
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
@@ -808,7 +815,7 @@ spec:
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: {{ .Release.Name }}-mautic-cron-import
+  name: {{ .Release.Name }}-import
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
 spec:
