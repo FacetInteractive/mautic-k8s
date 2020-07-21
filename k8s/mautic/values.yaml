@@ -79,7 +79,7 @@ project:
   # If your project name is markenting and domain is example.com the hostname of this application would be marketing.example.com
 ingress:
   enabled: true
-  domain: baddis.xyz
+  domain: k8s.facetinteractive.com
   class: "traefik"
   annotations:
     kubernetes.io/ingress.class: "traefik"
