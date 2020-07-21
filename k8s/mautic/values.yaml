@@ -109,22 +109,6 @@ ingress:
     nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
 
 
-# This configuration is for the Kubernetes DB host.
-# If ExternalDbHost is provided this can be ignored.
-db:
-  image: mysql:5
-  repicas: 1
-  name: db
-  database: mautic
-  labels:
-    app: mautic-db
-  persistence:
-    name: mysql-pvc
-    size: 10Gi
-  service:
-    type: ClusterIP
-    port: 3306
-
 
 
 # Values for the Ingress Controller
@@ -168,34 +152,34 @@ rabbitmq:
 # Cron Job values
 
 cronjobs:
-  - name: cron-trigger-campaign
+  - name: trigger-campaign
     schedule: "10,25,40,55 * * * *"
     command: ["app/console", "mautic:campaigns:trigger", "--env=prod"]
-  - name: cron-emails-send
+  - name: emails-send
     schedule: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
     command:  ["app/console", "mautic:emails:send", "--env=prod"]
-  - name: cron-email-fetch
+  - name: email-fetch
     schedule: "9,14,19,24,29,34,39,44,49,54 * * * *"
     command: ["app/console", "mautic:email:fetch", "--env=prod"]
-  - name: cron-segments-update
+  - name: segments-update
     schedule: "0,15,30,45 * * * *"
     command: ["app/console", "mautic:segments:update", "--env=prod"]
-  - name: cron-campaigns-rebuild
+  - name: campaigns-rebuild
     schedule: "2 * * * *"
     command: ["app/console", "mautic:campaigns:rebuild", "--env=prod"]
-  - name: cron-broadcasts-send
+  - name: broadcasts-send
     schedule: "5 * * * *"
     command: ["app/console", "mautic:broadcasts:send", "--env=prod"]
-  - name: cron-social-monitoring
+  - name: social-monitoring
     schedule: "7 * * * *"
     command: ["app/console", "mautic:social:monitoring", "--env=prod"]
-  - name: cron-integration-fetchleads-hubspot
+  - name: integration-fetchleads-hubspot
     schedule: "10,40 0 * * *"
     command: ["app/console", "mautic:integration:fetchleads", "--integration=Hubspot"]
-  - name: mautic-cron-integration-pushactivity-hubspot
+  - name: mautic-integration-pushactivity-hubspot
     schedule: "16,46 0 * * *"
     command: ["app/console", "mautic:integration:pushactivity", "--integration=Hubspot"]
-  - name: cron-import
+  - name: import
     schedule: "3,11,19,27,34,42,50 * * * *"
     command:  ["app/console", "mautic:import", "--env=prod"]
 
