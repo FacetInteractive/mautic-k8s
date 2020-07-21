@@ -32,10 +32,6 @@ project:
   #Data base Variables
   # Host address of the External DB instance.
   # If ExternalDbHost is left empty , a local DB (K8s)is created.
-  ExternalDb: 
-    host:
-    password:
-    rootPassword:
   s3Bucket: {}
   secret: database-user
   mailerHost: "email-smtp.us-east-1.amazonaws.com"
@@ -57,7 +53,6 @@ project:
   imagePullSecrets:
     - name: regcred
 
-
   resources: {}
 
     # We usually recommend not to specify default resources and to leave this as a conscious
@@ -77,6 +72,31 @@ project:
   # Ingress host name defines the url of your domain
   # The name of the project name will be prefixed to the domain name of your website
   # If your project name is markenting and domain is example.com the hostname of this application would be marketing.example.com
+
+# External DB (ex: RDS, AzureSQL) configurtion
+ExternalDb: 
+  host:
+  password:
+  rootPassword:
+
+# The below  configuration is for the Kubernetes DB host.
+# If ExternalDb is used  this can be ignored.
+db:
+  image: mysql:5
+  repicas: 1
+  name: db
+  database: mautic
+  labels:
+    app: mautic-db
+  persistence:
+    name: mysql-pvc
+    size: 10Gi
+  service:
+    type: ClusterIP
+    port: 3306
+
+
+
 ingress:
   enabled: true
   domain: k8s.facetinteractive.com
