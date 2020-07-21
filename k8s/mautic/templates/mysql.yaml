@@ -6,7 +6,7 @@ metadata:
 spec:
   volumes:
     - name: mysql
-      persistentVolumeClaim: {{ .Values.db.persistence.name }}
+      persistentVolumeClaim: {{ .Release.Name }}-mysql
   service: {{ .Release.Name }}-{{ .Values.db.name }}
   replicas: {{ .Values.db.replicas }}
   selector:
@@ -18,7 +18,7 @@ spec:
         {{ .Values.db.labels | toYaml }}
     spec:
       volumes:
-        - name: {{ .Values.db.persistence.name }}
+        - name: {{ .Release.Name }}-mysql
           persistentVolumeClaim:
             claimName: {{ .Release.Name }}-mysql
       containers:
@@ -48,7 +48,7 @@ spec:
           - containerPort: {{ .Values.db.service.port }}
             name: mysql
         volumeMounts:
-        - name: {{ .Values.db.persistence.name }}
+        - name: {{ .Release.Name }}-mysql
           mountPath: /var/lib/mysql
 
 {{- end }}
