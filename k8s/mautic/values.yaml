@@ -3,7 +3,7 @@
 # Declare variables to be passed into your templates.
 
 project:
-  replicaCount: 2
+  replicaCount: 1
   name: facet
   labels:
     app: facetmautic
@@ -158,6 +158,10 @@ cronjobs:
   - name: trigger-campaign
     schedule: "10,25,40,55 * * * *"
     command: '["app/console", "mautic:campaigns:trigger", "--env=prod"]'
+  - name: social-monitoring
+    schedule: "7 * * * *"
+    command: '["app/console", "mautic:social:monitoring", "--env=prod"]'
+
 
 
 
@@ -183,7 +187,7 @@ cronjobs:
   # - name: broadcasts-send
   #   schedule: "5 * * * *"
   #   command: '["app/console", "mautic:broadcasts:send", "--env=prod"]'
-  # - name: social-monitoring
-  #   schedule: "7 * * * *"
-  #   command: '["app/console", "mautic:social:monitoring", "--env=prod"]'
+  - name: social-monitoring
+    schedule: "7 * * * *"
+    command: '["app/console", "mautic:social:monitoring", "--env=prod"]'
 
