@@ -155,13 +155,7 @@ cronjobs:
   - name: emails-send
     schedule: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
     command: '["app/console", "mautic:emails:send", "--env=prod"]'
-  - name: trigger-campaign
-    schedule: "10,25,40,55 * * * *"
-    command: '["app/console", "mautic:campaigns:trigger", "--env=prod"]'
-  - name: social-monitoring
-    schedule: "7 * * * *"
-    command: '["app/console", "mautic:social:monitoring", "--env=prod"]'
-
+  
 
 
 
@@ -187,7 +181,14 @@ cronjobs:
   # - name: broadcasts-send
   #   schedule: "5 * * * *"
   #   command: '["app/console", "mautic:broadcasts:send", "--env=prod"]'
-  - name: social-monitoring
-    schedule: "7 * * * *"
-    command: '["app/console", "mautic:social:monitoring", "--env=prod"]'
+  # - name: trigger-campaign
+  #   schedule: "10,25,40,55 * * * *"
+  #   command: '["app/console", "mautic:campaigns:trigger", "--env=prod"]'
+  # - name: social-monitoring
+  #   schedule: "7 * * * *"
+  #   command: '["app/console", "mautic:social:monitoring", "--env=prod"]'
+
+  # - name: social-monitoring
+  #   schedule: "7 * * * *"
+  #   command: '["app/console", "mautic:social:monitoring", "--env=prod"]'
 
