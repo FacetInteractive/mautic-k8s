@@ -149,6 +149,7 @@ rabbitmq:
     existingPasswordSecret: rabbitmq-password
 
 # Cron Job values
+cronjobs:
   - name: cron-trigger-campaign
     schedule: "10,25,40,55 * * * *"
     command: ["app/console", "mautic:campaigns:trigger", "--env=prod"]
