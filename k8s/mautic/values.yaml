@@ -157,39 +157,35 @@ cronjobs:
   - name: segments-update
     schedule: "0,15,30,45 * * * *"
     command: '["app/console", "mautic:segments:update", "--env=prod"]'
+  - name: integration-fetchleads-hubspot
+    schedule: "10,40 0 * * *"
+    command: '["app/console", "mautic:integration:fetchleads", "--integration=Hubspot"]'  
+  - name: mautic-integration-pushactivity-hubspot
+    schedule: "16,46 0 * * *"
+    command: '["app/console", "mautic:integration:pushactivity", "--integration=Hubspot"]'
+  - name: import
+    schedule: "3,11,19,27,34,42,50 * * * *"
+    command: '["app/console", "mautic:import", "--env=prod"]'
+  - name: email-fetch
+    schedule: "9,14,19,24,29,34,39,44,49,54 * * * *"
+    command: '["app/console", "mautic:email:fetch", "--env=prod"]'
+  - name: segments-update
+    schedule: "0,15,30,45 * * * *"
+    command: '["app/console", "mautic:segments:update", "--env=prod"]'
+  - name: campaigns-rebuild
+    schedule: "2 * * * *"
+    command: '["app/console", "mautic:campaigns:rebuild", "--env=prod"]'
+  - name: broadcasts-send
+    schedule: "5 * * * *"
+    command: '["app/console", "mautic:broadcasts:send", "--env=prod"]'
+  - name: trigger-campaign
+    schedule: "10,25,40,55 * * * *"
+    command: '["app/console", "mautic:campaigns:trigger", "--env=prod"]'
+  - name: social-monitoring
+    schedule: "7 * * * *"
+    command: '["app/console", "mautic:social:monitoring", "--env=prod"]'
 
-
-
-#Temp disabling jobs
-  # - name: integration-fetchleads-hubspot
-  #   schedule: "10,40 0 * * *"
-  #   command: '["app/console", "mautic:integration:fetchleads", "--integration=Hubspot"]'
-  # - name: mautic-integration-pushactivity-hubspot
-  #   schedule: "16,46 0 * * *"
-  #   command: '["app/console", "mautic:integration:pushactivity", "--integration=Hubspot"]'
-  # - name: import
-  #   schedule: "3,11,19,27,34,42,50 * * * *"
-  #   command: '["app/console", "mautic:import", "--env=prod"]'
-  # - name: email-fetch
-  #   schedule: "9,14,19,24,29,34,39,44,49,54 * * * *"
-  #   command: '["app/console", "mautic:email:fetch", "--env=prod"]'
-  # - name: segments-update
-  #   schedule: "0,15,30,45 * * * *"
-  #   command: '["app/console", "mautic:segments:update", "--env=prod"]'
-  # - name: campaigns-rebuild
-  #   schedule: "2 * * * *"
-  #   command: '["app/console", "mautic:campaigns:rebuild", "--env=prod"]'
-  # - name: broadcasts-send
-  #   schedule: "5 * * * *"
-  #   command: '["app/console", "mautic:broadcasts:send", "--env=prod"]'
-  # - name: trigger-campaign
-  #   schedule: "10,25,40,55 * * * *"
-  #   command: '["app/console", "mautic:campaigns:trigger", "--env=prod"]'
-  # - name: social-monitoring
-  #   schedule: "7 * * * *"
-  #   command: '["app/console", "mautic:social:monitoring", "--env=prod"]'
-
-  # - name: social-monitoring
-  #   schedule: "7 * * * *"
-  #   command: '["app/console", "mautic:social:monitoring", "--env=prod"]'
+  - name: social-monitoring
+    schedule: "7 * * * *"
+    command: '["app/console", "mautic:social:monitoring", "--env=prod"]'
 
