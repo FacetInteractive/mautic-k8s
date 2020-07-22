@@ -22,7 +22,7 @@ spec:
               persistentVolumeClaim:
                 claimName: {{ $.Release.Name }}-logs
           containers:
-            - command : {{ .command | toString }}
+            - command : [ {{ .command | toString }} ]
               name: {{ $.Values.project.name }}
               image: "{{ $.Values.project.mauticImage.repository }}:{{ $.Values.project.mauticImage.tag }}"
               env:
