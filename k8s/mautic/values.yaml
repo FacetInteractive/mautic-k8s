@@ -151,11 +151,12 @@ rabbitmq:
 # Cron Job values
 
 cronjobs:
-
   - name: emails-send
     schedule: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
     command: '["app/console", "mautic:emails:send", "--env=prod"]'
-  
+  - name: segments-update
+    schedule: "0,15,30,45 * * * *"
+    command: '["app/console", "mautic:segments:update", "--env=prod"]'
 
 
 
