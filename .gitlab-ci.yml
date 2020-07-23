@@ -30,7 +30,7 @@
     image: kbaddi/awscli
     stage: dev-build        
     services:
-    - docker:dind
+    - docker:dindPROD_BUILD_DISABLED
 
     script:
       - docker build -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA .
