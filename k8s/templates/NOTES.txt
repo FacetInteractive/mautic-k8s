@@ -1,4 +1,7 @@
 1. Get the application URL by running these commands:
+
+kubectl get ingress {{ .Release.Name }}-{{ .Values.project.name }}-ingress  --namespace {{ .Release.Namespace }} -o jsonpath='{.spec.rules[*].host}'
+
 {{- if .Values.ingress.enabled }}
 {{- range $host := .Values.ingress.hosts }}
   {{- range .paths }}
