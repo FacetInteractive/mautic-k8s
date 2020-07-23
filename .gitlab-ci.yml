@@ -13,10 +13,12 @@
     NAMESPACE: $CI_COMMIT_BRANCH
     RELEASE_NAME: mautic-$CI_COMMIT_BRANCH
     RDS_HOST: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
+    MAUTIC_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
+    NGINX_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
     
     # various stages, currently disabled, remove the variable to enable those steps
     # DEV_BUILD_DISABLED: "true"
-    PROD_BUILD_DISABLED: "true"
+    # PROD_BUILD_DISABLED: "true"
     # DEV_RELEASE_DISABLED: "true"
     PROD_RELEASE_DISABLED: "true"
 
@@ -26,17 +28,9 @@
     
   dev-build:
     image: kbaddi/awscli
-    stage: dev-build
-    variables:
-      MAUTIC_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
-      NGINX_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
+    stage: dev-build        
     services:
     - docker:dind
-
-    # before_script:
-    #   - apk update
-    #   - apk add --no-cache --update  python2 curl jq  py-pip
-    #   - pip install awscli
 
     script:
       - docker build -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA .
@@ -65,12 +59,6 @@
 
     services:
     - docker:dind
-
-    # before_script:
-    #   - apk update
-    #   - apk add --no-cache --update  python2 curl jq  py-pip
-    #   - pip install awscli
-
     script:
       - docker build -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA .
       - docker tag $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA $MAUTIC_REPOSITORY_URL:latest
@@ -115,7 +103,6 @@
         --set traefik.ssl.defaultCert=$TLS_CERT --set traefik.ssl.defaultKey=$TLS_KEY 
         --set ExternalDb.host=$RDS_HOST --set ExternalDb.password=$RDS_PASSWORD --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD 
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password .
-
     only:
       refs:
         - branches
@@ -133,22 +120,18 @@
       stage: prod-deploy
       image: kbaddi/awscli
       
-      before_script:        
-        
+      before_script:                
         - kubectl describe namespace mautic || kubectl create namespace mautic
         # Generates Regesitry Credentials in the mautic namespace 
         - kubectl get secret regcred -n mautic 2>&1 /dev/null || kubectl get secret regcred -n default -o yaml | sed s,"default","${NAMESPACE}",g | kubectl apply -n $NAMESPACE -f - 
 
       script:    
         - cd k8s/mautic
-        
         - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=mautic  
           --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest 
           --set traefik.ssl.defaultCert=$TLS_CERT --set traefik.ssl.defaultKey=$TLS_KEY  --set ExternalDb.host=$RDS_HOST 
           --set ExternalDb.password=$RDS_PASSWORD --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD 
-          --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password .
-          
-
+          --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password .      
       only:
         - master
       except:
