@@ -1,6 +1,12 @@
-1. Get the application URL by running these commands:
+1. Get the application URL by running these command:
 
 kubectl get ingress {{ .Release.Name }}-{{ .Values.project.name }}-ingress  --namespace {{ .Release.Namespace }} -o jsonpath='{.spec.rules[*].host}'
+
+2. Get the ELB DNS record by running the below command:
+
+kubectl get svc {{ .Release.Name }}-traefik --namespace {{ .Release.Namespace }} -o jsonpath='{.status.loadBalancer.ingress[*].hostname}'
+
+
 
 {{- if .Values.ingress.enabled }}
 {{- range $host := .Values.ingress.hosts }}
