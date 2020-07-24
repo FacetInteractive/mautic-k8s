@@ -111,7 +111,7 @@
         - master
       variables:
         - $DEV_RELEASE_DISABLED       
-    environment: $RELEASE_NAME 
+    environment:
       name: development
 
 # Production Release stage: Deploys application in prod (mautic) namespace. 
