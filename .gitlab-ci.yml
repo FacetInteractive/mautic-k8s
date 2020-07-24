@@ -130,14 +130,21 @@
         - kubectl get secret regcred -n mautic 2>&1 /dev/null || kubectl get secret regcred -n default -o yaml | sed s,"default","${NAMESPACE}",g | kubectl apply -n $NAMESPACE -f - 
 
       script:    
-        - cd k8s
-        - helm upgrade --install $RELEASE_NAME --namespace ${NAMESPACE}  
-          --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest 
-          --set traefik.ssl.defaultCert=$PROD_TLS_CERT --set traefik.ssl.defaultKey=$PROD_TLS_KEY  --set ExternalDb.host=$RDS_HOST 
-          --set ExternalDb.password=$RDS_PASSWORD --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD 
-          --set project.mailermailerUser=${PROD_MAILER_USER} --set project.mailerPassword=${PROD_MAILER_SECRET_KEY} --set project.secretKey=${PROD_SECRET_KEY}
+        - cd k8s/
+        - echo ${RELEASE_NAME}
+        - helm upgrade --install . $RELEASE_NAME --namespace ${NAMESPACE}  
+          --set project.nginxImage.tag=latest 
+          --set project.mauticImage.tag=latest 
+          --set traefik.ssl.defaultCert=$PROD_TLS_CERT 
+          --set traefik.ssl.defaultKey=$PROD_TLS_KEY  
+          --set ExternalDb.host=$RDS_HOST  
+          --set ExternalDb.password=$RDS_PASSWORD 
+          --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD 
+          --set project.mailermailerUser=${PROD_MAILER_USER} 
+          --set project.mailerPassword=${PROD_MAILER_SECRET_KEY}
+          --set project.secretKey=${PROD_SECRET_KEY}
           --set project.secretkey=${PROD_APP_SECRET_KEY}
-          --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password .      
+          --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password       
       only:
         - master
       except:
