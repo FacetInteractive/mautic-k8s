@@ -4,7 +4,7 @@
 
 project:
   replicaCount: 1
-  name: facet
+  name: hello
   labels:
     app: facetmautic
   # This can be replaced with Gitlab $COMMIT_BRANCH_NAME During deploy  
@@ -68,11 +68,7 @@ project:
 
 
 
-  #  Ingress Details
-  # Ingress host name defines the url of your domain
-  # The name of the project name will be prefixed to the domain name of your website
-  # If your project name is markenting and domain is example.com the hostname of this application would be marketing.example.com
-
+  
 # External DB (ex: RDS, AzureSQL) configurtion
 ExternalDb: 
   host:
@@ -94,11 +90,16 @@ db:
     type: ClusterIP
     port: 3306
 
+# Ingress Details
+# Ingress host name defines the url of your domain
+# The name of the project name will be prefixed to the domain name of your website
+# If your project name is markenting and domain is example.com the hostname of this application would be marketing.example.com
+
 
 
 ingress:
   enabled: true
-  domain: k8s.facetinteractive.com
+  domain: facetinteractive.com
   class: "traefik"
   annotations:
     kubernetes.io/ingress.class: "traefik"
