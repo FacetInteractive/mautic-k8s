@@ -127,7 +127,7 @@
       before_script:                
         - kubectl describe namespace ${NAMESPACE}  || kubectl create namespace ${NAMESPACE} 
         # Generates Regesitry Credentials in the mautic namespace 
-        - kubectl get secret regcred -n ${NAMESPACE} 2>&1 /dev/null || kubectl get secret regcred -n default -o yaml | sed s,"default","${NAMESPACE}",g | kubectl apply -n $NAMESPACE -f - 
+        - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
 
       script:    
         - cd k8s/         
