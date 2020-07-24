@@ -8,7 +8,7 @@ project:
   labels:
     app: facetmautic
   # This can be replaced with Gitlab $COMMIT_BRANCH_NAME During deploy  
-  branch: develop  
+  branch: master  
   nginxImage:
     # This will be subsituted with Gitlab Environment variable
     repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx  
@@ -40,7 +40,7 @@ project:
   rabbitmqPassword:
   mailerUser: AKIAIIL5EHY6A7ZEFL2A
   mailerPassword:
-  secretKey:
+  secretKey: somR9dadafdqedadf
   # Persistence - Persistence Volume claims an
   persistence:
     storageClass: "aws-efs"
