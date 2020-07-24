@@ -17,10 +17,10 @@
     NGINX_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
     
     # various stages, currently disabled, remove the variable to enable those steps
-    # DEV_BUILD_DISABLED: "true"
+    DEV_BUILD_DISABLED: "true"
     # PROD_BUILD_DISABLED: "true"
-    # DEV_RELEASE_DISABLED: "true"
-    PROD_RELEASE_DISABLED: "true"
+    DEV_RELEASE_DISABLED: "true"
+    # PROD_RELEASE_DISABLED: "true"
 
 
   # Dev Build stage:  Builds mautic and nginx images with the tag $CI_COMMIT_SHORT_SHA
@@ -88,7 +88,7 @@
     services:
     - docker:dind  
     
-    before_script:      
+    before_script:
       #Docker-login to ecr
       - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS  $REGISTRY
       # Create namespace with the name $CI_COMMIT_BRANCH if it doesn't exist 
@@ -127,10 +127,12 @@
 
       script:    
         - cd k8s
-        - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=mautic  
+        - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE  
           --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest 
-          --set traefik.ssl.defaultCert=$TLS_CERT --set traefik.ssl.defaultKey=$TLS_KEY  --set ExternalDb.host=$RDS_HOST 
+          --set traefik.ssl.defaultCert=$PROD_TLS_CERT --set traefik.ssl.defaultKey=$PROD_TLS_KEY  --set ExternalDb.host=$RDS_HOST 
           --set ExternalDb.password=$RDS_PASSWORD --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD 
+          --set project.mailermailerUser=${PROD_MAILER_USER} --set project.mailerPassword=${PROD_MAILER_SECRET_KEY} --set project.secretKey=${PROD_SECRET_KEY}
+          --set project.secretkey=${PROD_APP_SECRET_KEY}
           --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password .      
       only:
         - master
