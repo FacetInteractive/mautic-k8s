@@ -1,0 +1,45 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-cache  
+  labels:
+    name: cache
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: {{ .Values.project.persistence.storageClass | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.project.persistence.cache.size | default "10G" | quote }}
+
+
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-logs
+  labels:
+    name: logs
+spec:
+  storageClassName: {{ .Values.project.persistence.storageClass | quote }}
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.project.persistence.logs.size | default "10G" | quote }}
+
+
+{{- if not .Values.ExternalDb.host }}
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-mysql
+spec:
+  storageClassName: {{ .Values.project.persistence.storageClass | quote }}
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.db.persistence.size }}
+{{- end }}

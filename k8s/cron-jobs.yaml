@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: mautic-cron-trigger-campaign
+  name: cron-trigger-campaign
   labels:
     app: facet-mautic
 spec:
@@ -59,16 +59,20 @@ spec:
                     name: app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
-                value: rabbitmq
+                value: {{ .Release.Name }}-rabbitmq-headless
               - name: RABBITMQ_USER
-                value: usr
+                value: user
               - name: RABBITMQ_PASSWORD
-                value: secret_pass
+                valueFrom:
+                  secretKeyRef:
+                      name: {{ .Release.Name }}-rabbitmq
+                      key: rabbitmq-password
+
               volumeMounts:
-                - name: cache
-                  mountPath: /cache
-                - name: logs
-                  mountPath: /logs
+              - name: cache
+                mountPath: /cache
+              - name: logs
+                mountPath: /logs
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -131,16 +135,20 @@ spec:
                     name: app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
-                value: rabbitmq
+                value: {{ .Release.Name }}-rabbitmq-headless
               - name: RABBITMQ_USER
-                value: usr
+                value: user
               - name: RABBITMQ_PASSWORD
-                value: secret_pass
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
+
               volumeMounts:
-                - name: cache
-                  mountPath: /cache
-                - name: logs
-                  mountPath: /logs    
+              - name: cache
+                mountPath: /cache
+              - name: logs
+                mountPath: /logs
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -203,16 +211,19 @@ spec:
                     name: app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
-                value: rabbitmq
+                value: {{ .Release.Name }}-rabbitmq-headless
               - name: RABBITMQ_USER
-                value: usr
+                value: user
               - name: RABBITMQ_PASSWORD
-                value: secret_pass
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
               volumeMounts:
                 - name: cache
                   mountPath: /cache
                 - name: logs
-                  mountPath: /logs    
+                  mountPath: /logs
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
@@ -275,11 +286,14 @@ spec:
                     name: app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
-                value: rabbitmq
+                value: {{ .Release.Name }}-rabbitmq-headless
               - name: RABBITMQ_USER
-                value: usr
+                value: user
               - name: RABBITMQ_PASSWORD
-                value: secret_pass
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
               volumeMounts:
                 - name: cache
                   mountPath: /cache
@@ -347,11 +361,14 @@ spec:
                     name: app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
-                value: rabbitmq
+                value: {{ .Release.Name }}-rabbitmq-headless
               - name: RABBITMQ_USER
-                value: usr
+                value: user
               - name: RABBITMQ_PASSWORD
-                value: secret_pass
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
               volumeMounts:
                 - name: cache
                   mountPath: /cache
@@ -419,11 +436,14 @@ spec:
                     name: app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
-                value: rabbitmq
+                value: {{ .Release.Name }}-rabbitmq-headless
               - name: RABBITMQ_USER
-                value: usr
+                value: user
               - name: RABBITMQ_PASSWORD
-                value: secret_pass
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
               volumeMounts:
                 - name: cache
                   mountPath: /cache
@@ -491,11 +511,14 @@ spec:
                     name: app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
-                value: rabbitmq
+                value: {{ .Release.Name }}-rabbitmq-headless
               - name: RABBITMQ_USER
-                value: usr
+                value: user
               - name: RABBITMQ_PASSWORD
-                value: secret_pass
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
               volumeMounts:
                 - name: cache
                   mountPath: /cache
@@ -563,11 +586,14 @@ spec:
                     name: app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
-                value: rabbitmq
+                value: {{ .Release.Name }}-rabbitmq-headless
               - name: RABBITMQ_USER
-                value: usr
+                value: user
               - name: RABBITMQ_PASSWORD
-                value: secret_pass
+                valueFrom:
+                  secretKeyRef:
+                    name: {{ .Release.Name }}-rabbitmq
+                    key: rabbitmq-password
               volumeMounts:
                 - name: cache
                   mountPath: /cache
@@ -635,9 +661,9 @@ spec:
                     name: app-secret
                     key: mailer-password
               - name: RABBITMQ_HOST
-                value: rabbitmq
+                value: {{ .Release.Name }}-rabbitmq-headless
               - name: RABBITMQ_USER
-                value: usr
+                value: user
               - name: RABBITMQ_PASSWORD
                 value: secret_pass
               volumeMounts:
