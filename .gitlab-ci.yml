@@ -127,11 +127,12 @@
       before_script:                
         - kubectl describe namespace ${NAMESPACE}  || kubectl create namespace ${NAMESPACE} 
         # Generates Regesitry Credentials in the mautic namespace 
-        - kubectl get secret regcred -n mautic 2>&1 /dev/null || kubectl get secret regcred -n default -o yaml | sed s,"default","${NAMESPACE}",g | kubectl apply -n $NAMESPACE -f - 
+        - kubectl get secret regcred -n ${NAMESPACE} 2>&1 /dev/null || kubectl get secret regcred -n default -o yaml | sed s,"default","${NAMESPACE}",g | kubectl apply -n $NAMESPACE -f - 
 
       script:    
         - cd k8s/         
         - helm upgrade $RELEASE_NAME  . --install --namespace $NAMESPACE 
+          --set project.branch=$CI_COMMIT_BRANCH
           --set project.nginxImage.tag=latest 
           --set project.mauticImage.tag=latest 
           --set traefik.ssl.defaultCert=$PROD_TLS_CERT 
