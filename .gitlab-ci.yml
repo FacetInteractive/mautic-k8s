@@ -125,6 +125,7 @@
         NAMESPACE: mautic-prod
         
       before_script:                
+        - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS $REGISTRY
         - kubectl describe namespace ${NAMESPACE}  || kubectl create namespace ${NAMESPACE} 
         # Generates Regesitry Credentials in the mautic namespace 
         - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
