@@ -118,7 +118,7 @@
 # Runs only when code is commited from master and the Vairable PROD_RELEASE_DISABLED is commented out.   
   prod-deploy:
       stage: prod-deploy
-      image: kbaddi/awscli
+      image: kbaddi/awscli:k8s
       
       before_script:                
         - kubectl describe namespace mautic || kubectl create namespace mautic
