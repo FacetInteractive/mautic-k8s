@@ -491,12 +491,18 @@ kubectl -n <namespace> exec -i  {{RELEASE_NAME}}-mysql-0 -c mysql -- mysql -u us
 
 This deployment deploys 10 cron jobs as listed in the default values.yaml. Comment out or delete any cronjobs that are not required or add new cronjobs as required in the below syntax
 
-- name: _name for the cronjob_ schedule: _Cron Schedule_ command: '"app/console", _"command"_, "--env=prod"'
-
+```yaml
+- name: _name for the cronjob_
+  schedule: _Cron Schedule_
+  command: '"app/console", _"command"_, "--env=prod"'
+```
 Example:
 
-- name: trigger-campaign schedule: "10,25,40,55 _**_" command: '"app/console", "mautic:campaigns:trigger", "--env=prod"'
-
+```yaml
+- name: trigger-campaign
+  schedule: "10,25,40,55 _**_"
+  command: '"app/console", "mautic:campaigns:trigger", "--env=prod"'
+```
 ### Dependencies/Requirements:
 
 Helm provides an easy way to deploy other helm charts along with the current chart. All that is to be done is include the details of the chart in the `requirements.yaml` file and run `helm dependency update` to include the helm charts in the deployment.
