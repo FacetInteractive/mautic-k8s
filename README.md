@@ -582,3 +582,7 @@ ECR can be replaced with any other Image repository by updating `MAUTIC_REPOSITO
 - prod-deploy
 
   This stage creates a namespace with the name mautic-code when code is commited from master branch and deploy the applications with helm charts. If the namespace already exists, the helm upgrade will be run and the application will be upgraded as per the changes. A secret called `regcred` is also created when the code is commited from the branch for the first time. This is used to pull images from ecr.
+
+Upon successful execution of the CI-CD, the application is deployed on the respective namespace and the pipeline outputs the commands to find out the URL and the Loadbalancer DNS name (elb endpoint).
+
+Map the CNAME to the ELB endpoint in the DNS records.
