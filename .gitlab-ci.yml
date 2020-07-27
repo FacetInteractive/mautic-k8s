@@ -1,6 +1,6 @@
   # Please make sure that your branch doesn't have '_' in the name.
-  # This pipeline is tightly coupled with kubernetes namespace and Kubernetes dns, 
-  # and a DNS-1123 label must consist of lower case alphanumeric characters or '-', 
+  # This pipeline is tightly coupled with kubernetes namespace and Kubernetes dns,
+  # and a DNS-1123 label must consist of lower case alphanumeric characters or '-',
   # and must start and end with an alphanumeric character.
   stages:
     - dev-build
@@ -9,26 +9,29 @@
     - prod-deploy
 
   variables:
-    # K8s Namespaces Naming. 
+    # K8s Namespaces Naming.
     NAMESPACE: $CI_COMMIT_BRANCH
+    # Release name for helm
     RELEASE_NAME: mautic-$CI_COMMIT_BRANCH
+    # RDS Host End point
     RDS_HOST: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
+    #Docker Registry (ECR) URL for Mautic image
     MAUTIC_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
+    #Docker Registry (ECR) URL for Nginx image
     NGINX_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
-    
-    # various stages, currently disabled, remove the variable to enable those steps
+    # various stagescurrently disabled, remove or comment out the variable to enable those steps
     DEV_BUILD_DISABLED: "true"
     PROD_BUILD_DISABLED: "true"
     DEV_RELEASE_DISABLED: "true"
-    # PROD_RELEASE_DISABLED: "true"
+    PROD_RELEASE_DISABLED: "true"
 
 
   # Dev Build stage:  Builds mautic and nginx images with the tag $CI_COMMIT_SHORT_SHA
-  # This stage is triggered when code is commited from any branch other than master and the Vairable DEV_BUILD_DISABLED is commented out.   
-    
+  # This stage is triggered when code is commited from any branch other than master and the Vairable DEV_BUILD_DISABLED is commented out.
+
   dev-build:
     image: kbaddi/awscli
-    stage: dev-build        
+    stage: dev-build
     services:
     - docker:dind
 
@@ -46,10 +49,10 @@
       refs:
         - master
       variables:
-        - $DEV_BUILD_DISABLED    
+        - $DEV_BUILD_DISABLED
 
-  # Production Build stage: Builds mautic and nginx images with the tag "latest". 
-  # Runs only when code is commited from master and the Vairable PROD_BUILD_DISABLED is commented out.          
+  # Production Build stage: Builds mautic and nginx images with the tag "latest".
+  # Runs only when code is commited from master and the Vairable PROD_BUILD_DISABLED is commented out.
   prod-build:
     image: kbaddi/awscli
     stage: prod-build
@@ -69,39 +72,39 @@
       - docker tag $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA $NGINX_REPOSITORY_URL:latest
       - docker push $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
       - docker push $NGINX_REPOSITORY_URL:latest
-    
+
     only:
       - master
     except:
       variables:
         - $PROD_BUILD_DISABLED
 
-  
-  # Dev Release stage. Deploys application in a namespace named after the branch from which the code is commited. 
-  # This stage is triggered when code is commited from any branch other than master and the Vairable DEV_RELEASE_DISABLED is commented out.   
+
+  # Dev Release stage. Deploys application in a namespace named after the branch from which the code is commited.
+  # This stage is triggered when code is commited from any branch other than master and the Vairable DEV_RELEASE_DISABLED is commented out.
   dev-deploy:
     stage: dev-deploy
     image: kbaddi/awscli:k8s
     variables:
       REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com
-      
+
     services:
-    - docker:dind  
-    
+    - docker:dind
+
     before_script:
       #Docker-login to ecr
       - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS  $REGISTRY
-      # Create namespace with the name $CI_COMMIT_BRANCH if it doesn't exist 
-      - kubectl describe namespace $NAMESPACE || kubectl create namespace $NAMESPACE 
+      # Create namespace with the name $CI_COMMIT_BRANCH if it doesn't exist
+      - kubectl describe namespace $NAMESPACE || kubectl create namespace $NAMESPACE
       # Create secret for registry credentials in the namespace if it doesn't exist
       - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
 
-    script:    
+    script:
       - cd k8s/
-      - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=$CI_COMMIT_BRANCH 
-        --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA  
-        --set traefik.ssl.defaultCert=$TLS_CERT --set traefik.ssl.defaultKey=$TLS_KEY 
-        --set ExternalDb.host=$RDS_HOST --set ExternalDb.password=$RDS_PASSWORD --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD 
+      - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=$CI_COMMIT_BRANCH
+        --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
+        --set traefik.ssl.defaultCert=$TLS_CERT --set traefik.ssl.defaultKey=$TLS_KEY
+        --set ExternalDb.host=$RDS_HOST --set ExternalDb.password=$RDS_PASSWORD --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password .
     only:
       refs:
@@ -110,35 +113,46 @@
       refs:
         - master
       variables:
-        - $DEV_RELEASE_DISABLED       
+        - $DEV_RELEASE_DISABLED
     environment:
       name: development
 
-# Production Release stage: Deploys application in prod (mautic) namespace. 
-# Runs only when code is commited from master and the Vairable PROD_RELEASE_DISABLED is commented out.   
+# Production Release stage: Deploys application in prod (mautic) namespace.
+# Runs only when code is commited from master and the Vairable PROD_RELEASE_DISABLED is commented out.
   prod-deploy:
       stage: prod-deploy
       image: kbaddi/awscli:k8s
-      
-      before_script:                
-        - kubectl describe namespace mautic || kubectl create namespace mautic
-        # Generates Regesitry Credentials in the mautic namespace 
-        - kubectl get secret regcred -n mautic 2>&1 /dev/null || kubectl get secret regcred -n default -o yaml | sed s,"default","${NAMESPACE}",g | kubectl apply -n $NAMESPACE -f - 
 
-      script:    
-        - cd k8s
-        - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE  
-          --set project.nginxImage.tag=latest --set project.mauticImage.tag=latest 
-          --set traefik.ssl.defaultCert=$PROD_TLS_CERT --set traefik.ssl.defaultKey=$PROD_TLS_KEY  --set ExternalDb.host=$RDS_HOST 
-          --set ExternalDb.password=$RDS_PASSWORD --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD 
-          --set project.mailermailerUser=${PROD_MAILER_USER} --set project.mailerPassword=${PROD_MAILER_SECRET_KEY} --set project.secretKey=${PROD_SECRET_KEY}
-          --set project.secretkey=${PROD_APP_SECRET_KEY}
-          --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password .      
+      variables:
+        REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com
+        NAMESPACE: mautic-prod
+
+      before_script:
+        - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS $REGISTRY
+        - kubectl describe namespace ${NAMESPACE}  || kubectl create namespace ${NAMESPACE}
+        # Generates Regesitry Credentials in the mautic namespace
+        - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
+
+      script:
+        - cd k8s/
+        - helm upgrade $RELEASE_NAME  . --install --namespace $NAMESPACE
+          --set project.branch=$CI_COMMIT_BRANCH
+          --set project.nginxImage.tag=latest
+          --set project.mauticImage.tag=latest
+          --set traefik.ssl.defaultCert=$PROD_TLS_CERT
+          --set traefik.ssl.defaultKey=$PROD_TLS_KEY
+          --set ExternalDb.host=$RDS_HOST
+          --set ExternalDb.password=$RDS_PASSWORD
+          --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
+          --set project.mailermailerUser=$PROD_MAILER_USER
+          --set project.mailerPassword=$PROD_MAILER_SECRET_KEY
+          --set project.secretKey=$PROD_SECRET_KEY
+          --set project.secretkey=$PROD_APP_SECRET_KEY
+          --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password
       only:
         - master
       except:
         variables:
-          - $PROD_RELEASE_DISABLED   
+          - $PROD_RELEASE_DISABLED
       environment:
         name: prod
-    
