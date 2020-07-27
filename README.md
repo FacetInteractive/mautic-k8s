@@ -456,8 +456,8 @@ Read more about _Helm Values_ [here](https://helm.sh/docs/chart_best_practices/v
 
 ### **Important Values**:
 
-Value                            |                             Description                              |              Default
-:------------------------------- | :------------------------------------------------------------------: | -------------------:
+Value                            |                             Description                              |      Default
+:------------------------------- | :------------------------------------------------------------------  | :-------------------
 project.replicas                 |     Determines the number of Pods created for Mautic Application     |                    2
 project.Name                     |         The prefix for the resources created in the cluster          |                hello
 ExternalDb.host                  |          End points of an external DB service such as RDS.           |              _Empty_
@@ -535,26 +535,26 @@ This project uses .gitlabci for  Continuous Integration and Deployment. There ar
 The below variables are updated in the Gitlab variables and not as part of `.gitlabci.yml` as these are sensitive.
 These can be updated by going to the Repository --> LeftPane --> Settings --> CI/CD --> Variables
 
-Variable                         |                             Description                           
-:------------------------------- | ---------------------------------------------------------------:
-AWS_ACCESS_KEY                   | AWS Access ID to push and pull images to ECR                   |
-AWS_SECRET_ACCESS_KEY            | AWS Secret key to push and pull images to ECR                  |
-TLS_CERT                         | base64 encoded cert.pem for wildcard SSL for ingress   |
-TLS_KEY                          | base64 encoded privkey.pem  for wildcard SSL for ingress (non-prod envs) |
-PROD_TLS_CERT                    | base64 encoded cert.pem of SSL cert for Prod ingress . Only if cert for non-prod and prod is different  |
-PROD_TLS_KEY                     | base64 encoded privkey.pem for SSL cert for Prod ingress. Only if cert for non-prod and prod is different  |
-RDS_PASSWORD                     | RDS Password used to create secret for RDS |
-RDS_ROOT_PASSWORD                | RDS root Password (optional) |
-APP_SECRET_KEY                   | Secret key for the Mautic application |
-MAILER_SECRET_KEY                | Password for the email host |
-PROD_APP_SECRET_KEY              | Secret key for the Mautic application in Prod env|
-PROD_MAILER_SECRET_KEY           | Password for the email host for Prod env|
+| Variable                         |                             Description                           
+| :------------------------------- | :---------------------------------------------------------------  |
+| AWS_ACCESS_KEY                   | AWS Access ID to push and pull images to ECR.                   |
+| AWS_SECRET_ACCESS_KEY            | AWS Secret key to push and pull images to ECR.                  |
+| TLS_CERT                         | base64 encoded cert.pem for wildcard SSL for ingress.   |
+| TLS_KEY                          | base64 encoded privkey.pem  for wildcard SSL for ingress (non-prod envs). |
+| PROD_TLS_CERT                    | base64 encoded cert.pem of SSL cert for Prod ingress . Only if cert for non-prod and prod is different.  |
+| PROD_TLS_KEY                     | base64 encoded privkey.pem for SSL cert for Prod ingress. Only if cert for non-prod and prod is different.  |
+| RDS_PASSWORD                     | RDS Password used to create secret for RDS |
+| RDS_ROOT_PASSWORD                | RDS root Password (optional) |
+| APP_SECRET_KEY                   | Secret key for the Mautic application |
+| MAILER_SECRET_KEY                | Password for the email host |
+| PROD_APP_SECRET_KEY              | Secret key for the Mautic application in Prod env |
+| PROD_MAILER_SECRET_KEY           | Password for the email host for Prod env|
 
 
 Variables used in gitlabci:
 
 Variable                         |                             Description                           
-:------------------------------- | ---------------------------------------------------------------:
+:------------------------------- | :--------------------------------------------------------------- |
 RDS_HOST                         | The endpoint of RDS host or external Database service
 MAUTIC_REPOSITORY_URL            | ECR URL for Mautic images
 NGINX_REPOSITORY_URL             | ECR URL for Nginx images
