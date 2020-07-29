@@ -1,0 +1,44 @@
+{
+    "name": "lightsaml/symfony-bridge",
+    "license": "MIT",
+    "type": "symfony-bundle",
+    "description": "Light SAML Symfony bridge bundle",
+    "homepage": "http://www.lightsaml.com",
+    "authors": [
+        {
+            "name": "Milos Tomic",
+            "email": "tmilos@gmail.com",
+            "homepage": "http://github.com/tmilos",
+            "role": "Developer"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "LightSaml\\SymfonyBridgeBundle\\Tests\\": "tests/",
+            "LightSaml\\SymfonyBridgeBundle\\": "src/"
+        }
+    },
+    "require": {
+        "php": ">=5.5.1",
+        "symfony/framework-bundle": "~2.7|~3.0|~4.0",
+        "symfony/dependency-injection": "~2.7|~3.0|~4.0",
+        "symfony/yaml": "~2.7|~3.0|~4.0",
+        "lightsaml/lightsaml": "~1.1"
+    },
+    "require-dev": {
+        "symfony/browser-kit": "~2.7|~3.0|~4.0",
+        "symfony/finder": "~2.7|~3.0|~4.0",
+        "symfony/filesystem": "~2.7|~3.0|~4.0",
+        "symfony/routing": "~2.7|~3.0|~4.0",
+        "phpunit/phpunit": "^5.7",
+        "php-coveralls/php-coveralls": "~2.0"
+    },
+    "suggest": {
+        "lightsaml/lightsamp-idp": "If you will be using IDP LightSAML services"
+    },
+    "config": {
+        "bin-dir": "bin"
+    },
+    "prefer-stable": true,
+    "minimum-stability": "stable"
+}

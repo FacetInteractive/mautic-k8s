@@ -1,0 +1,50 @@
+{
+    "name": "oneup/uploader-bundle",
+    "type": "symfony-bundle",
+    "description": "Handles multi file uploads in Symfony2. Features included: Chunked upload, Orphans management, Gaufrette support.",
+    "keywords": ["fileupload", "upload", "FineUploader", "blueimp", "jQuery File Uploader", "YUI3 Uploader", "Uploadify", "FancyUpload", "MooUpload", "Plupload", "Dropzone"],
+    "homepage": "http://1up.io",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jim Schmid",
+            "email": "js@1up.io",
+            "homepage": "http://1up.io",
+            "role": "Developer"
+        }
+    ],
+
+    "require": {
+        "php":">=5.4",
+        "symfony/framework-bundle": "^2.4|^3.0",
+        "symfony/finder": "^2.4|^3.0",
+        "symfony/translation": "^2.4|^3.0",
+        "symfony/asset": "^2.4|^3.0",
+        "symfony/templating": "^2.4|^3.0",
+        "paragonie/random_compat": "^1.1|^2.0"
+    },
+
+    "require-dev": {
+        "amazonwebservices/aws-sdk-for-php": "1.5.*",
+        "knplabs/gaufrette": "0.2.*@dev",
+        "oneup/flysystem-bundle": "^1.2",
+        "phpunit/phpunit": "^4.4",
+        "sensio/framework-extra-bundle": "2.*|^3.0",
+        "symfony/browser-kit": "2.*|^3.0",
+        "symfony/class-loader": "2.*|^3.0",
+        "symfony/security-bundle": "2.*|^3.0",
+        "twistor/flysystem-stream-wrapper": "^1.0"
+    },
+
+    "suggest": {
+        "knplabs/knp-gaufrette-bundle": "0.1.*",
+        "oneup/flysystem-bundle": "^1.2",
+        "twistor/flysystem-stream-wrapper": "^1.0 (Required when using Flysystem)"
+    },
+
+    "autoload": {
+        "psr-0": { "Oneup\\UploaderBundle": "" }
+    },
+
+    "target-dir": "Oneup/UploaderBundle"
+}

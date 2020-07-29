@@ -1,0 +1,67 @@
+services:
+    lightsaml.container.build:
+        class: LightSaml\SymfonyBridgeBundle\Bridge\Container\BuildContainer
+        public: true
+        arguments:
+            - "@lightsaml.container.system"
+            - "@lightsaml.container.party"
+            - "@lightsaml.container.store"
+            - "@lightsaml.container.provider"
+            - "@lightsaml.container.credential"
+            - "@lightsaml.container.service"
+            - "@lightsaml.container.own"
+
+    lightsaml.container.system:
+        class: LightSaml\SymfonyBridgeBundle\Bridge\Container\SystemContainer
+        arguments:
+            - "@request_stack"
+            - "@session"
+            - "@lightsaml.system.time_provider"
+            - "@lightsaml.system.event_dispatcher"
+            - "@lightsaml.system.logger"
+
+    lightsaml.container.party:
+        class: LightSaml\SymfonyBridgeBundle\Bridge\Container\PartyContainer
+        arguments:
+            - "@lightsaml.party.idp_entity_descriptor_store"
+            - "@lightsaml.party.sp_entity_descriptor_store"
+            - "@lightsaml.party.trust_options_store"
+
+    lightsaml.container.store:
+        class: LightSaml\SymfonyBridgeBundle\Bridge\Container\StoreContainer
+        arguments:
+            - "@lightsaml.store.request"
+            - "@lightsaml.store.id_state"
+            - "@lightsaml.store.sso_state"
+
+    lightsaml.container.provider:
+        class: LightSaml\SymfonyBridgeBundle\Bridge\Container\ProviderContainer
+        arguments:
+            - "@lightsaml.provider.attribute_value"
+            - "@lightsaml.provider.session_info"
+            - "@lightsaml.provider.name_id"
+
+    lightsaml.container.credential:
+        class: LightSaml\SymfonyBridgeBundle\Bridge\Container\CredentialContainer
+        arguments:
+            - "@lightsaml.credential.credential_store"
+
+    lightsaml.container.service:
+        class: LightSaml\SymfonyBridgeBundle\Bridge\Container\ServiceContainer
+        arguments:
+            - "@lightsaml.service.assertion_validator"
+            - "@lightsaml.service.assertion_time_validator"
+            - "@lightsaml.service.signature_resolver"
+            - "@lightsaml.service.endpoint_resolver"
+            - "@lightsaml.service.name_id_validator"
+            - "@lightsaml.service.binding_factory"
+            - "@lightsaml.service.signature_validator"
+            - "@lightsaml.service.credential_resolver"
+            - "@lightsaml.service.session_processor"
+
+    lightsaml.container.own:
+        class: LightSaml\SymfonyBridgeBundle\Bridge\Container\OwnContainer
+        arguments:
+            - "@lightsaml.own.entity_descriptor_provider"
+            - "@lightsaml.own.credential_store"
+            - "%lightsaml.own.entity_id%"

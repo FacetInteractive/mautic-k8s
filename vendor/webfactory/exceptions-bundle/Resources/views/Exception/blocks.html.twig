@@ -1,0 +1,99 @@
+{%- block webfactory_exceptions_error_code -%}
+    {{ exception.getStatusCode }}
+{%- endblock -%}
+
+{%- block webfactory_exceptions_error_title -%}
+    {{ ("error." ~ exception.getStatusCode ~ ".title")|trans({}, 'webfactory-exceptions-bundle') }}
+{%- endblock -%}
+
+{%- block webfactory_exceptions_error_description -%}
+    {{ ("error." ~ exception.getStatusCode ~ ".description")|trans({}, 'webfactory-exceptions-bundle')|nl2br }}
+{%- endblock -%}
+
+{%- block webfactory_exceptions_error_headline -%}
+    {{ block('webfactory_exceptions_error_title') }} ({{ block('webfactory_exceptions_error_code') }})
+{%- endblock -%}
+
+{%- block webfactory_exceptions_sorry_title -%}
+    {{ ("sorry.title")|trans({}, 'webfactory-exceptions-bundle') }}
+{%- endblock -%}
+
+{%- block webfactory_exceptions_sorry_footer -%}
+    {{ ("sorry.footer")|trans({}, 'webfactory-exceptions-bundle')|nl2br }}
+{%- endblock -%}
+
+{% block webfactory_exceptions_standardExceptionPage %}
+    <h1>{{ block('webfactory_exceptions_error_headline') }}</h1>
+    <h2 class="h2">{{ block('webfactory_exceptions_sorry_title') }}</h2>
+    <p>{{ block('webfactory_exceptions_error_description') }}</p>
+
+    {{ block('webfactory_exceptions_standardAlternatives') }}
+
+    <strong>{{ block('webfactory_exceptions_sorry_footer') }}</strong>
+{% endblock %}
+
+{% block webfactory_exceptions_standardAlternatives %}
+    <h2 class="h2">{{ "alternatives.title"|trans({},'webfactory-exceptions-bundle') }}</h2>
+    <p>{{ "alternatives.description"|trans({},'webfactory-exceptions-bundle') }}</p>
+    <ul class="bulleted">
+        <li>{{ block('webfactory_exceptions_actionBack') }}</li>
+        <li>{{ block('webfactory_exceptions_actionGetToHomepage') }}</li>
+        <li>{{ block('webfactory_exceptions_actionGoogleSearch') }}</li>
+        {% if contactUrl is defined %}
+            <li>{{ block('webfactory_exceptions_actionGetInContact') }}</li>
+        {% endif %}
+    </ul>
+{% endblock %}
+
+{% block webfactory_exceptions_actionBack %}
+    {% set link %}<a href="#" onclick="window.history.back(); return false;">{% endset %}
+    {% set endlink %}</a>{% endset %}
+    {{ "alternatives.action.back"|trans({'%link%':link, '%endlink%': endlink},'webfactory-exceptions-bundle')|raw }}
+{% endblock %}
+
+{% block webfactory_exceptions_actionGetToHomepage %}
+    {% set link %}<a href="{{ homepageUrl | default('/') }}">{% endset %}
+    {% set endlink %}</a>{% endset %}
+    {{ "alternatives.action.start"|trans({'%link%':link, '%endlink%': endlink},'webfactory-exceptions-bundle')|raw }}
+{% endblock %}
+
+{# @deprecated: use webfactory_exceptions_actionGetToHomepage instead #}
+{% block webfactory_exceptions_actionZurStartseiteWechseln %}
+    {% if startseiteUrl is defined %}
+        {% set homepageUrl = startseiteUrl %}
+    {% endif %}
+    {{ block('webfactory_exceptions_actionGetToHomepage') }}
+{% endblock %}
+
+{% block webfactory_exceptions_actionGoogleSearch %}
+    <form method="get" action="//www.google.com/search" onsubmit="document.getElementById('search-query').value += ' site:' + document.domain;">
+        <fieldset>
+            <label for="search-query">{{ "alternatives.action.search.description"|trans({},'webfactory-exceptions-bundle') }}</label>
+            <input type="text" name="q" id="search-query" /><button type="submit" class="button">{{ "alternatives.action.search.button"|trans({},'webfactory-exceptions-bundle') }}</button>
+        </fieldset>
+    </form>
+{% endblock %}
+
+{% block webfactory_exceptions_actionGetInContact %}
+    {% set link %}<a href="{{ contactUrl }}">{% endset %}
+    {% set endlink %}</a>{% endset %}
+    {{ "alternatives.action.contact"|trans({'%link%':link, '%endlink%': endlink},'webfactory-exceptions-bundle')|raw }}
+{% endblock %}
+
+{# @deprecated: use webfactory_exceptions_actionGetInContact instead #}
+{% block webfactory_exceptions_actionKontaktAufnehmen %}
+    {% if kontaktUrl is defined %}
+        {% set contactUrl = kontaktUrl %}
+    {% endif %}
+    {{ block('webfactory_exceptions_actionGetInContact') }}
+{% endblock %}
+
+{% block webfactory_exceptions_tryAgain %}
+    <form action="./" onsubmit="window.location = document.getElementById('url').value + '?from-error-page'; return false;">
+        <fieldset>
+            <label for="url">{{ "tryAgain.text"|trans({}, 'webfactory-exceptions-bundle') }}</label>
+            <input type="url" name="url" id="url" class="text url-404" value="{{ app.request.scheme ~ '://' ~ app.request.httpHost ~ app.request.baseUrl ~ app.request.server.get('REQUEST_URI') }}" />
+            <button type="submit" class="button">{{ "tryAgain.button"|trans({}, 'webfactory-exceptions-bundle') }}</button>
+        </fieldset>
+    </form>
+{% endblock %}

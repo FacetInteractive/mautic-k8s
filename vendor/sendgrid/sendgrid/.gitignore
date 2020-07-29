@@ -1,0 +1,13 @@
+test/coverage/*
+dist/
+composer.lock
+vendor
+.env
+sendgrid.env
+composer.phar
+.editorconfig
+test.php
+.idea/
+test/prism_linux_amd64
+test/prism/*
+!test/prim

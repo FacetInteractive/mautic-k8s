@@ -1,0 +1,28 @@
+language: php
+
+php:
+  - 7.0
+  - 7.1
+
+env:
+  - SYMFONY_VERSION=2.7.*
+  - SYMFONY_VERSION=2.8.*
+  - SYMFONY_VERSION=3.3.*
+  - SYMFONY_VERSION=dev-master
+
+cache:
+  directories:
+    - $COMPOSER_CACHE_DIR
+
+matrix:
+  allow_failures:
+    - env: SYMFONY_VERSION=dev-master
+
+before_install:
+  - composer selfupdate
+
+before_script:
+  - travis_wait composer require symfony/framework-bundle:${SYMFONY_VERSION} --prefer-source
+  - travis_wait composer install --dev --prefer-source
+
+script: ./vendor/bin/phpunit

@@ -1,0 +1,20 @@
+{
+	"name": "phpstan/phpstan-shim",
+	"description": "PHPStan Phar distribution",
+	"license": ["MIT"],
+	"require": {
+		"php": "~7.0"
+	},
+	"replace": {
+		"phpstan/phpstan": "self.version"
+	},
+	"bin": [
+		"phpstan",
+		"phpstan.phar"
+	],
+	"extra": {
+		"branch-alias": {
+			"dev-master": "0.9-dev"
+		}
+	}
+}

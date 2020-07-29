@@ -1,0 +1,148 @@
+{
+  "name": "facetinteractive/mautic-k8s",
+  "type": "project",
+  "description": "Mautic Open Source Distribution - Modified for K8s",
+  "license": "GPL-3.0-only",
+  "require": {
+    "mautic/core": "2.15.3",
+    "aws/aws-sdk-php": "3.36",
+    "twig/twig": "v1.35.0"
+  },
+  "repositories": [
+    {
+      "type": "package",
+      "package": {
+        "type": "library",
+        "name": "mautic/core",
+        "version": "2.15.3",
+        "source": {
+          "type": "git",
+          "url": "https://github.com/mautic/mautic.git",
+          "reference": "master"
+        },
+        "require": {
+          "mnsami/composer-custom-directory-installer": "1.1.*",
+          "wikimedia/composer-merge-plugin": "dev-master"
+        }
+      }
+    }
+  ],
+  "extra": {
+    "installer-paths": {
+      "./mautic": [
+        "mautic/core"
+      ]
+    },
+    "merge-plugin": {
+      "include": [
+        "./mautic/composer.json",
+        "./mautic/plugins/**/composer.json",
+        "./composer.custom"
+      ],
+      "recurse": true,
+      "replace": false,
+      "ignore-duplicates": false,
+      "merge-dev": true,
+      "merge-extra": true,
+      "merge-extra-deep": true,
+      "merge-scripts": false
+    },
+    "symfony-app-dir": "./mautic/app",
+    "symfony-web-dir": "./"
+  },
+  "scripts": {
+    "cc": [
+      "rm -rf ./mautic/app/cache/*",
+      "@php ./mautic/app/console cache:clear --no-interaction --no-warmup -vvv",
+      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
+      "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache"
+    ],
+    "crons": [
+      "# Firing typical Mautic cront tasks for local testing.",
+      "@php ./mautic/app/console mautic:segments:update --env=dev",
+      "# To keep campaigns updated with applicable contacts.",
+      "@php ./mautic/app/console mautic:campaigns:rebuild --env=dev",
+      "# To execute campaigns events.",
+      "@php ./mautic/app/console mautic:campaigns:trigger --env=dev",
+      "# To send frequency rules rescheduled marketing campaign messages.",
+      "@php ./mautic/app/console mautic:messages:send --env=dev",
+      "# Process Email Queue.",
+      "@php ./mautic/app/console mautic:emails:send --time-limit 60 --env=dev",
+      "# Fetch and Process Monitored Email.",
+      "@php ./mautic/app/console mautic:email:fetch --env=dev",
+      "# Send scheduled broadcasts / segment emails.",
+      "@php ./mautic/app/console mautic:broadcasts:send --env=dev",
+      "# Iterates through social monitors.",
+      "@php ./mautic/app/console mautic:social:monitoring --env=dev",
+      "# Send webhook payloads.",
+      "@php ./mautic/app/console mautic:webhooks:process --env=dev"
+    ],
+    "custom": [
+      "rm -rf ./mautic/vendor ./mautic/bin",
+      "cd ./mautic ; ln -s ../vendor vendor",
+      "cd ./mautic ; ln -s ../bin bin",
+      "bash ./scripts/mautic-custom.sh mautic_eb",
+      "bash ./scripts/mautic-custom.sh mautic_custom",
+      "bash ./scripts/mautic-custom-plugins.sh",
+      "echo 'deny from all' > ./mautic/vendor/.htaccess"
+    ],
+    "git-hooks": "@php -r \"if(file_exists('./mautic/.git')&&file_exists('./mautic/build/hooks/pre-commit'.(PHP_OS=='WINNT'?'.win':''))){copy('./mautic/build/hooks/pre-commit'.(PHP_OS=='WINNT'?'.win':''),'./mautic/.git/hooks/pre-commit');}\"",
+    "iplookup": "@php ./mautic/app/console mautic:iplookup:download",
+    "migrate": "@php ./mautic/app/console doctrine:migrations:migrate --no-interaction",
+    "db-drop-dev": [
+      "@php ./mautic/app/console doctrine:database:drop --force --no-interaction --env=dev"
+    ],
+    "db-setup-dev": [
+      "@php ./mautic/app/console doctrine:database:create --no-interaction --if-not-exists --env=dev -vvv",
+      "@php ./mautic/app/console mautic:install:data --force --env=dev -vvv",
+      "@php ./mautic/app/console doctrine:migrations:version --add --all --no-interaction --env=dev -vvv"
+    ],
+    "db-setup-test": [
+      "@php ./mautic/app/console doctrine:database:create --no-interaction --if-not-exists --env=test -vvv",
+      "@php ./mautic/app/console mautic:install:data --force --env=test -vvv",
+      "@php ./mautic/app/console doctrine:migrations:version --add --all --no-interaction --env=test -vvv"
+    ],
+    "test-dist": [
+      "cd ./mautic && bin/phpunit --bootstrap vendor/autoload.php --configuration app/phpunit.xml.dist"
+    ],
+    "test": [
+      "@php ./mautic/app/console doctrine:database:drop --force --no-interaction --env=test",
+      "@php ./mautic/app/console doctrine:database:create --no-interaction --env=test",
+      "@php ./mautic/app/console mautic:install:data --force --env=test",
+      "@php ./mautic/app/console doctrine:migrations:version --add --all --no-interaction --env=test",
+      "@php ./mautic/app/console cache:clear --no-interaction --no-warmup -vvv",
+      "cd ./mautic ; bin/codecept run --env=test",
+      "# ./mautic/bin/phpstan analyse ./mautic/app/bundles/*Bundle --no-interaction"
+    ],
+    "less": [
+      "rm -rf ./mautic/media/css/app.css ./mautic/media/css/libraries.css",
+      "cd ./mautic ; npm install ; npm install grunt-cli ; grunt less"
+    ],
+    "js": [
+      "rm -rf ./mautic/media/js/app.js ./mautic/media/js/libraries.js"
+    ],
+    "assets":  [
+      "@less",
+      "@js",
+      "@php ./mautic/app/console mautic:assets:generate"
+    ],
+    "post-install-cmd": [
+      "@custom",
+      "@git-hooks",
+      "@iplookup",
+      "@cc"
+    ]
+  },
+  "config": {
+    "preferred-install": "dist",
+    "vendor-dir": "./vendor",
+    "bin-dir": "./bin",
+    "optimize-autoloader": true,
+    "discard-changes": true
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require-dev": {
+    "phpstan/phpstan-shim": "^0.9.1"
+  }
+}

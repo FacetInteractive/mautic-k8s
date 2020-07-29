@@ -1,0 +1,75 @@
+services:
+    lightsaml.service.name_id_validator:
+        class: LightSaml\Validator\Model\NameId\NameIdValidator
+
+    lightsaml.service.statement_validator:
+        class: LightSaml\Validator\Model\Statement\StatementValidator
+
+    lightsaml.service.subject_validator:
+        class: LightSaml\Validator\Model\Subject\SubjectValidator
+        arguments:
+            - "@lightsaml.service.name_id_validator"
+
+    lightsaml.service.assertion_time_validator:
+        class: LightSaml\Validator\Model\Assertion\AssertionTimeValidator
+
+    lightsaml.service.assertion_validator:
+        class: LightSaml\Validator\Model\Assertion\AssertionValidator
+        arguments:
+            - "@lightsaml.service.name_id_validator"
+            - "@lightsaml.service.subject_validator"
+            - "@lightsaml.service.statement_validator"
+
+    lightsaml.service.endpoint_resolver.binding:
+        class: LightSaml\Resolver\Endpoint\BindingEndpointResolver
+
+    lightsaml.service.endpoint_resolver.descriptor_type:
+        class: LightSaml\Resolver\Endpoint\DescriptorTypeEndpointResolver
+
+    lightsaml.service.endpoint_resolver.service_type:
+        class: LightSaml\Resolver\Endpoint\ServiceTypeEndpointResolver
+
+    lightsaml.service.endpoint_resolver.index:
+        class: LightSaml\Resolver\Endpoint\IndexEndpointResolver
+
+    lightsaml.service.endpoint_resolver.location:
+        class: LightSaml\Resolver\Endpoint\LocationEndpointResolver
+
+    lightsaml.service.endpoint_resolver:
+        class: LightSaml\Resolver\Endpoint\CompositeEndpointResolver
+        calls:
+            - [add, ["@lightsaml.service.endpoint_resolver.binding"]]
+            - [add, ["@lightsaml.service.endpoint_resolver.descriptor_type"]]
+            - [add, ["@lightsaml.service.endpoint_resolver.service_type"]]
+            - [add, ["@lightsaml.service.endpoint_resolver.index"]]
+            - [add, ["@lightsaml.service.endpoint_resolver.location"]]
+
+    lightsaml.service.binding_factory:
+        class: LightSaml\Binding\BindingFactory
+        arguments:
+            - "@lightsaml.system.event_dispatcher"
+
+    lightsaml.service.credential_resolver_factory:
+        class: LightSaml\Resolver\Credential\Factory\CredentialResolverFactory
+        arguments:
+            - "@lightsaml.credential.credential_store"
+
+    lightsaml.service.credential_resolver:
+        class: LightSaml\Resolver\Credential\CompositeFilterResolver
+        # factory: ["@lightsaml.service.credential_resolver_factory", build] # set in extension, differently based on symfony version
+
+    lightsaml.service.signature_resolver:
+        class: LightSaml\Resolver\Signature\OwnSignatureResolver
+        arguments:
+            - "@lightsaml.service.credential_resolver"
+
+    lightsaml.service.signature_validator:
+        class: LightSaml\Validator\Model\Signature\SignatureValidator
+        arguments:
+            - "@lightsaml.service.credential_resolver"
+
+    lightsaml.service.session_processor:
+        class: LightSaml\Resolver\Session\SessionProcessor
+        arguments:
+            - "@lightsaml.store.sso_state"
+            - "@lightsaml.system.time_provider"
