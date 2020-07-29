@@ -11,7 +11,7 @@ env_file:
 services:
   appserver:
     build:
-      - "cd /app/mautic && composer install"
+      - "cd /app && composer install"
     overrides:
       environment:
         PHP_IDE_CONFIG: "serverName=mautic.lndo.site"
