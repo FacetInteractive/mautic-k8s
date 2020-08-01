@@ -480,4 +480,16 @@ kubectl -n <namespace> exec -i mysql-0 -c mysql -- mysql -u user -p mautic < /pa
 
 
 
+# Lando Docker Setup
 
+Get started with Mautic on a LEMP stack.
+
+Simply download Lando and run: 
+
+```
+lando start
+```
+
+References:
+
+- https://github.com/Tim-MultiSafepay/Lando-RabbitMQ

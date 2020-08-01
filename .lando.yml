@@ -5,10 +5,17 @@ config:
   php: '7.2'
   database: mysql:5.7
   xdebug: true
+# Copy from .env.lando.dist to .env
 env_file:
   - .env
 
+# Set a reachable management site ( User: guest, Pass: guest )
+proxy:
+  rabbitmq:
+    - rabbit.lndo.site:15672
+
 services:
+  # Mautic Appserver
   appserver:
     build:
       - "cd /app && composer install"
@@ -16,10 +23,35 @@ services:
       environment:
         PHP_IDE_CONFIG: "serverName=mautic.lndo.site"
         # Other Environment variables included via .env
+    build_as_root:
+      - "cd / && mkdir cache && chown -R www-data:dialout /cache && chmod -R g+rwX /cache"
+      - "cd / && mkdir logs && chown -R www-data:dialout /logs && chmod -R g+rwX /logs"
+  # Setup RabbitMQ service using "compose"
+  rabbitmq:
+    type: compose
+    services:
+      # Grab RabbitMQ management image
+      image: "rabbitmq:3-management"
+      hostname: "rabbit"
+
+      # Start the server for RabbitMQ
+      command: rabbitmq-server
+
+      # Expose RabbitMQ Ports
+      ports:
+        - '15672:15672'
+        - '5672:5672'
+
+      # Link RabbitMQ Configs
+      volumes:
+        - rabbitmq-isolated.conf:/etc/rabbitmq/rabbitmq.config
+      labels:
+        NAME: "rabbitmq"
 
 tooling:
   php:
     service: appserver
+    cmd: php
   segment-update:
     service: appserver
     cmd: php /app/mautic/app/console mautic:segments:update
@@ -43,3 +75,21 @@ tooling:
     description: Run Tests Locally
     cmd:
       - appserver: composer test
+  # Set up command "Lando rabbit" for basic RabbitMQ commands
+  rabbit:
+    service: rabbitmq
+    # User must be root to prevent erlang cookie error
+    user: root
+    cmd: rabbitmqctl
+  # Setup command "lando rabbit-ip" to get the ip address
+  rabbit-ip:
+    service: rabbitmq
+    cmd:
+      - echo -e "\n\e[36mRABBITMQ IP ADDRESS:\e[32m"
+      - hostname -i | cut -d' ' -f1
+
+events:
+  # Shows IP address on 'lando start'
+  post-start:
+    - rabbitmq: echo -e "\n\e[36mRABBITMQ IP ADDRESS:\e[32m"
+    - rabbitmq: hostname -i | cut -d' ' -f1
