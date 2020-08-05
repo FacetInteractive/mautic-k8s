@@ -35,12 +35,11 @@ project:
   s3Bucket: {}
   secret: database-user
   mailerHost: "email-smtp.us-east-1.amazonaws.com"
-  mailerUser: "AKIAIIL5EHY6A7ZEFL2A"
   rabbitmqUser: "user"
   rabbitmqPassword:
-  mailerUser: AKIAIIL5EHY6A7ZEFL2A
+  mailerUser: 
   mailerPassword:
-  secretKey: somR9dadafdqedadf
+  secretKey: somR9dadafdqedadf 
   # Persistence - Persistence Volume claims an
   persistence:
     storageClass: "aws-efs"
