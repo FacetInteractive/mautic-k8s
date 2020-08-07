@@ -125,12 +125,7 @@
       - kubectl exec -it  statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -c mautic -- rm -rf /cache/{pro_,prod,run}
       - kubectl exec -it  statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -c mautic -- app/console cache:warmup 
       # Repeat if the above command fails the first time
-      -  >
-         if [ $? -eq 0 ]; then
-          echo "okay";
-         else
-            kubectl exec -it  statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -c mautic -- app/console cache:warmup 
-         fi   
+      - if [ $? -eq 0 ]; then echo "okay"; else  kubectl exec -it  statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -c mautic -- app/console cache:warmup ; fi   
     only:
       refs:
         - branches
