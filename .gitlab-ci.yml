@@ -112,6 +112,7 @@
         --set ExternalDb.password=$RDS_PASSWORD 
         --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password 
+        --set ingress.domain=k8s.facetinteractive.com
     only:
       refs:
         - branches
