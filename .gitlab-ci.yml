@@ -115,7 +115,7 @@
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password 
         --set ingress.domain=k8s.facetinteractive.com      
       
-    # Post deployment script  
+    # Post deployment script
     after_script:
       # wait for pod to be up
       - kubectl wait --for=condition=Ready pod/${RELEASE_NAME}-mautic-0 -n ${NAMESPACE} -mautic-0 --namespace $NAMESPACE
