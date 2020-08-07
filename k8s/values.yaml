@@ -36,10 +36,9 @@ project:
   secret: database-user
   mailerHost: "email-smtp.us-east-1.amazonaws.com"
   rabbitmqUser: "user"
-  rabbitmqPassword:
-  mailerUser: 
-  mailerPassword:
-  secretKey: somR9dadafdqedadf 
+  rabbitmqPassword: v3r#r@ndum1  
+  mailerPassword: r2ndm$tri9n
+  secretKey: r2ndm$trin487
   # Persistence - Persistence Volume claims an
   persistence:
     storageClass: "aws-efs"
@@ -64,8 +63,6 @@ project:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
-
-
 
   
 # External DB (ex: RDS, AzureSQL) configurtion
