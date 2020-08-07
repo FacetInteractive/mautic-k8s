@@ -123,7 +123,14 @@
       - kubectl exec -it  statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE  -c mautic -- app/console doctrine:migrations:migrate --no-ansi --no-interaction
       # clear cache and warm it up
       - kubectl exec -it  statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -c mautic -- rm -rf /cache/{pro_,prod,run}
-      - kubectl exec -it  statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -c mautic -- app/console cache:warmup  
+      - kubectl exec -it  statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -c mautic -- app/console cache:warmup 
+      # Repeat if the above command fails the first time
+      -  >
+         if [ $? -eq 0 ]; then
+          echo "okay";
+         else
+            kubectl exec -it  statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -c mautic -- app/console cache:warmup 
+         fi   
     only:
       refs:
         - branches
@@ -156,7 +163,7 @@
         - helm upgrade $RELEASE_NAME  . --install --namespace $NAMESPACE
           --set project.branch=$CI_COMMIT_BRANCH
           --set project.nginxImage.tag=latest
-          --set project.mauticImage.tag=latest
+          --set project.mauticImage.tag=latest`
           --set traefik.ssl.defaultCert=$PROD_TLS_CERT
           --set traefik.ssl.defaultKey=$PROD_TLS_KEY
           --set ExternalDb.host=$RDS_HOST
