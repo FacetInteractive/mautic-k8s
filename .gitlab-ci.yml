@@ -118,6 +118,7 @@
     # Post deployment script
     after_script:
       # wait for pod to be up
+      - kubectl rollout status statefulset/$RELEASE_NAME-mautic -w 
       - kubectl wait --for=condition=Ready pod/$RELEASE_NAME-mautic-0 --namespace $NAMESPACE
       # run doctrine migrations
       - kubectl exec -it  statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE  -c mautic -- app/console doctrine:migrations:migrate --no-ansi --no-interaction
