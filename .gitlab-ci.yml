@@ -20,9 +20,9 @@
     #Docker Registry (ECR) URL for Nginx image
     NGINX_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
     # various stagescurrently disabled, remove or comment out the variable to enable those steps
-    DEV_BUILD_DISABLED: "true"
+    # DEV_BUILD_DISABLED: "true"
     PROD_BUILD_DISABLED: "true"
-    DEV_RELEASE_DISABLED: "true"
+    # DEV_RELEASE_DISABLED: "true"
     PROD_RELEASE_DISABLED: "true"
 
 
@@ -101,10 +101,15 @@
 
     script:
       - cd k8s/
-      - helm upgrade --install $RELEASE_NAME --namespace $NAMESPACE --set project.branch=$CI_COMMIT_BRANCH
-        --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
-        --set traefik.ssl.defaultCert=$TLS_CERT --set traefik.ssl.defaultKey=$TLS_KEY
-        --set ExternalDb.host=$RDS_HOST --set ExternalDb.password=$RDS_PASSWORD --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
+      - helm upgrade --install $RELEASE_NAME . --namespace $NAMESPACE 
+        --set project.branch=$CI_COMMIT_BRANCH
+        --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA 
+        --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
+        --set traefik.ssl.defaultCert=$TLS_CERT 
+        --set traefik.ssl.defaultKey=$TLS_KEY
+        --set ExternalDb.host=$RDS_HOST 
+        --set ExternalDb.password=$RDS_PASSWORD 
+        --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password .
     only:
       refs:
