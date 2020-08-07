@@ -32,6 +32,15 @@ spec:
           ports:
             - containerPort: {{ .Values.project.service.targetPort }}
               name: {{ .Values.project.name }}-nginxport
+          env:
+          - name: SERVER_NAME  
+          {{- if eq  .Values.project.branch "master" }}
+            value: {{ .Values.project.name }}.{{ .Values.ingress.domain }}
+            {{- else if .Values.project.branch }}
+            value: {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
+            {{- else }}
+            value: {{ .Values.ingress.domain }}
+            {{- end }}                  
         - image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
           name: mautic
           env:
@@ -70,6 +79,14 @@ spec:
             {{- else }}
             value:  https://{{ .Values.ingress.domain }}
             {{- end }}            
+          - name: SERVER_NAME  
+          {{- if eq  .Values.project.branch "master" }}
+            value: {{ .Values.project.name }}.{{ .Values.ingress.domain }}
+            {{- else if .Values.project.branch }}
+            value: {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
+            {{- else }}
+            value: {{ .Values.ingress.domain }}
+            {{- end }}              
           - name: MAILER_HOST
             value: {{ .Values.project.mailerHost}}
           - name: MAILER_USER
