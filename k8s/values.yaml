@@ -8,7 +8,7 @@ project:
   labels:
     app: facetmautic
   # This can be replaced with Gitlab $COMMIT_BRANCH_NAME During deploy  
-  branch: develop  
+  branch: master  
   nginxImage:
     # This will be subsituted with Gitlab Environment variable
     repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx  
@@ -35,7 +35,6 @@ project:
   s3Bucket: {}
   secret: database-user
   mailerHost: "email-smtp.us-east-1.amazonaws.com"
-  mailerUser: "AKIAIIL5EHY6A7ZEFL2A"
   rabbitmqUser: "user"
   rabbitmqPassword: v3r#r@ndum1  
   mailerPassword: r2ndm$tri9n

@@ -19,10 +19,11 @@
     MAUTIC_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
     #Docker Registry (ECR) URL for Nginx image
     NGINX_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
-    # various stagescurrently disabled, remove or comment out the variable to enable those steps
-    # DEV_BUILD_DISABLED: "true"
-    # PROD_BUILD_DISABLED: "true"
-    # DEV_RELEASE_DISABLED: "true"
+    
+    # various stages, currently disabled, remove the variable to enable those steps
+    DEV_BUILD_DISABLED: "true"
+    PROD_BUILD_DISABLED: "true"
+    DEV_RELEASE_DISABLED: "true"
     # PROD_RELEASE_DISABLED: "true"
 
 
