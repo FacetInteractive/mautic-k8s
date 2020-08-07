@@ -21,9 +21,9 @@
     NGINX_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
     # various stagescurrently disabled, remove or comment out the variable to enable those steps
     # DEV_BUILD_DISABLED: "true"
-    PROD_BUILD_DISABLED: "true"
+    # PROD_BUILD_DISABLED: "true"
     # DEV_RELEASE_DISABLED: "true"
-    PROD_RELEASE_DISABLED: "true"
+    # PROD_RELEASE_DISABLED: "true"
 
 
   # Dev Build stage:  Builds mautic and nginx images with the tag $CI_COMMIT_SHORT_SHA
