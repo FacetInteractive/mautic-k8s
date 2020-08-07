@@ -118,12 +118,12 @@
     # Post deployment script
     after_script:
       # wait for pod to be up
-      - kubectl wait --for=condition=Ready pod/${RELEASE_NAME}-mautic-0 -n ${NAMESPACE} -mautic-0 --namespace $NAMESPACE
+      - kubectl wait --for=condition=Ready pod/$RELEASE_NAME-mautic-0 -n $NAMESPACE -mautic-0 --namespace $NAMESPACE
       # run doctrine migrations
-      - kubectl exec -it  statefulset/${RELEASE_NAME}-mautic -n ${NAMESPACE}  -c mautic -- app/console doctrine:migrations:migrate --no-ansi --no-interaction
+      - kubectl exec -it  statefulset/$RELEASE_NAME-mautic -n $NAMESPACE  -c mautic -- app/console doctrine:migrations:migrate --no-ansi --no-interaction
       # clear cache and warm it up
-      - kubectl exec -it  statefulset/${RELEASE_NAME}-mautic -n ${NAMESPACE} -c mautic -- rm -rf /cache/{pro_,prod,run}
-      - kubectl exec -it  statefulset/${RELEASE_NAME}-mautic -n ${NAMESPACE} -c mautic -- app/console cache:warmup  
+      - kubectl exec -it  statefulset/$RELEASE_NAME-mautic -n $NAMESPACE -c mautic -- rm -rf /cache/{pro_,prod,run}
+      - kubectl exec -it  statefulset/$RELEASE_NAME-mautic -n $NAMESPACE -c mautic -- app/console cache:warmup  
     only:
       refs:
         - branches
@@ -147,7 +147,7 @@
 
       before_script:
         - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS $REGISTRY
-        - kubectl describe namespace ${NAMESPACE}  || kubectl create namespace ${NAMESPACE}
+        - kubectl describe namespace $NAMESPACE  || kubectl create namespace $NAMESPACE
         # Generates Regesitry Credentials in the mautic namespace
         - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
 
