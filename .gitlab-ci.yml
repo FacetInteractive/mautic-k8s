@@ -152,7 +152,7 @@
           --set ExternalDb.host=$RDS_HOST
           --set ExternalDb.password=$RDS_PASSWORD
           --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
-          --set project.mailermailerUser=$PROD_MAILER_USER
+          --set project.mailerUser=$PROD_MAILER_USER
           --set project.mailerPassword=$PROD_MAILER_SECRET_KEY
           --set project.secretKey=$PROD_SECRET_KEY
           --set project.secretkey=$PROD_APP_SECRET_KEY
