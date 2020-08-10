@@ -29,7 +29,7 @@ project:
     port: 80
     targetPort: 8080
   # Environment  Values
-  #Data base Variables
+  # Data base Variables
   # Host address of the External DB instance.
   # If ExternalDbHost is left empty , a local DB (K8s)is created.
   s3Bucket: {}
@@ -66,7 +66,7 @@ project:
     #   memory: 128Mi
 
   
-# External DB (ex: RDS, AzureSQL) configurtion
+# External DB (ex: RDS, AzureSQL) configuration
 ExternalDb: 
   host:
   password:
@@ -90,9 +90,7 @@ db:
 # Ingress Details
 # Ingress host name defines the url of your domain
 # The name of the project name will be prefixed to the domain name of your website
-# If your project name is markenting and domain is example.com the hostname of this application would be marketing.example.com
-
-
+# If your project name is `marketing` and domain is `example.com` the hostname of this application would be `marketing.example.com`
 
 ingress:
   enabled: true
@@ -104,9 +102,6 @@ ingress:
     nginx.ingress.kubernetes.io/session-cookie-name: "route"
     nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
     nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
-
-
-
 
 # Values for the Ingress Controller
 traefik:
