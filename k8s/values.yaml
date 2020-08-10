@@ -37,6 +37,7 @@ project:
   mailerHost: "email-smtp.us-east-1.amazonaws.com"
   rabbitmqUser: "user"
   rabbitmqPassword: v3r#r@ndum1  
+  mailerUser: AQIODFIDOJFDJ
   mailerPassword: r2ndm$tri9n
   secretKey: r2ndm$trin487
   # Persistence - Persistence Volume claims an
