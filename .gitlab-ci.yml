@@ -113,7 +113,10 @@
         --set ExternalDb.password=$RDS_PASSWORD 
         --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password 
-        --set ingress.domain=k8s.facetinteractive.com      
+        --set ingress.domain=k8s.facetinteractive.com
+        --set project.mailerUser=$DEV_MAILER_USER
+        --set project.mailerPassword=$DEV_MAILER_SECRET_KEY
+        --set project.secretKey=$DEV_APP_SECRET_KEY      
       
     # Post deployment script
     after_script:
@@ -166,9 +169,8 @@
           --set ExternalDb.password=$RDS_PASSWORD
           --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
           --set project.mailerUser=$PROD_MAILER_USER
-          --set project.mailerPassword=$PROD_MAILER_SECRET_KEY
-          --set project.secretKey=$PROD_SECRET_KEY
-          --set project.secretkey=$PROD_APP_SECRET_KEY
+          --set project.mailerPassword=$PROD_MAILER_SECRET_KEY          
+          --set project.secretKey=$PROD_APP_SECRET_KEY
           --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password
       only:
         - master
