@@ -130,7 +130,7 @@
       variables:
         - $DEV_RELEASE_DISABLED
     environment:
-      name: $RELEASE_NAME-mautic 
+      name: mautic-$CI_COMMIT_BRANCH
 
 # Production Release stage: Deploys application in prod (mautic) namespace.
 # Runs only when code is commited from master and the Vairable PROD_RELEASE_DISABLED is commented out.
