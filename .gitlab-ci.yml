@@ -108,10 +108,7 @@
         --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA 
         --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
         --set traefik.ssl.defaultCert=$TLS_CERT 
-        --set traefik.ssl.defaultKey=$TLS_KEY
-        --set ExternalDb.host=$RDS_HOST 
-        --set ExternalDb.password=$RDS_PASSWORD 
-        --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
+        --set traefik.ssl.defaultKey=$TLS_KEY        
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password 
         --set ingress.domain=k8s.facetinteractive.com
         --set project.mailerUser=$DEV_MAILER_USER
@@ -121,8 +118,7 @@
     # Post deployment script
     after_script:
       # wait for pod to be up
-      - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w 
-      - kubectl wait --for=condition=Ready pod/$RELEASE_NAME-mautic-0 --namespace $NAMESPACE
+      - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w       
       - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE  
       - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
     only:
