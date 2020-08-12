@@ -123,13 +123,8 @@
       # wait for pod to be up
       - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w 
       - kubectl wait --for=condition=Ready pod/$RELEASE_NAME-mautic-0 --namespace $NAMESPACE
-      # run doctrine migrations
-      - kubectl exec -it  statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE  -c mautic -- app/console doctrine:migrations:migrate --no-ansi --no-interaction
-      # clear cache and warm it up
-      - kubectl exec -it  statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -c mautic -- rm -rf /cache/{pro_,prod,run}
-      - kubectl exec -it  statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -c mautic -- app/console cache:warmup 
-      # Repeat if the above command fails the first time
-      - if [ $? -eq 0 ]; then echo "okay"; else  kubectl exec -it  statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -c mautic -- app/console cache:warmup ; fi   
+      - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE  
+      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
     only:
       refs:
         - branches
