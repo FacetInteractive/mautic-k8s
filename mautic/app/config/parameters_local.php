@@ -154,11 +154,11 @@ $parameters = array(
 	'utm_campaign' => 'subject',
 	'remove_accents' => 1,
 	'mailer_is_owner' => 1,
-	'default_signature_text' => 'Kevin Valade
+	'default_signature_text' => 'Peter Vasilion
 ​
-O: (323) 909-2005
-E:  kevin@facetinteractive.com 
-A: 1230 Rosecrans Ave., Suite 300 Manhattan Beach, CA 90266
+O: (323) 909-2005x201
+E:  peter@facetinteractive.com 
+A: 840 Apollo Street Suite 100, El Segundo, CA 90245
 W: facetinteractive.com
 Schedule a Meeting: https://calendly.com/facet-interactive',
 	'mailer_amazon_region' => 'email-smtp.us-east-1.amazonaws.com',
