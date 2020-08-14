@@ -88,9 +88,9 @@ spec:
             value: {{ .Values.ingress.domain }}
             {{- end }}              
           - name: MAILER_HOST
-            value: {{ .Values.project.mailerHost}}
+            value: {{ .Values.project.mailerHost }}
           - name: MAILER_USER
-            value: {{ .Values.project.mailerUser}}
+            value: {{ .Values.project.mailerUser }}
           - name: MAILER_PASSWORD            
             valueFrom:
               secretKeyRef:
