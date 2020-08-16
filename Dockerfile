@@ -1,6 +1,6 @@
 FROM lakshminp/php-base:7.2
 
-COPY mautic /var/www/symfony
+COPY . /var/www/symfony
 
 RUN useradd -u 1001 -r -g 0 -d /app -s /bin/bash -c "Default Application User" default \
     && chown -R 1001:0 /var/www/symfony && chmod -R g+rwX /var/www/symfony
