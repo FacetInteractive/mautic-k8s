@@ -28,7 +28,7 @@ RUN docker-php-ext-install pdo pdo_mysql bcmath zip \
     && docker-php-ext-enable pdo pdo_mysql mcrypt bcmath zip
 RUN docker-php-ext-configure gd --with-gd --with-webp-dir --with-jpeg-dir \
     --with-png-dir --with-zlib-dir --with-xpm-dir --with-freetype-dir \
-    --enable-gd-native-ttf && docker-php-ext-install gd
+    && docker-php-ext-install gd
 
 # install xdebug
 # RUN pecl install xdebug && docker-php-ext-enable xdebug
