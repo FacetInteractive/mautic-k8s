@@ -106,6 +106,24 @@ ingress:
 
 # Values for the Ingress Controller
 traefik:
+  externalTrafficPolicy: Local
+  proxyProtocol:
+    enabled: true
+      # trustedIPs is required when enabled
+    trustedIPs: 
+      - 10.0.0.0/0
+      - 172.16.0.0/12
+      
+  forwardedHeaders:
+    enabled: true
+    # trustedIPs is required when enabled
+    trustedIPs: 
+      - 10.0.0.0/0
+      - 172.16.0.0/12
+  service:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
+      
   ssl:
     enabled: true
     enforced: true
