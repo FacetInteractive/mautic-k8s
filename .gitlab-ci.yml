@@ -157,7 +157,7 @@
           --set project.replicaCount=3 
           --set project.branch=$CI_COMMIT_BRANCH
           --set project.nginxImage.tag=latest
-          --set project.mauticImage.tag=latest`
+          --set project.mauticImage.tag=latest
           --set traefik.ssl.defaultCert=$PROD_TLS_CERT
           --set traefik.ssl.defaultKey=$PROD_TLS_KEY
           --set ExternalDb.host=$RDS_HOST
