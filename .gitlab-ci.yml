@@ -113,7 +113,10 @@
         --set ingress.domain=k8s.facetinteractive.com
         --set project.mailerUser=$DEV_MAILER_USER
         --set project.mailerPassword=$DEV_MAILER_SECRET_KEY
-        --set project.secretKey=$DEV_APP_SECRET_KEY      
+        --set project.secretKey=$DEV_APP_SECRET_KEY
+        --set ExternalDb.host=$RDS_HOST
+        --set ExternalDb.password=$RDS_PASSWORD
+        --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD      
       
     # Post deployment script
     after_script:
