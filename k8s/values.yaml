@@ -123,7 +123,7 @@ traefik:
   service:
     annotations:
       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
-      traefik.backend.loadbalancer.stickiness=true
+      traefik.backend.loadbalancer.stickiness: true
       
   ssl:
     enabled: true
