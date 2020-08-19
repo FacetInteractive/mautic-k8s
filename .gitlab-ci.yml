@@ -144,7 +144,7 @@
       script:
         - cd k8s/
         - helm upgrade $RELEASE_NAME  . --install --namespace $NAMESPACE          
-          --set project.replicaCount=4
+          --set project.replicaCount=1
           --set project.branch=$CI_COMMIT_BRANCH
           --set project.nginxImage.tag=latest
           --set project.mauticImage.tag=latest
