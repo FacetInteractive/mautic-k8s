@@ -29,8 +29,8 @@ $parameters = array(
 	'locale' => 'en_US',
 	'trusted_hosts' => array(),
 	'trusted_proxies' => array(
-	    "10.0.0.0/0",
-        "172.16.0.0/12"
+	    "0" => "10.0.0.0/0",
+        "1" => "172.16.0.0/12"
     ),
 	'rememberme_key' => '0f687a26ee0c4221a7a3f8151236b6b12f123003',
 	'rememberme_lifetime' => '31536000',
