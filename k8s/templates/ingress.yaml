@@ -4,7 +4,11 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-{{ .Values.project.name }}-ingress  
   annotations:
-    ingress.kubernetes.io/affinity: "cookie"        
+    kubernetes.io/ingress.class: "traefik"
+    ingress.kubernetes.io/affinity: "cookie"
+    ingress.kubernetes.io/session-cookie-name: "route"
+    ingress.kubernetes.io/session-cookie-expires: "172800"
+    ingress.kubernetes.io/session-cookie-max-age: "172800"       
   {{- range $key, $value := .Values.ingress.annotations }}
   {{ $key }}: {{ $value | quote }}
   {{- end }}
