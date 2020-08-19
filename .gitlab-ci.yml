@@ -144,6 +144,7 @@
       script:
         - cd k8s/
         - helm upgrade $RELEASE_NAME  . --install --namespace $NAMESPACE          
+          --set project.replicaCount=4
           --set project.branch=$CI_COMMIT_BRANCH
           --set project.nginxImage.tag=latest
           --set project.mauticImage.tag=latest
@@ -156,7 +157,8 @@
           --set project.mailerPassword=$PROD_MAILER_SECRET_KEY          
           --set project.secretKey=$PROD_APP_SECRET_KEY
           --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password
-          --set project.replicaCount=3 
+          
+
       only:
         - master
       except:
