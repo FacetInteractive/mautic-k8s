@@ -4,6 +4,7 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-{{ .Values.project.name }}-ingress  
   annotations:
+    ingress.kubernetes.io/affinity: "cookie"        
   {{- range $key, $value := .Values.ingress.annotations }}
   {{ $key }}: {{ $value | quote }}
   {{- end }}
