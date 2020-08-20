@@ -122,9 +122,9 @@ traefik:
       - 172.16.0.0/12
   service:
     annotations:
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
-      traefik.backend.loadbalancer.stickiness: true
-      
+      traefik.backend.loadbalancer.stickiness: "true"           
   ssl:
     enabled: true
     enforced: true
