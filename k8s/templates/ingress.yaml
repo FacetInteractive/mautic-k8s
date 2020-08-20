@@ -5,12 +5,8 @@ metadata:
   name: {{ .Release.Name }}-{{ .Values.project.name }}-ingress  
   annotations:
     kubernetes.io/ingress.class: "traefik"
-    traefik.backend.loadbalancer.stickiness: "true"
-    ingress.kubernetes.io/affinity: "cookie"
-    ingress.kubernetes.io/affinity: "true"    
-    ingress.kubernetes.io/session-cookie-name: "route"
-    ingress.kubernetes.io/session-cookie-expires: "172800"
-    ingress.kubernetes.io/session-cookie-max-age: "172800"   
+    traefik.backend.loadbalancer.stickiness: "true"    
+    ingress.kubernetes.io/affinity: "true"        
 spec:
   rules:
 {{- if eq  .Values.project.branch "master" }}
