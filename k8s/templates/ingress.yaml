@@ -6,7 +6,7 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: traefik
     ingress.kubernetes.io/affinity: "cookie"
-    traefik.ingress.kubernetes.io/affinity: "true"
+    ingress.kubernetes.io/affinity: "true"
     ingress.kubernetes.io/affinity: "true"
     ingress.kubernetes.io/session-cookie-name: "route"
     ingress.kubernetes.io/session-cookie-expires: "172800"
