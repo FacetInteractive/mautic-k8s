@@ -416,3 +416,18 @@ $parameters += [
     'webhook_disable_limit' => '100',
     'webhook_timeout' => '15',
 ];
+
+/**
+ * Error Level Settings
+ */
+if (getenv('NAMESPACE') == 'mautic-prod') {
+    // Turn on All Error Reporting
+    error_reporting(E_ALL && ~E_NOTICE && ~E_WARNING);
+    ini_set('display_errors', FALSE);
+    ini_set('display_startup_errors', FALSE);
+} else {
+    // Turn on All Error Reporting
+    error_reporting(E_ALL);
+    ini_set('display_errors', TRUE);
+    ini_set('display_startup_errors', TRUE);
+}
