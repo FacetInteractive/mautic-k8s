@@ -6,7 +6,8 @@ config:
   database: mysql:5.7
   xdebug: true
   config:
-    vhosts: nginx-mautic.conf
+    vhosts: nginx-lando.conf
+    php: php7-fpm/php.ini
 # Copy from .env.lando.dist to .env
 env_file:
   - .env
