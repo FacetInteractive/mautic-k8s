@@ -1,10 +1,17 @@
-# Docker Mautic setup
+# Mautic K8s
 
 Includes PHP FPM 7.1, Facet's Mautic code base, Nginx, PHPMyAdmin and MySQL stacks consolidated into a docker-compose for both local and production use.
 
 The production docker compose uses Traefik as a web proxy.
 
-## Required Access To Build
+## Documentation Cleanup Tasks
+
+* [ ] Remove docker-compose instructions
+* [ ] Add lando instructions
+* [ ] Add K8s Instructions under wiki.
+* [ ] Organize Wiki based on _standard functions_: `setup`, `build`, `deploy` and _components_: `k8s`, `mautic`, `nginx`  
+
+## Required Access To Build via AWS
 
 * Have AWS CLI installed and configured
     * Setup a profile for your AWS credentials
@@ -66,7 +73,6 @@ For local, php and nginx run as 2 separate services. For K8s though, they are 2 
     ```
 
 7. App can be accessed at "http://localhost:8080". Mautic will be installed in this step.
-
 
 ## TODOs
 
