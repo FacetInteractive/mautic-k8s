@@ -61,6 +61,12 @@ services:
         - rabbitmq-isolated.conf:/etc/rabbitmq/rabbitmq.config
       labels:
         NAME: "rabbitmq"
+  # Redis is used in order to store PHP Sessions
+  redis:
+    type: redis:5
+    persist: false
+    portforward: false
+
 
 tooling:
   php:
