@@ -96,7 +96,7 @@ $parameters += [
     'db_user' => getenv('MYSQL_USER'),
     'db_password' => getenv('MYSQL_PASSWORD'),
     'db_path' => null,
-    'db_server_version' => '5.5',
+    'db_server_version' => '5.7',
 ];
 
 /**
