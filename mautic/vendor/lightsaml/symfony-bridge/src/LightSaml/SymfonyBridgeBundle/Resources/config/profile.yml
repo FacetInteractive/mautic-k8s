@@ -1,0 +1,15 @@
+services:
+    ligthsaml.profile.metadata:
+        class: LightSaml\Builder\Profile\Metadata\MetadataProfileBuilder
+        arguments:
+            - "@lightsaml.container.build"
+
+    ligthsaml.profile.login_factory:
+        class: LightSaml\Builder\Profile\WebBrowserSso\Sp\SsoSpSendAuthnRequestProfileBuilderFactory
+        arguments:
+            - "@lightsaml.container.build"
+
+    ligthsaml.profile.acs:
+        class: LightSaml\Builder\Profile\WebBrowserSso\Sp\SsoSpReceiveResponseProfileBuilder
+        arguments:
+            - "@lightsaml.container.build"
