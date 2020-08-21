@@ -282,6 +282,6 @@ Schedule a Meeting: https://calendly.com/facet-interactive',
 // Trusted Proxies are Required for Load Balanced Application Containers Behind a Proxy in Mautic
 // @TODO - Replace array with explode(",",getenv('TRUSTED_PROXIES'))
 $parameters['trusted_proxies'] = array(
-    '0' => '10.0.0.0/0',
+    '0' => '10.0.5.190/24',
     '1' => '172.16.0.0/12'
 );
