@@ -1,0 +1,13 @@
+diff --git a/plugins/MauticCrmBundle/Integration/HubspotIntegration.php b/plugins/MauticCrmBundle/Integration/HubspotIntegration.php
+index efda5cf3d..e4ce7d899 100644
+--- a/plugins/MauticCrmBundle/Integration/HubspotIntegration.php
++++ b/plugins/MauticCrmBundle/Integration/HubspotIntegration.php
+@@ -162,7 +162,7 @@ class HubspotIntegration extends CrmAbstractIntegration
+      */
+     public function getAvailableLeadFields($settings = [])
+     {
+-        if ($fields = parent::getAvailableLeadFields()) {
++        if ($fields = parent::getAvailableLeadFields($settings)) {
+             return $fields;
+         }
+ 
