@@ -20,7 +20,7 @@ services:
   # Mautic Appserver
   appserver:
     build:
-      - "cd /app && composer install"
+      - "cd /app/mautic && composer install"
     overrides:
       environment:
         PHP_IDE_CONFIG: "serverName=mautic.lndo.site"
@@ -28,6 +28,18 @@ services:
     build_as_root:
       - "cd / && mkdir cache && chown -R www-data:dialout /cache && chmod -R g+rwX /cache"
       - "cd / && mkdir logs && chown -R www-data:dialout /logs && chmod -R g+rwX /logs"
+      - "apt-get update -y"
+      - "apt-get install -y libmcrypt-dev"
+      - "apt-get install -y zlib1g-dev"
+      - "apt-get install -y libwebp-dev"
+      - "apt-get install -y libjpeg62-turbo-dev"
+      - "apt-get install -y libpng-dev"
+      - "apt-get install -y libxpm-dev"
+      - "apt-get install -y libfreetype6-dev"
+      - "pecl install mcrypt-1.0.1 -y"
+      - "docker-php-ext-enable imap pdo pdo_mysql mcrypt bcmath zip redis"
+      - "docker-php-ext-configure gd --with-gd --with-webp-dir --with-jpeg-dir --with-png-dir --with-zlib-dir --with-xpm-dir --with-freetype-dir"
+      - "docker-php-ext-install gd"
   # Setup RabbitMQ service using "compose"
   rabbitmq:
     type: compose
