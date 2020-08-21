@@ -1,4 +1,6 @@
 <?php
+// @TODO - Replace this config with app/config/parameters_local.php when ready to cutover to mautic composer builds
+
 $parameters = array(
 	'cache_path' => '/cache',
 	'log_path' => '/logs',
