@@ -28,10 +28,6 @@ $parameters = array(
 	'theme' => 'Mauve',
 	'locale' => 'en_US',
 	'trusted_hosts' => array(),
-	'trusted_proxies' => array(
-	    "0" => "10.0.0.0/0",
-        "1" => "172.16.0.0/12"
-    ),
 	'rememberme_key' => '0f687a26ee0c4221a7a3f8151236b6b12f123003',
 	'rememberme_lifetime' => '31536000',
 	'rememberme_path' => '/',
@@ -282,3 +278,7 @@ Schedule a Meeting: https://calendly.com/facet-interactive',
 	'saml_idp_entity_id' => 'https://hello.facetinteractive.com',
 	'sms_transport' => null,
 );
+
+// Trusted Proxies are Required for Load Balanced Application Containers Behind a Proxy in Mautic
+// @TODO - Replace array with explode(",",getenv('TRUSTED_PROXIES'))
+$parameters['trusted_proxies'] = ['10.0.0.0/0', '172.16.0.0/12'];
