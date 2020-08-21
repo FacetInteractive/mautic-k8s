@@ -1,10 +1,30 @@
-# Docker Mautic setup
+# Mautic K8s
 
 Includes PHP FPM 7.1, Facet's Mautic code base, Nginx, PHPMyAdmin and MySQL stacks consolidated into a docker-compose for both local and production use.
 
 The production docker compose uses Traefik as a web proxy.
 
-## Required Access To Build
+## TODOs
+
+- [x] ~~Make local.php more in tune with app specific settings.~~
+- [x] ~~Update this mautic to latest stable version.~~
+- [x] ~~Explore separate caching tier like Redis. - Will be handled by stateful sets in Kubernetes.~~
+- [x] ~~Env specific settings.~~
+- [x] ~~Send logs to stdout.~~
+- [x] ~~Separate containers for running cronjobs.~~
+- [ ] Mautic/PHP: Setup Sessions for HA with Redis. 
+- [ ] Mautic: Solve `local.php` diff with `parameters_local.php` on new Mautic deploys.
+- [ ] PHP: Configure `php.ini` with memory_limit and other best practices. 
+- [ ] Local Dev: Standup `lando` configuration with LEMP stack. 
+
+## Documentation Cleanup Tasks
+
+- [ ] Remove docker-compose instructions
+- [ ] Add lando instructions
+- [ ] Add K8s Instructions under wiki.
+- [ ] Organize Wiki based on _standard functions_: `setup`, `build`, `deploy` and _components_: `k8s`, `mautic`, `nginx`  
+
+## Required Access To Build via AWS
 
 * Have AWS CLI installed and configured
     * Setup a profile for your AWS credentials
@@ -66,16 +86,6 @@ For local, php and nginx run as 2 separate services. For K8s though, they are 2 
     ```
 
 7. App can be accessed at "http://localhost:8080". Mautic will be installed in this step.
-
-
-## TODOs
-
-- ~~Make local.php more in tune with app specific settings.~~
-- ~~Update this mautic to latest stable version.~~
-- ~~Explore separate caching tier like Redis. - Will be handled by stateful sets in Kubernetes.~~
-- ~~Env specific settings.~~
-- ~~Send logs to stdout.~~
-- ~~Separate containers for running cronjobs.~~
 
 
 # Kubernetes setup
