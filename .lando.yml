@@ -4,7 +4,7 @@ config:
   webroot: mautic
   php: '7.2'
   database: mysql:5.7
-  xdebug: true
+  xdebug: false
   config:
     vhosts: nginx-lando.conf
     php: php7-fpm/php.ini
