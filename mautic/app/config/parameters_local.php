@@ -119,7 +119,6 @@ $parameters = array(
 	'webhook_start' => '0',
 	'webhook_limit' => '1000',
 	'webhook_log_max' => '10',
-	'queue_mode' => 'immediate_process',
 	'upload_dir' => '%kernel.root_dir%/media/files',
 	'max_size' => '6',
 	'allowed_extensions' => array(
@@ -154,7 +153,7 @@ $parameters = array(
 	'remove_accents' => 1,
 	'mailer_is_owner' => 1,
 	'default_signature_text' => 'Peter Vasilion
-​
+
 O: (323) 909-2005x201
 E:  peter@facetinteractive.com 
 A: 840 Apollo Street Suite 100, El Segundo, CA 90245
@@ -267,21 +266,52 @@ Schedule a Meeting: https://calendly.com/facet-interactive',
 	'webhook_disable_limit' => '100',
 	'webhook_timeout' => '15',
 	'events_orderby_dir' => 'ASC',
-	'rabbitmq_host' => getenv('RABBITMQ_HOST'),
-	'rabbitmq_port' => '5672',
-	'rabbitmq_vhost' => '/',
-	'rabbitmq_user' => getenv('RABBITMQ_USER'),
-	'rabbitmq_password' => getenv('RABBITMQ_PASSWORD'),
-	'beanstalkd_host' => 'localhost',
-	'beanstalkd_port' => '11300',
-	'beanstalkd_timeout' => '60',
 	'saml_idp_entity_id' => 'https://hello.facetinteractive.com',
 	'sms_transport' => null,
 );
 
-// Trusted Proxies are Required for Load Balanced Application Containers Behind a Proxy in Mautic
-// @TODO - Replace array with explode(",",getenv('TRUSTED_PROXIES'))
+/**
+ * Trusted Proxies
+ *
+ * @description - Required for Load Balanced Application Containers Behind a Proxy in Mautic
+ *
+ * @TODO - Replace array with explode(",",getenv('TRUSTED_PROXIES'))
+ *
+ */
 $parameters['trusted_proxies'] = array(
     '0' => '10.0.5.0/24',
     '1' => '172.16.0.0/12'
 );
+
+/**
+ * Mail Queue System
+ */
+$parameters += [
+    'queue_mode' => 'queue', // queue, immediate
+];
+
+/**
+ * Queue System: RabbitMQ
+ */
+$parameters += [
+    'queue_protocol' => 'rabbitmq',
+    'rabbitmq_host' => getenv('RABBITMQ_HOST'),
+    'rabbitmq_port' => '5672',
+    'rabbitmq_vhost' => '/',
+    'rabbitmq_user' => getenv('RABBITMQ_USER'),
+    'rabbitmq_password' => getenv('RABBITMQ_PASSWORD'),
+];
+
+/**
+ * Queue System: Beanstalk
+ *
+ * Cannot be enabled with RabbitMQ block above
+ */
+/*
+ $parameters += [
+    'queue_protocol' => 'beanstalkd',
+    'beanstalkd_host' => 'localhost',
+    'beanstalkd_port' => '11300',
+    'beanstalkd_timeout' => '60',
+];
+ */
