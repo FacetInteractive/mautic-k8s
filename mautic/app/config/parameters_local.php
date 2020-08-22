@@ -109,9 +109,6 @@ $parameters += [
     'webroot' => null,
     // Mautic Update Channel
     'update_stability' => 'stable',
-    // Dev Hosts - Set this if you want to enable Mautic's Dev Mode via external hosts
-    // @TODO - Make this work dynamically with Lando
-    'dev_hosts' => null,
 
     // Path Settings
     'cache_path' => '/cache',
@@ -135,6 +132,21 @@ $parameters += [
         "1" => "https://www.facetinteractive.com"
     ),
 ];
+
+/**
+ * Dev Settings
+ */
+if ($_ENV['HOST'] = 'mautic.lndo.site') {
+    /**
+     * Dev Hosts
+     *
+     * @description: Set this if you want to enable Mautic's Dev Mode via external hosts
+     * @TODO - Make this work dynamically with Lando Site name
+     */
+    $parameters['dev_hosts'] = 'mautic.lndo.site';
+} else {
+    $parameters['dev_hosts'] = null;
+}
 
 /**
  * Miscellaneous Settings
