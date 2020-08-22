@@ -1,9 +1,0 @@
-imports:
-    - { resource: ../config/default.yml }
-
-framework:
-    serializer:
-        enabled: true
-
-fos_rest:
-    param_fetcher_listener: true

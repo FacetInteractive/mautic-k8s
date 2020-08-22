@@ -1,5 +1,0 @@
-services:
-    lightsaml.container.build:
-        class: LightSaml\SymfonyBridgeBundle\Bridge\Container\BuildContainer
-        arguments:
-            - "@service_container"
