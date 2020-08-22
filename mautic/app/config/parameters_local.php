@@ -110,6 +110,7 @@ $parameters += [
     // Mautic Update Channel
     'update_stability' => 'stable',
     // Dev Hosts - Set this if you want to enable Mautic's Dev Mode via external hosts
+    // @TODO - Make this work dynamically with Lando
     'dev_hosts' => null,
 
     // Path Settings
@@ -145,10 +146,7 @@ $parameters['trusted_hosts'] = [];
 // Trusted Proxies
 // Required for Load Balanced Application Containers Behind a Proxy in Mautic
 // @TODO - Replace array with explode(",",getenv('TRUSTED_PROXIES'))
-$parameters['trusted_proxies'] = array(
-    '0' => '10.0.5.0/24',
-    '1' => '172.16.0.0/12'
-);
+$parameters['trusted_proxies'] = explode(",",getenv('TRUSTED_PROXIES'));
 
 // Do Not Track IPs
 $parameters['do_not_track_ips'] = explode(",", getenv('DONOTTRACK_IPS'));
