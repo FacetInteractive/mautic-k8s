@@ -126,7 +126,7 @@
       name: development
 
 # Production Release stage: Deploys application in prod (mautic) namespace.
-# Runs only when code is commited from master and the Vairable PROD_RELEASE_DISABLED is commented out.
+# Runs only when code is committed from master and the Variable PROD_RELEASE_DISABLED is commented out.
   prod-deploy:
       stage: prod-deploy
       image: kbaddi/awscli:k8s
