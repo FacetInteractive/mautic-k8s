@@ -58,7 +58,7 @@
       "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache"
     ],
     "crons": [
-      "# Firing typical Mautic cront tasks for local testing.",
+      "# Firing typical Mautic cron tasks for local testing.",
       "@php ./mautic/app/console mautic:segments:update --env=dev",
       "# To keep campaigns updated with applicable contacts.",
       "@php ./mautic/app/console mautic:campaigns:rebuild --env=dev",

@@ -74,21 +74,62 @@ tooling:
   php:
     service: appserver
     cmd: php
-  segment-update:
+  composer-build:
     service: appserver
-    cmd: php /app/mautic/app/console mautic:segments:update
-  campaigns-update:
+    cmd:
+      - rm -rf ./mautic/vendor ./mautic/bin
+      - echo 'deny from all' > ./mautic/vendor/.htaccess
+      -
+  cache-clear:
     service: appserver
-    cmd: php /app/mautic/app/console mautic:campaigns:update
-  campaigns-trigger:
+    cmd:
+      - rm -rf /cache/*
+      - php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv
+  post-mautic-update:
+    sevice: appserver
+    cmd:
+      - php /app/mautic/app/console doctrine:migrations:migrate --no-interaction
+      - php /app/mautic/app/console mautic:iplookup:download
+  cron-segment-update:
+    description: Firing typical Mautic cron tasks for local testing.
     service: appserver
-    cmd: php /app/mautic/app/console mautic:campaigns:trigger
-  hubspot-push:
+    cmd: php /app/mautic/app/console mautic:segments:update --env=dev
+  cron-campaigns-rebuild:
+    descrption: To keep campaigns updated with applicable contacts.
     service: appserver
-    cmd: php /app/mautic/app/console mautic:integration:pushleadactivity --integration=Hubspot
-  hubspot-fetch:
+    cmd: php /app/mautic/app/console mautic:campaigns:rebuild --env=dev
+  cron-campaigns-update:
+    description: Update campaigns.
     service: appserver
-    cmd: php /app/mautic/app/console mautic:integration:fetchleads --integration=Hubspot
+    cmd: php /app/mautic/app/console mautic:campaigns:update --env=dev
+  cron-campaigns-trigger:
+    description: To execute campaigns events.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:campaigns:trigger --env=dev
+  cron-messages-send:
+    description: To send frequency rules rescheduled marketing campaign messages.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:messages:send --env=dev
+  cron-emails-send:
+    description: Process Email Queue
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:emails:send --time-limit 60 --env=dev
+  cron-email-fetch:
+    description: Fetch and process Monitored Email.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:email:fetch --env=dev
+  cron-hubspot-push:
+    description: Push HubSpot Activity to Lead Contacts.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:integration:pushleadactivity --integration=Hubspot --env=dev
+  cron-hubspot-fetch:
+    description: Fetch HubSpot Contacts.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:integration:fetchleads --integration=Hubspot --env=dev
+  cron-webhook:
+    description: Send webhook payloads.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:webhooks:process --env=dev
   phpunit:
     service: appserver
     cmd: /app/mautic/bin/phpunit
@@ -96,7 +137,14 @@ tooling:
     service: appserver
     description: Run Tests Locally
     cmd:
-      - appserver: composer test
+      - appserver: php /app/mautic/app/console doctrine:database:drop --force --no-interaction --env=test
+      - appserver: php /app/mautic/app/console doctrine:database:create --no-interaction --env=test
+      - appserver: php /app/mautic/app/console mautic:install:data --force --env=test
+      - appserver: php /app/mautic/app/console doctrine:migrations:version --add --all --no-interaction --env=test
+      - appserver: php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv
+      - appserver: cd /app/mautic && /app/mautic/bin/codecept run --env=test
+      # @TODO - Use the following command as an alias of root composer testing
+      # - appserver: composer test
   # Set up command "Lando rabbit" for basic RabbitMQ commands
   rabbit:
     service: rabbitmq
@@ -121,3 +169,6 @@ events:
   post-db-import:
     - database: /app/scripts/reset_admin_password.sh
     - appserver:
+  # @TODO - before running tests locally take a backup of the working database as a snapshot
+#  pre-test:
+#    - database:
