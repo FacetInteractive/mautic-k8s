@@ -109,9 +109,15 @@ tooling:
     cmd:
       - echo -e "\n\e[36mRABBITMQ IP ADDRESS:\e[32m"
       - hostname -i | cut -d' ' -f1
+  reset-admin-pw:
+    service: database
+    cmd: /app/scripts/reset_admin_password.sh
 
 events:
   # Shows IP address on 'lando start'
   post-start:
     - rabbitmq: echo -e "\n\e[36mRABBITMQ IP ADDRESS:\e[32m"
     - rabbitmq: hostname -i | cut -d' ' -f1
+  post-db-import:
+    - database: /app/scripts/reset_admin_password.sh
+    - appserver:
