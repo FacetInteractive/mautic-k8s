@@ -77,19 +77,23 @@ tooling:
   composer-build:
     service: appserver
     cmd:
-      - rm -rf ./mautic/vendor ./mautic/bin
-      - echo 'deny from all' > ./mautic/vendor/.htaccess
-      -
+      - appserver: rm -rf ./mautic/vendor/* ./mautic/bin/*
+      - appserver: echo 'deny from all' > ./mautic/vendor/.htaccess
+      - appserver: rm -rf /cache/*
+      - appserver: php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv --env=dev
   cache-clear:
     service: appserver
     cmd:
-      - rm -rf /cache/*
-      - php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv
+      - appserver: rm -rf /cache/*
+      - appserver: php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv --env=dev
+  cache-warm:
+    service: appserver
+    cmd: php /app/mautic/app/console cache:warm --no-interaction --env=dev
   post-mautic-update:
     sevice: appserver
     cmd:
-      - php /app/mautic/app/console doctrine:migrations:migrate --no-interaction
-      - php /app/mautic/app/console mautic:iplookup:download
+      - appserver: php /app/mautic/app/console doctrine:migrations:migrate --no-interaction
+      - appserver: php /app/mautic/app/console mautic:iplookup:download
   cron-segment-update:
     description: Firing typical Mautic cron tasks for local testing.
     service: appserver
@@ -155,8 +159,8 @@ tooling:
   rabbit-ip:
     service: rabbitmq
     cmd:
-      - echo -e "\n\e[36mRABBITMQ IP ADDRESS:\e[32m"
-      - hostname -i | cut -d' ' -f1
+      - rabbitmq: echo -e "\n\e[36mRABBITMQ IP ADDRESS:\e[32m"
+      - rabbitmq: hostname -i | cut -d' ' -f1
   reset-admin-pw:
     service: database
     cmd: /app/scripts/reset_admin_password.sh
@@ -168,7 +172,9 @@ events:
     - rabbitmq: hostname -i | cut -d' ' -f1
   post-db-import:
     - database: /app/scripts/reset_admin_password.sh
-    - appserver:
+    - appserver: rm -rf /cache/*
+    - appserver: php /app/mautic/app/console doctrine:migrations:migrate --no-interaction
+    - appserver: php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv
   # @TODO - before running tests locally take a backup of the working database as a snapshot
 #  pre-test:
 #    - database:
