@@ -136,14 +136,14 @@ $parameters += [
 /**
  * Dev Settings
  */
-if ($_ENV['HOST'] = 'mautic.lndo.site') {
+if (getenv('LANDO_DOMAIN') == 'lndo.site') {
     /**
      * Dev Hosts
      *
      * @description: Set this if you want to enable Mautic's Dev Mode via external hosts
      * @TODO - Make this work dynamically with Lando Site name
      */
-    $parameters['dev_hosts'] = 'mautic.lndo.site';
+    $parameters['dev_hosts'] = ['mautic.lndo.site'];
 } else {
     $parameters['dev_hosts'] = null;
 }
