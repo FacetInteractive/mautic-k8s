@@ -9,3 +9,6 @@ mautic/vendor
 # Build from composer at root
 bin
 vendor
+
+!/mautic/app/config/parameters_local.php
+!/mautic/app/config/config_override.php
