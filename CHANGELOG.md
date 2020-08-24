@@ -17,12 +17,14 @@ While implementing this a number of other Mautic configuration improvements were
 - Clean up Dockerfile-base to remove `--enable-gd-native-ttf` flag which is no longer necessary in PHP7.2.
 - Remove `xdebug` from `Dockerfile-base`.
 - Preparing for future programmatic composer builds of Mautic, copy the `parameters_local.php` to a `config/` folder. Eventually we will symlink this file or copy it at build time. 
-- Write a script to `reset_admin_password.sh` on lando build.
+- `reset_admin_password.sh` to Reset Admin Password for Local on lando build.
+    - Lando shortcut: `lando reset-admin-pw`
+- `scripts/sync_db_live_to_local.sh` to remotely download a copy of the MySQL Database.
+    - Lando shortcut: `lando pull-live-db` 
 
 ### WIP Commits
 
-- WIP: Write a script to remotely download a copy of the MySQL Database. (Not working yet).
-- WIP: Added conditional check for Lando host domain  DEV_HOST so that local development is done with dev mode turned on automatically. 
+- WIP: Added conditional check for Lando host domain DEV_HOST so that local development is done with dev mode turned on automatically. 
 
 ### Deployment Notes
 
@@ -33,4 +35,5 @@ While implementing this a number of other Mautic configuration improvements were
 - [ ] Use one nginx.conf for both Lando local development and K8s deployments.
 - [ ] Use `php.ini` in K8s Deployments
 - [ ] Rebuild the Dockerfile-base with `from php7.2-base` instead of custom source. 
-- [ ] Lando Logs vs. Docker Logs - Determine if we should conditionally check for a LANDO environment before streaming to `/dev/stdout`
+- [x] Lando Logs vs. Docker Logs - Determine if we should conditionally check for a LANDO environment before streaming to `/dev/stdout`
+- [ ] Allow `reset-admin-pw` to take an argument.
