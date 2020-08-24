@@ -143,7 +143,11 @@ if (getenv('LANDO_DOMAIN') == 'lndo.site') {
      * @description: Set this if you want to enable Mautic's Dev Mode via external hosts
      * @TODO - Make this work dynamically with Lando Site name
      */
-    $parameters['dev_hosts'] = ['mautic.lndo.site'];
+    $parameters['dev_hosts'] = [
+        'appserver_nginx.mautic.internal',
+        'mautic.lndo.site',
+        '127.0.0.1'
+    ];
 } else {
     $parameters['dev_hosts'] = null;
 }
