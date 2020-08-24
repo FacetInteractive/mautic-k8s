@@ -157,7 +157,6 @@ $parameters['trusted_hosts'] = [];
 
 // Trusted Proxies
 // Required for Load Balanced Application Containers Behind a Proxy in Mautic
-// @TODO - Replace array with explode(",",getenv('TRUSTED_PROXIES'))
 $parameters['trusted_proxies'] = explode(",",getenv('TRUSTED_PROXIES'));
 
 // Do Not Track IPs
