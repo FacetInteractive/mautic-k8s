@@ -5,6 +5,7 @@ db-init
 # Mautic Included in Git
 mautic/app/cache/prod
 mautic/vendor
+#mautic/bin
 
 # Build from composer at root
 bin
