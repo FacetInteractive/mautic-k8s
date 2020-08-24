@@ -127,11 +127,8 @@ class PageType extends AbstractType
             'isPreferenceCenter',
             'yesno_button_group',
             [
-                'label' => 'mautic.page.form.preference_center',
+                'label' => 'mautic.page.config.preference_center',
                 'data'  => $options['data']->isPreferenceCenter() ? $options['data']->isPreferenceCenter() : false,
-                'attr'  => [
-                    'tooltip' => 'mautic.page.form.preference_center.tooltip',
-                ],
             ]
         );
 

@@ -677,9 +677,7 @@ class LeadListRepository extends CommonRepository
                         $v         = $v['value'];
                         break;
                     } else {
-                        // This was previously a "continue" which would act the same as a break in PHP <7.3
-                        // causing the parameter to be set anyway. A continue 2 is more likely the intention.
-                        continue 2;
+                        continue;
                     }
                     // no break
                 case is_bool($v):
@@ -1728,7 +1726,7 @@ class LeadListRepository extends CommonRepository
                 default:
                     if (!$column) {
                         // Column no longer exists so continue
-                        break;
+                        continue;
                     }
 
                     if ('company' === $object) {

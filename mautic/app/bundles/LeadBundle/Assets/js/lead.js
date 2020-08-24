@@ -279,20 +279,7 @@ Mautic.leadEmailOnLoad = function(container, response) {
     });
 }
 
-Mautic.leadlistOnLoad = function(container, response) {
-
-    mQuery('#campaign-share-tab').hover(function () {
-        if (Mautic.shareTableLoaded != true) {
-            Mautic.loadAjaxColumn('campaign-share-stat', 'lead:getCampaignShareStats', 'afterStatsLoad');
-            Mautic.shareTableLoaded = true;
-        }
-    })
-
-    Mautic.afterStatsLoad = function () {
-        Mautic.sortTableByColumn('#campaign-share-table', '.campaign-share-stat', true)
-    }
-
-
+Mautic.leadlistOnLoad = function(container) {
     if (mQuery(container + ' #list-search').length) {
         Mautic.activateSearchAutocomplete('list-search', 'lead.list');
     }

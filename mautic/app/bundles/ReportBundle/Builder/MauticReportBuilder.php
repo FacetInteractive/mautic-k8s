@@ -428,13 +428,11 @@ final class MauticReportBuilder implements ReportBuilderInterface
                         );
                         break;
                     case 'empty':
-                        $expression = $queryBuilder->expr()->orX(
-                            $queryBuilder->expr()->isNull($filter['column']),
-                            $queryBuilder->expr()->eq($filter['column'], $expr->literal(''))
-                        );
-
                         $groupExpr->add(
-                            $expression
+                            $expr->isNull($filter['column'])
+                        );
+                        $groupExpr->add(
+                            $expr->eq($filter['column'], $expr->literal(''))
                         );
                         break;
                     default:
@@ -505,6 +503,7 @@ final class MauticReportBuilder implements ReportBuilderInterface
         if ($groupExpr->count()) {
             $groups[] = $groupExpr;
         }
+
         if (count($groups) === 1) {
             // Only one andX expression
             $filterExpr = $groups[0];

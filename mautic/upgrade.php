@@ -12,7 +12,7 @@ ini_set('display_errors', 'Off');
 date_default_timezone_set('UTC');
 
 define('MAUTIC_MINIMUM_PHP', '5.6.19');
-define('MAUTIC_MAXIMUM_PHP', '7.3.999');
+define('MAUTIC_MAXIMUM_PHP', '7.0.999');
 
 // Are we running the minimum version?
 if (version_compare(PHP_VERSION, MAUTIC_MINIMUM_PHP, 'lt')) {
@@ -51,25 +51,6 @@ if (isset($localParameters['cache_path'])) {
     $cacheDir = MAUTIC_APP_ROOT.'/cache/prod';
 }
 define('MAUTIC_CACHE_DIR', $cacheDir);
-
-/*
- * Updating to 2.8.1: Check to see if we have a mautic_session_name
- * and use that to populate the actual session name that will be
- * generated after a successful update.
- */
-if (isset($_COOKIE['mautic_session_name'])) {
-    $sessionValue = $_COOKIE[$_COOKIE['mautic_session_name']];
-
-    include MAUTIC_APP_ROOT.'/config/paths.php';
-    $localConfigPath = str_replace('%kernel.root_dir%', MAUTIC_APP_ROOT, $paths['local_config']);
-
-    $newSessionName = md5(md5($localConfigPath).$localParameters['secret_key']);
-
-    setcookie($newSessionName, $sessionValue, 0, '/', '', false, true);
-
-    unset($_COOKIE['mautic_session_name']);
-    setcookie('mautic_session_name', null, -1);
-}
 
 // Fetch the update state out of the request if applicable
 $state = json_decode(base64_decode(getVar('updateState', 'W10=')), true);
@@ -387,12 +368,11 @@ function fetch_updates()
 
         // Fetch the package
         try {
-            download_package($update);
+            download_package($update->package);
         } catch (\Exception $e) {
             return [
                 false,
-                "Could not automatically download the package. Please download {$update->package}, place it in the same directory as this upgrade script, and try again. ".
-                "When moving the file, name it `{$update->version}-update.zip`",
+                "Could not automatically download the package. Please download {$update->package}, place it in the same directory as this upgrade script, and try again.",
             ];
         }
 
@@ -403,23 +383,22 @@ function fetch_updates()
 }
 
 /**
- * @param object $update
+ * @param $package
  *
  * @throws Exception
- *
- * @return bool
  */
-function download_package($update)
+function download_package($package)
 {
-    $packageName = $update->version.'-update.zip';
-    $target      = __DIR__.'/'.$packageName;
-
-    if (file_exists($target)) {
+    if (file_exists(__DIR__.'/'.basename($package))) {
         return true;
     }
 
-    $data = make_request($update->package);
+    $data = make_request($package);
 
+    // Set the filesystem target
+    $target = __DIR__.'/'.basename($package);
+
+    // Write the response to the filesystem
     if (!file_put_contents($target, $data)) {
         throw new \Exception();
     }
@@ -471,15 +450,6 @@ function clear_mautic_cache()
         process_error_log(['Could not remove the application cache.  You will need to manually delete '.MAUTIC_CACHE_DIR.'.']);
 
         return false;
-    }
-
-    // Follow the same pattern as the console command and flush opcache/apc as appropriate.
-    if (function_exists('opcache_reset')) {
-        opcache_reset();
-    }
-
-    if (function_exists('apc_clear_cache')) {
-        apc_clear_cache();
     }
 
     return true;
@@ -540,12 +510,6 @@ function apply_critical_migrations()
 
     $success = true;
 
-    $minExecutionTime = 300;
-    $maxExecutionTime = (int) ini_get('max_execution_time');
-    if ($maxExecutionTime > 0 && $maxExecutionTime < $minExecutionTime) {
-        ini_set('max_execution_time', $minExecutionTime);
-    }
-
     if ($criticalMigrations) {
         foreach ($criticalMigrations as $version) {
             if (!run_symfony_command('doctrine:migrations:migrate', ['--no-interaction', '--env=prod', '--no-debug', $version])) {
@@ -564,12 +528,6 @@ function apply_critical_migrations()
  */
 function apply_migrations()
 {
-    $minExecutionTime = 300;
-    $maxExecutionTime = (int) ini_get('max_execution_time');
-    if ($maxExecutionTime > 0 && $maxExecutionTime < $minExecutionTime) {
-        ini_set('max_execution_time', $minExecutionTime);
-    }
-
     return run_symfony_command('doctrine:migrations:migrate', ['--no-interaction', '--env=prod', '--no-debug']);
 }
 
@@ -851,6 +809,7 @@ function move_mautic_core(array $status)
 
     foreach ($fileOnlyDirectories as $dir) {
         if (copy_files($dir, $errorLog)) {
+
             // At this point, we can remove the config directory
             $deleteDir = recursive_remove_directory(MAUTIC_UPGRADE_ROOT.$dir);
 
@@ -1205,11 +1164,11 @@ function recursive_remove_directory($directory)
         return true;
     } elseif (!is_dir($directory)) {
         return false;
-    // ... if the path is not readable
+        // ... if the path is not readable
     } elseif (!is_readable($directory)) {
         // ... we return false and exit the function
         return false;
-    // ... else if the path is readable
+        // ... else if the path is readable
     } else {
         // we open the directory
         $handle = opendir($directory);
@@ -1225,7 +1184,7 @@ function recursive_remove_directory($directory)
                 if (is_dir($path)) {
                     // we call this function with the new path
                     recursive_remove_directory($path);
-                // if the new path is a file
+                    // if the new path is a file
                 } else {
                     // we remove the file
                     @unlink($path);

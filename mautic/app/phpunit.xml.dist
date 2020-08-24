@@ -17,10 +17,13 @@
         <testsuite name="Project Test Suite">
             <directory>bundles/*Bundle/Tests</directory>
         </testsuite>
-        <testsuite name="Plugin tests">
-            <directory>./../plugins/*Bundle/Tests</directory>
-        </testsuite>
     </testsuites>
+
+    <!--
+    <php>
+        <server name="KERNEL_DIR" value="/path/to/your/app/" />
+    </php>
+    -->
 
     <filter>
         <whitelist>
@@ -34,7 +37,4 @@
         </whitelist>
     </filter>
 
-    <php>
-        <env name="MAXMIND_LICENSE_KEY" value=""/>
-    </php>
 </phpunit>

@@ -11,52 +11,39 @@
 
 namespace MauticPlugin\MauticCrmBundle\Api\Zoho;
 
-use MauticPlugin\MauticCrmBundle\Api\Zoho\Exception\MatchingKeyNotFoundException;
+use MauticPlugin\MauticCrmBundle\Api\Zoho\Xml\Writer;
 
 class Mapper
 {
     /**
-     * @var array
+     * @var Writer
      */
-    private $contact = [];
+    protected $writer;
 
     /**
      * @var array
      */
-    private $fields = [];
+    protected $contact = [];
 
     /**
      * @var array
      */
-    private $mappedFields = [];
+    protected $fields = [];
+
+    /**
+     * @var array
+     */
+    protected $mappedFields = [];
 
     /**
      * @var
      */
-    private $object;
-
-    /**
-     * @var array[]
-     */
-    private $objectMappedValues = [];
-
-    /**
-     * Used to keep track of the key used to map contact ID with the response Zoho returns.
-     *
-     * @var int
-     */
-    private $objectCounter = 0;
-
-    /**
-     * Used to map contact ID with the response Zoho returns.
-     *
-     * @var array
-     */
-    private $contactMapper = [];
+    protected $object;
 
     /**
      * Mapper constructor.
      *
+     * @param       $object
      * @param array $fields
      */
     public function __construct(array $fields)
@@ -71,6 +58,7 @@ class Mapper
      */
     public function setObject($object)
     {
+        $this->writer = new Writer($object);
         $this->object = $object;
 
         return $this;
@@ -101,61 +89,39 @@ class Mapper
     }
 
     /**
-     * @param int      $mauticContactId Mautic Contact ID
-     * @param int|null $zohoId          Zoho ID if known
+     * @param $id
      *
      * @return int If any single field is mapped, return 1 to count as one contact to be updated
      */
-    public function map($mauticContactId, $zohoId = null)
+    public function map($id, $zohoId = null)
     {
-        $mapped             = 0;
-        $objectMappedValues = [];
+        $mapped = 0;
+        $row    = $this->writer->row($id);
+
+        if ($zohoId) {
+            $row->add('Id', $zohoId);
+        }
 
         foreach ($this->mappedFields as $zohoField => $mauticField) {
             $field = $this->getField($zohoField);
             if ($field && isset($this->contact[$mauticField]) && $this->contact[$mauticField]) {
                 $mapped   = 1;
-                $apiField = $field['api_name'];
+                $apiField = $field['dv'];
                 $apiValue = $this->contact[$mauticField];
 
-                $objectMappedValues[$apiField] = $apiValue;
-            }
-
-            if ($zohoId) {
-                $objectMappedValues['id'] = $zohoId;
+                $row->add($apiField, $apiValue);
             }
         }
-
-        $this->objectMappedValues[$this->objectCounter] = $objectMappedValues;
-        $this->contactMapper[$this->objectCounter]      = $mauticContactId;
-
-        ++$this->objectCounter;
 
         return $mapped;
     }
 
     /**
-     * @return array
+     * @return string
      */
-    public function getArray()
+    public function getXml()
     {
-        return $this->objectMappedValues;
-    }
-
-    /**
-     * @param int $key
-     *
-     * @return int
-     *
-     * @throws MatchingKeyNotFoundException
-     */
-    public function getContactIdByKey($key)
-    {
-        if (isset($this->contactMapper[$key])) {
-            return $this->contactMapper[$key];
-        }
-
-        throw new MatchingKeyNotFoundException();
+        return $this->writer->write();
     }
 
     /**
@@ -163,12 +129,10 @@ class Mapper
      *
      * @return mixed
      */
-    private function getField($fieldName)
+    protected function getField($fieldName)
     {
-        return isset($this->fields[$this->object][$fieldName])
-            ?
-            $this->fields[$this->object][$fieldName]
-            :
+        return isset($this->fields[$this->object][$fieldName]) ?
+            $this->fields[$this->object][$fieldName] :
             null;
     }
 }

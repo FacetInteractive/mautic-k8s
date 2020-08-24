@@ -96,16 +96,11 @@ switch ($style) {
             // Register click events for toggling bar, closing windows, etc
             registerClickEvents: function () {
                 <?php if ($style == 'bar'): ?>
-                var isTop = Focus.hasClass(Focus.iframeFocus, 'mf-bar-top');
-                Focus.setDefaultBarPosition(isTop);
-
                 var collapser = document.getElementsByClassName('mf-bar-collapser-<?php echo $focus['id']; ?>');
 
-                if (collapser[0]) {
-                    collapser[0].addEventListener('click', function () {
-                        Focus.toggleBarCollapse(collapser[0], false);
-                    });
-                }
+                collapser[0].addEventListener('click', function () {
+                    Focus.toggleBarCollapse(collapser[0], false);
+                });
 
                 <?php else: ?>
                 var closer = Focus.iframeDoc.getElementsByClassName('mf-<?php echo $style; ?>-close');
@@ -152,13 +147,7 @@ switch ($style) {
                 }
                 <?php endif; ?>
             },
-            setDefaultBarPosition: function (isTop) {
-                if (isTop) {
-                    Focus.iframe.style.marginTop = 0;
-                }else {
-                    Focus.iframe.style.marginBottom = 0;
-                }
-            },
+
             toggleBarCollapse: function (collapser, useCookie) {
                 var svg = collapser.getElementsByTagName('svg');
                 var g = svg[0].getElementsByTagName('g');
@@ -189,7 +178,12 @@ switch ($style) {
                 var isTop = Focus.hasClass(Focus.iframeFocus, 'mf-bar-top');
                 if ((!isTop && newDirection == 90) || (isTop && newDirection == -90)) {
                     // Open it up
-                    Focus.setDefaultBarPosition(isTop);
+                    if (isTop) {
+                        Focus.iframe.style.marginTop = 0;
+                    } else {
+                        Focus.iframe.style.marginBottom = 0;
+                    }
+
                     Focus.removeClass(collapser, 'mf-bar-collapsed');
                     Focus.enableIframeResizer();
 

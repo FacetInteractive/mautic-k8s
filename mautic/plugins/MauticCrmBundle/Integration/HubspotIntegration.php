@@ -162,7 +162,7 @@ class HubspotIntegration extends CrmAbstractIntegration
      */
     public function getAvailableLeadFields($settings = [])
     {
-        if ($fields = parent::getAvailableLeadFields($settings)) {
+        if ($fields = parent::getAvailableLeadFields()) {
             return $fields;
         }
 
@@ -212,30 +212,6 @@ class HubspotIntegration extends CrmAbstractIntegration
         }
 
         return $hubsFields;
-    }
-
-    /**
-     * @param       $fieldsToUpdate
-     * @param array $objects
-     *
-     * @return array
-     */
-    protected function cleanPriorityFields($fieldsToUpdate, $objects = null)
-    {
-        if (null === $objects) {
-            $objects = ['Leads', 'Contacts'];
-        }
-
-        if (isset($fieldsToUpdate['leadFields'])) {
-            // Pass in the whole config
-            $fields = $fieldsToUpdate['leadFields'];
-        } else {
-            $fields = array_flip($fieldsToUpdate);
-        }
-
-        $fieldsToUpdate = $this->prepareFieldsForSync($fields, $fieldsToUpdate, $objects);
-
-        return $fieldsToUpdate;
     }
 
     /**
@@ -325,8 +301,7 @@ class HubspotIntegration extends CrmAbstractIntegration
             return [];
         }
         foreach ($data['properties'] as $key => $field) {
-            $value              = str_replace(';', '|', $field['value']);
-            $fieldsValues[$key] = $value;
+            $fieldsValues[$key] = $field['value'];
         }
         if ($object == 'Lead' && !isset($fieldsValues['email'])) {
             foreach ($data['identity-profiles'][0]['identities'] as $identifiedProfile) {
@@ -563,6 +538,7 @@ class HubspotIntegration extends CrmAbstractIntegration
                 'feature_settings' => ['objects' => $config['objects']],
             ]
         );
+
         $this->amendLeadDataBeforePush($mappedData);
 
         if (empty($mappedData)) {
@@ -595,17 +571,5 @@ class HubspotIntegration extends CrmAbstractIntegration
         }
 
         return false;
-    }
-
-    /**
-     * Amend mapped lead data before pushing to CRM.
-     *
-     * @param $mappedData
-     */
-    public function amendLeadDataBeforePush(&$mappedData)
-    {
-        foreach ($mappedData as &$data) {
-            $data = str_replace('|', ';', $data);
-        }
     }
 }

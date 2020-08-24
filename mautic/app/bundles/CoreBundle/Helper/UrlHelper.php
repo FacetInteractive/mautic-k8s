@@ -204,7 +204,6 @@ class UrlHelper
         }
 
         $url = self::sanitizeUrlScheme($url);
-        $url = self::sanitizeUrlPath($url);
         $url = self::sanitizeUrlQuery($url);
 
         return $url;
@@ -236,23 +235,6 @@ class UrlHelper
         // Set default scheme to http if missing
         if (empty($scheme)) {
             $url = sprintf('http%s', $url);
-        }
-
-        return $url;
-    }
-
-    /**
-     * @param string $url
-     *
-     * @return string
-     */
-    private static function sanitizeUrlPath($url)
-    {
-        $path = parse_url($url, PHP_URL_PATH);
-
-        if (!empty($path)) {
-            $sanitizedPath = str_replace(' ', '%20', $path);
-            $url           = str_replace($path, $sanitizedPath, $url);
         }
 
         return $url;

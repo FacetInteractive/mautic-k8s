@@ -54,7 +54,7 @@ final class EmailReplyRepository extends EntityRepository implements EmailReplyR
         return $this->getTimelineResults(
             $qb,
             $options,
-            'storedSubject, email.subject',
+            'storedSubject, e.subject',
             'reply.date_replied',
             [],
             ['date_replied']

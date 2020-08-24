@@ -18,13 +18,11 @@ use Symfony\Component\HttpFoundation\RequestStack;
  */
 class CookieHelper
 {
-    const SAME_SITE       = '; SameSite=';
-    const SAME_SITE_VALUE = 'None';
-    private $path         = null;
-    private $domain       = null;
-    private $secure       = false;
-    private $httponly     = false;
-    private $request      = null;
+    private $path     = null;
+    private $domain   = null;
+    private $secure   = false;
+    private $httponly = false;
+    private $request  = null;
 
     /**
      * CookieHelper constructor.
@@ -78,38 +76,15 @@ class CookieHelper
             return true;
         }
 
-        // If https, SameSite equals None
-        $sameSiteNoneText             = '';
-        $sameSiteNoneTextGreaterPhp73 = null;
-        if ($secure === true or ($secure === null and $this->secure === true)) {
-            $sameSiteNoneText             = self::SAME_SITE.self::SAME_SITE_VALUE;
-            $sameSiteNoneTextGreaterPhp73 = self::SAME_SITE_VALUE;
-        }
-
-        if (version_compare(phpversion(), '7.3', '>=')) {
-            setcookie(
-                $name,
-                $value,
-                [
-                    'expires'  => ($expire) ? (int) (time() + $expire) : null,
-                    'path'     => (($path == null) ? $this->path : $path),
-                    'domain'   => ($domain == null) ? $this->domain : $domain,
-                    'secure'   => ($secure == null) ? $this->secure : $secure,
-                    'httponly' => ($httponly == null) ? $this->httponly : $httponly,
-                    'samesite' => $sameSiteNoneTextGreaterPhp73,
-                ]
-            );
-        } else {
-            setcookie(
-                $name,
-                $value,
-                ($expire) ? (int) (time() + $expire) : null,
-                (($path == null) ? $this->path : $path).$sameSiteNoneText,
-                ($domain == null) ? $this->domain : $domain,
-                ($secure == null) ? $this->secure : $secure,
-                ($httponly == null) ? $this->httponly : $httponly
-            );
-        }
+        setcookie(
+            $name,
+            $value,
+            ($expire) ? (int) (time() + $expire) : null,
+            ($path == null) ? $this->path : $path,
+            ($domain == null) ? $this->domain : $domain,
+            ($secure == null) ? $this->secure : $secure,
+            ($httponly == null) ? $this->httponly : $httponly
+        );
     }
 
     /**

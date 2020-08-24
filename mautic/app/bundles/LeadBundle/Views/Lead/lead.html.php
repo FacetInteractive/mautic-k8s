@@ -230,7 +230,7 @@ $view['slots']->set(
                                                                 <?php echo $field['value']; ?>
                                                             </a>
                                                         <?php else: ?>
-                                                            <?php echo $view->escape($field['normalizedValue']); ?>
+                                                            <?php echo $view->escape($field['value']); ?>
                                                         <?php endif; ?>
                                                     <?php endif; ?>
                                                 </td>
