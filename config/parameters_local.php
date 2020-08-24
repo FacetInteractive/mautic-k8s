@@ -161,7 +161,6 @@ $parameters['trusted_hosts'] = [];
 
 // Trusted Proxies
 // Required for Load Balanced Application Containers Behind a Proxy in Mautic
-// @TODO - Replace array with explode(",",getenv('TRUSTED_PROXIES'))
 $parameters['trusted_proxies'] = explode(",",getenv('TRUSTED_PROXIES'));
 
 // Do Not Track IPs
@@ -363,7 +362,7 @@ $parameters += [
  * @TODO - Convert domains to an exploded array
  */
 $parameters += [
-    'track_by_fingerprint' => 1,
+    'track_by_fingerprint' => 0,
     'track_by_tracking_url' => 1,
     // @TODO - Investigate: I think this is actually: Anonymize IP
     'track_contact_by_ip' => 0,
