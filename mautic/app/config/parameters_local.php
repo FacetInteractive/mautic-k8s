@@ -359,7 +359,7 @@ $parameters += [
  * @TODO - Convert domains to an exploded array
  */
 $parameters += [
-    'track_by_fingerprint' => 1,
+    'track_by_fingerprint' => 0,
     'track_by_tracking_url' => 1,
     // @TODO - Investigate: I think this is actually: Anonymize IP
     'track_contact_by_ip' => 0,
