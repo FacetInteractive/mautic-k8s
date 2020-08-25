@@ -47,7 +47,10 @@ spec:
             value: {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
             {{- else }}
             value: {{ .Values.ingress.domain }}
-            {{- end }}                  
+            {{- end }}  
+          - name: TRUSTED_PROXIES
+            value: {{ .Values.trustedIPs }}
+
         - image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
           name: mautic
           imagePullPolicy: Always
@@ -113,6 +116,8 @@ spec:
               secretKeyRef:
                 name: {{ .Release.Name }}-rabbitmq-password
                 key: rabbitmq-password
+          - name: TRUSTED_PROXIES
+            value: {{ .Values.trustedIPs }}      
           volumeMounts:
             - name: cache  
               mountPath: /cache
