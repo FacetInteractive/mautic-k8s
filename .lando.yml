@@ -1,0 +1,191 @@
+name: mautic
+recipe: lemp
+config:
+  webroot: mautic
+  php: '7.2'
+  database: mysql:5.7
+  xdebug: false
+  config:
+    vhosts: nginx-lando.conf
+    php: php7-fpm/php.ini
+# Copy from .env.lando.dist to .env
+env_file:
+  - .env
+
+# Set a reachable management site ( User: guest, Pass: guest )
+proxy:
+  rabbitmq:
+    - rabbit.lndo.site:15672
+
+services:
+  # Mautic Appserver
+  appserver:
+    build:
+      - "cd /app/mautic && composer install"
+    overrides:
+      environment:
+        PHP_IDE_CONFIG: "serverName=mautic.lndo.site"
+        # Other Environment variables included via .env
+    build_as_root:
+      - cd / && mkdir cache && chown -R www-data:dialout /cache && chmod -R g+rwX /cache
+      - cd / && mkdir logs && chown -R www-data:dialout /logs && chmod -R g+rwX /logs
+      - apt-get update -y
+      - apt-get install -y libmcrypt-dev
+      - apt-get install -y zlib1g-dev
+      - apt-get install -y libwebp-dev
+      - apt-get install -y libjpeg62-turbo-dev
+      - apt-get install -y libpng-dev
+      - apt-get install -y libxpm-dev
+      - apt-get install -y libfreetype6-dev
+      - printf "\n" | pecl install mcrypt-1.0.1 -y
+#      - pecl install mcrypt-1.0.1 -y
+      - docker-php-ext-enable imap pdo pdo_mysql mcrypt bcmath zip redis
+      - docker-php-ext-configure gd --with-gd --with-webp-dir --with-jpeg-dir --with-png-dir --with-zlib-dir --with-xpm-dir --with-freetype-dir
+      - docker-php-ext-install gd
+  database:
+    overrides:
+      volumes:
+        - ./db-init:/tmp/db-init
+    build_as_root:
+      - apt-get update -y
+      - apt-get install -y pv
+  # Setup RabbitMQ service using "compose"
+  rabbitmq:
+    type: compose
+    services:
+      # Grab RabbitMQ management image
+      image: "rabbitmq:3-management"
+      hostname: "rabbit"
+
+      # Start the server for RabbitMQ
+      command: rabbitmq-server
+
+      # Expose RabbitMQ Ports
+      ports:
+        - '15672:15672'
+        - '5672:5672'
+
+      # Link RabbitMQ Configs
+      volumes:
+        - rabbitmq-isolated.conf:/etc/rabbitmq/rabbitmq.config
+      labels:
+        NAME: "rabbitmq"
+  # Redis is used in order to store PHP Sessions
+  redis:
+    type: redis:5
+    persist: false
+    portforward: false
+
+
+tooling:
+  php:
+    service: appserver
+    cmd: php
+  composer-build:
+    service: appserver
+    cmd:
+      - appserver: rm -rf ./mautic/vendor/* ./mautic/bin/*
+      - appserver: echo 'deny from all' > ./mautic/vendor/.htaccess
+      - appserver: rm -rf /cache/*
+      - appserver: php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv --env=dev
+  cache-clear:
+    service: appserver
+    cmd:
+      - appserver: rm -rf /cache/*
+      - appserver: php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv --env=dev
+  cache-warm:
+    service: appserver
+    cmd: php /app/mautic/app/console cache:warm --no-interaction --env=dev
+  post-mautic-update:
+    sevice: appserver
+    cmd:
+      - appserver: php /app/mautic/app/console doctrine:migrations:migrate --no-interaction
+      - appserver: php /app/mautic/app/console mautic:iplookup:download
+  cron-segment-update:
+    description: Firing typical Mautic cron tasks for local testing.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:segments:update --env=dev
+  cron-campaigns-rebuild:
+    descrption: To keep campaigns updated with applicable contacts.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:campaigns:rebuild --env=dev
+  cron-campaigns-update:
+    description: Update campaigns.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:campaigns:update --env=dev
+  cron-campaigns-trigger:
+    description: To execute campaigns events.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:campaigns:trigger --env=dev
+  cron-messages-send:
+    description: To send frequency rules rescheduled marketing campaign messages.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:messages:send --env=dev
+  cron-emails-send:
+    description: Process Email Queue
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:emails:send --time-limit 60 --env=dev
+  cron-email-fetch:
+    description: Fetch and process Monitored Email.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:email:fetch --env=dev
+  cron-hubspot-push:
+    description: Push HubSpot Activity to Lead Contacts.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:integration:pushleadactivity --integration=Hubspot --env=dev
+  cron-hubspot-fetch:
+    description: Fetch HubSpot Contacts.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:integration:fetchleads --integration=Hubspot --env=dev
+  cron-webhook:
+    description: Send webhook payloads.
+    service: appserver
+    cmd: php /app/mautic/app/console mautic:webhooks:process --env=dev
+  phpunit:
+    service: appserver
+    cmd: /app/mautic/bin/phpunit
+  test:
+    service: appserver
+    description: Run Tests Locally
+    cmd:
+      - appserver: php /app/mautic/app/console doctrine:database:drop --force --no-interaction --env=test
+      - appserver: php /app/mautic/app/console doctrine:database:create --no-interaction --env=test
+      - appserver: php /app/mautic/app/console mautic:install:data --force --env=test
+      - appserver: php /app/mautic/app/console doctrine:migrations:version --add --all --no-interaction --env=test
+      - appserver: php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv
+      - appserver: cd /app/mautic && /app/mautic/bin/codecept run --env=test
+      # @TODO - Use the following command as an alias of root composer testing
+      # - appserver: composer test
+  # Set up command "Lando rabbit" for basic RabbitMQ commands
+  rabbit:
+    service: rabbitmq
+    # User must be root to prevent erlang cookie error
+    user: root
+    cmd: rabbitmqctl
+  # Setup command "lando rabbit-ip" to get the ip address
+  rabbit-ip:
+    service: rabbitmq
+    cmd:
+      - rabbitmq: echo -e "\n\e[36mRABBITMQ IP ADDRESS:\e[32m"
+      - rabbitmq: hostname -i | cut -d' ' -f1
+  # Development Tools
+  reset-admin-pw:
+    service: database
+    cmd: /app/scripts/reset_admin_password.sh
+  pull-live-db:
+    service: database
+    cmd: /app/script/pull_live_db.sh
+
+events:
+  # Shows IP address on 'lando start'
+  post-start:
+    - rabbitmq: echo -e "\n\e[36mRABBITMQ IP ADDRESS:\e[32m"
+    - rabbitmq: hostname -i | cut -d' ' -f1
+  post-db-import:
+    - database: /app/scripts/reset_admin_password.sh
+    - appserver: rm -rf /cache/*
+    - appserver: php /app/mautic/app/console doctrine:migrations:migrate --no-interaction
+    - appserver: php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv
+  # @TODO - before running tests locally take a backup of the working database as a snapshot
+#  pre-test:
+#    - database:
