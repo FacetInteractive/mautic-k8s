@@ -49,7 +49,7 @@ spec:
             value: {{ .Values.ingress.domain }}
             {{- end }}  
           - name: TRUSTED_PROXIES
-            value: {{ .Values.trustedIPs }}
+            value: {{ .Values.project.trustedIPs }}
 
         - image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
           name: mautic
@@ -117,7 +117,7 @@ spec:
                 name: {{ .Release.Name }}-rabbitmq-password
                 key: rabbitmq-password
           - name: TRUSTED_PROXIES
-            value: {{ .Values.trustedIPs }}      
+            value: {{ .Values.project.trustedIPs }}      
           volumeMounts:
             - name: cache  
               mountPath: /cache
