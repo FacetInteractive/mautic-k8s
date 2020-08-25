@@ -5,6 +5,8 @@ metadata:
   name: {{ .Release.Name }}-mautic 
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
+  annotations:
+    rollme: {{ randAlphaNum 5 | quote }}
 spec:
   serviceName: {{ .Values.project.name }}
   replicas: {{ .Values.project.replicaCount }}
