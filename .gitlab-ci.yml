@@ -21,7 +21,7 @@
     NGINX_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
     
     # various stages, currently disabled, remove the variable to enable those steps
-    #DEV_BUILD_DISABLED: "true"
+    DEV_BUILD_DISABLED: "true"
     PROD_BUILD_DISABLED: "true"
     # DEV_RELEASE_DISABLED: "true"
     PROD_RELEASE_DISABLED: "true"
@@ -88,7 +88,8 @@
     image: kbaddi/awscli:k8s
     variables:
       REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com
-
+      SVCRANGE: ""
+      POD_CIDR: ""   
     services:
     - docker:dind
 
@@ -96,10 +97,13 @@
       #Docker-login to ecr
       - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS  $REGISTRY
       # Create namespace with the name $CI_COMMIT_BRANCH if it doesn't exist
-      - echo $NAMESPACE
       - kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE
       # Create secret for registry credentials in the namespace if it doesn't exist
       - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
+      # Find the Range of IPs for SVCRANGE
+      - SVCRANGE=$(echo '{"apiVersion":"v1","kind":"Service","metadata":{"name":"tst"},"spec":{"clusterIP":"1.1.1.1","ports":[{"port":443}]}}' | kubectl apply -f - 2>&1 | sed 's/.*valid IPs is //')
+      - echo $SVCRANGE
+      - POD_CIDR=$(aws ec2 describe-vpcs --region us-east-1 --vpc-id vpc-0840f3611188ffa33 --query 'Vpcs[*].CidrBlock' --output text )
 
     script:
       - cd k8s/
@@ -151,6 +155,7 @@
         - kubectl describe namespace $NAMESPACE  || kubectl create namespace $NAMESPACE
         # Generates Regesitry Credentials in the mautic namespace
         - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
+
 
       script:
         - cd k8s/
