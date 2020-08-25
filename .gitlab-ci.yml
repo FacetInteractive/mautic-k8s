@@ -103,7 +103,7 @@
     script:
       - cd k8s/
       - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE 
-        --set project.replicaCount=4 
+        --set project.replicaCount=4
         --set project.branch=$CI_COMMIT_BRANCH
         --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA 
         --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
@@ -122,9 +122,12 @@
     after_script:
       # wait for pod to be up
       - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w       
-      - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE  
+      - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
       - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
     only:
+      variables:
+        - $CI_COMMIT_BRANCH =~ /^dev.*/
+        - $CI_COMMIT_BRANCH =~ /^release-.*/
       refs:
         - branches
     except:
@@ -136,7 +139,7 @@
       name: mautic-$CI_COMMIT_BRANCH
 
 # Production Release stage: Deploys application in prod (mautic) namespace.
-# Runs only when code is commited from master and the Vairable PROD_RELEASE_DISABLED is commented out.
+# Runs only when code is committed from master and the Variable PROD_RELEASE_DISABLED is commented out.
   prod-deploy:
       stage: prod-deploy
       image: kbaddi/awscli:k8s
@@ -148,13 +151,13 @@
       before_script:
         - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS $REGISTRY
         - kubectl describe namespace $NAMESPACE  || kubectl create namespace $NAMESPACE
-        # Generates Regesitry Credentials in the mautic namespace
+        # Generates Registry Credentials in the mautic namespace
         - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
 
       script:
         - cd k8s/
         - helm upgrade $RELEASE_NAME  . --install --namespace $NAMESPACE
-          --set project.replicaCount=3 
+          --set project.replicaCount=1
           --set project.branch=$CI_COMMIT_BRANCH
           --set project.nginxImage.tag=latest
           --set project.mauticImage.tag=latest
@@ -167,6 +170,12 @@
           --set project.mailerPassword=$PROD_MAILER_SECRET_KEY          
           --set project.secretKey=$PROD_APP_SECRET_KEY
           --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password
+      # Post deployment script
+      after_script:
+        # wait for pod to be up
+        - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
+        - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
+        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
       only:
         - master
       except:

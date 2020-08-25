@@ -596,3 +596,52 @@ ECR can be replaced with any other Image repository by updating `MAUTIC_REPOSITO
 Upon successful execution of the CI-CD, the application is deployed on the respective namespace and the pipeline outputs the commands to find out the URL and the Loadbalancer DNS name (elb endpoint).
 
 Map the CNAME to the ELB endpoint in the DNS records.
+
+
+## Destroying an Environment
+
+To delete any particular environment:
+
+1. Find the helm `release` and `namespace` corresponding to the branch. The release name is typically `mautci-$CI_COMMIT_BRANCH`
+
+```bash
+helm ls
+```
+The output would be simlar to this 
+
+```bash
+NAME                    REVISION        UPDATED                         STATUS          CHART                           APP VERSION     NAMESPACE       
+efk                     1               Thu Jan 23 15:05:57 2020        DEPLOYED        efk-0.4.1                       6.4.2           logging         
+logging                 1               Thu Jan 23 15:05:42 2020        DEPLOYED        elasticsearch-operator-0.1.7    0.3.0           default         
+mautic-dev              11              Fri Aug 21 15:41:47 2020        DEPLOYED        mautic-0.1.0                    1.0             dev             
+mautic-master           21              Sat Aug 22 05:56:48 2020        DEPLOYED        mautic-0.1.0                    1.0             mautic-prod     
+```
+
+The first column NAME corresponds to the release name of the helm chart and the last column is the NAMESPACE
+
+To delete the helm release, run
+
+```bash
+helm delete --purge <release_name>
+```
+
+Once the helm release is deleted, ensure the `namespace` is deleted to clean up any pre-install resources
+
+```bash
+kubectl delete namespace <namespace>
+```
+
+
+# Lando Docker Setup
+
+Get started with Mautic on a LEMP stack.
+
+Simply download Lando and run: 
+
+```
+lando start
+```
+
+References:
+
+- https://github.com/Tim-MultiSafepay/Lando-RabbitMQ
