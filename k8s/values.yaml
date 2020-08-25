@@ -53,7 +53,7 @@ project:
   imagePullSecrets:
     - name: regcred
   
-  trustedIPs: ["10.0.0.0/16", "172.16.0.0/12"] 
+trustedIPs: ["10.0.0.0/16", "172.16.0.0/12"] 
   resources: {}
 
     # We usually recommend not to specify default resources and to leave this as a conscious
@@ -123,7 +123,7 @@ traefik:
       - 172.16.0.0/12
   service:
     annotations:            
-      # traefik.backend.loadbalancer.stickiness: "true"
+      traefik.backend.loadbalancer.stickiness: "true"
       # traefik.backend.loadbalancer.stickiness.cookieName: "route"               
       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
   ssl:
