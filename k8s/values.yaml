@@ -105,8 +105,7 @@ ingress:
     nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
 
 # Values for the Ingress Controller
-traefik:
-  serviceType: NodePort
+traefik:  
   externalTrafficPolicy: Local
   proxyProtocol:
     enabled: true
