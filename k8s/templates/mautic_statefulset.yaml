@@ -35,6 +35,7 @@ spec:
       containers:
         - image: "{{ .Values.project.nginxImage.repository }}:{{ .Values.project.nginxImage.tag }}"
           name: nginx
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.project.service.targetPort }}
               name: {{ .Values.project.name }}-nginxport
@@ -49,6 +50,7 @@ spec:
             {{- end }}                  
         - image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
           name: mautic
+          imagePullPolicy: Always
           env:
           - name: MYSQL_DB_HOST
             {{- if .Values.ExternalDb.host }}
