@@ -101,8 +101,7 @@
       # Create secret for registry credentials in the namespace if it doesn't exist
       - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
       # Find the Range of IPs for SVCRANGE
-      - kubectl apply -f k8s/bad_svc.json -n $NAMESPACE 2>&1 | sed 's/.*valid IPs is //'
-      - echo $SVCRANGE
+      # - kubectl apply -f k8s/bad_svc.json -n $NAMESPACE 2>&1 | sed 's/.*valid IPs is //'      
       - POD_CIDR=$(aws ec2 describe-vpcs --region us-east-1 --vpc-id vpc-0840f3611188ffa33 --query 'Vpcs[*].CidrBlock' --output text )
       - echo $POD_CIDR
 
