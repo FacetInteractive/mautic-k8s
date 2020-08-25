@@ -42,6 +42,8 @@ RUN docker-php-ext-configure gd --with-gd --with-webp-dir --with-jpeg-dir \
 
 FROM php-7.2-base AS mautic
 
+# @TODO - Copy config/php.ini file into container
+
 COPY . /var/www/symfony
 
 RUN useradd -u 1001 -r -g 0 -d /app -s /bin/bash -c "Default Application User" default \
