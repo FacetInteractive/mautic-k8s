@@ -106,6 +106,7 @@ ingress:
 
 # Values for the Ingress Controller
 traefik:
+  serviceType: NodePort
   externalTrafficPolicy: Local
   proxyProtocol:
     enabled: true
