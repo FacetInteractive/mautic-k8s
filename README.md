@@ -598,8 +598,7 @@ Upon successful execution of the CI-CD, the application is deployed on the respe
 Map the CNAME to the ELB endpoint in the DNS records.
 
 
-
-## Destroyng an Environment
+## Destroying an Environment
 
 To delete any particular environment:
 
@@ -631,3 +630,18 @@ Once the helm release is deleted, ensure the `namespace` is deleted to clean up 
 ```bash
 kubectl delete namespace <namespace>
 ```
+
+
+# Lando Docker Setup
+
+Get started with Mautic on a LEMP stack.
+
+Simply download Lando and run: 
+
+```
+lando start
+```
+
+References:
+
+- https://github.com/Tim-MultiSafepay/Lando-RabbitMQ

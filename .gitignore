@@ -2,4 +2,14 @@
 db-data
 db-init
 .env
+# Mautic Included in Git
 mautic/app/cache/prod
+mautic/vendor
+mautic/bin
+
+# Build from composer at root
+bin
+vendor
+
+!/mautic/app/config/parameters_local.php
+!/mautic/app/config/config_override.php

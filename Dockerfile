@@ -5,7 +5,6 @@ COPY mautic /var/www/symfony
 RUN useradd -u 1001 -r -g 0 -d /app -s /bin/bash -c "Default Application User" default \
     && chown -R 1001:0 /var/www/symfony && chmod -R g+rwX /var/www/symfony
 
-
 RUN mkdir /cache && chown -R 1001:0 /cache && chmod -R g+rwX /cache
 RUN mkdir /logs && chown -R 1001:0 /logs && chmod -R g+rwX /logs
 
