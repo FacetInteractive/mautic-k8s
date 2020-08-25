@@ -123,8 +123,8 @@ traefik:
       - 172.16.0.0/12
   service:
     annotations:            
-      traefik.backend.loadbalancer.stickiness: "true"
-      traefik.backend.loadbalancer.stickiness.cookieName: "route"               
+      # traefik.backend.loadbalancer.stickiness: "true"
+      # traefik.backend.loadbalancer.stickiness.cookieName: "route"               
       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
   ssl:
     enabled: true
