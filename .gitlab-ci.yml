@@ -204,7 +204,7 @@
         - echo $NAMESPACE
         - helm ls
         # - helm delete --purge $RELEASE_NAME
-        # - kubectl delete namespace $NAMESPACE
+        - kubectl get namespace $NAMESPACE
     when: manual
     environment:
       name: mautic-$CI_COMMIT_BRANCH
