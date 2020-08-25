@@ -1,0 +1,12 @@
+{
+    "require": {
+      "logicify/mautic-advanced-templates-bundle": "master"
+    },
+    "config": {
+        "preferred-install": {
+            "*": "dist"
+        }
+    },
+    "repositories": [
+    ]
+}
