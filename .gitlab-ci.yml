@@ -128,10 +128,11 @@
     # Post deployment script
     after_script:
       # wait for pod to be up
-      - SVCRANGE=$(kubectl apply -f k8s/bad_svc.json -n $NAMESPACE 2>&1 )
+      
       - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w       
       - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE  
       - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
+      - kubectl apply -f k8s/bad_svc.json -n $NAMESPACE 2>&1 
     only:
       refs:
         - branches
