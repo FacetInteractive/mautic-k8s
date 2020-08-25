@@ -121,9 +121,9 @@ traefik:
       - 10.0.0.0/8
       - 172.16.0.0/12
   service:
-    annotations:      
-      traefik.ingress.kubernetes.io/affinity: "true"
-      traefik.ingress.kubernetes.io/session-cookie-name: "sticky"        
+    annotations:            
+      traefik.backend.loadbalancer.stickiness: "true"
+      traefik.backend.loadbalancer.stickiness.cookieName: "route"    
   ssl:
     enabled: true
     enforced: true
