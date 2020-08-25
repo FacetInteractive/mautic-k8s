@@ -104,6 +104,7 @@
       - SVCRANGE=$(echo '{"apiVersion":"v1","kind":"Service","metadata":{"name":"tst"},"spec":{"clusterIP":"1.1.1.1","ports":[{"port":443}]}}' | kubectl apply -f - 2>&1 | sed 's/.*valid IPs is //')
       - echo $SVCRANGE
       - POD_CIDR=$(aws ec2 describe-vpcs --region us-east-1 --vpc-id vpc-0840f3611188ffa33 --query 'Vpcs[*].CidrBlock' --output text )
+      - echo $POD_CIDR
 
     script:
       - cd k8s/
