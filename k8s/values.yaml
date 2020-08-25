@@ -111,14 +111,14 @@ traefik:
     enabled: true
       # trustedIPs is required when enabled
     trustedIPs: 
-      - 10.0.0.0/0
+      - 10.0.0.0/8
       - 172.16.0.0/12
       
   forwardedHeaders:
     enabled: true
     # trustedIPs is required when enabled
     trustedIPs: 
-      - 10.0.0.0/0
+      - 10.0.0.0/8
       - 172.16.0.0/12
   service:
     annotations:
