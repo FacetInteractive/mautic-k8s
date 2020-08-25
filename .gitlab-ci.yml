@@ -98,7 +98,8 @@
       - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS  $REGISTRY
       # Create namespace with the name $CI_COMMIT_BRANCH if it doesn't exist
       - kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE
-      - SVCRANGE=$(kubectl apply -f k8s/bad_svc.json -n $NAMESPACE 2>&1 | sed 's/.*valid IPs is //')
+      - SVCRANGE=$(kubectl apply -f k8s/bad_svc.json -n $NAMESPACE 2>&1 )
+      - echo $SVCRANGE
       # Create secret for registry credentials in the namespace if it doesn't exist
       - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
       # Find the Range of IPs for SVCRANGE      
