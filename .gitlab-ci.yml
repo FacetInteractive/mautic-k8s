@@ -126,6 +126,9 @@
       - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
       - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
     only:
+      variables:
+        - $CI_COMMIT_BRANCH =~ /^dev.*/
+        - $CI_COMMIT_BRANCH =~ /^release-.*/
       refs:
         - branches
     except:
