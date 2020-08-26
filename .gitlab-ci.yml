@@ -22,7 +22,7 @@
     NGINX_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
     
     # various stages, currently disabled, remove the variable to enable those steps
-    DEV_BUILD_DISABLED: "true"
+    # DEV_BUILD_DISABLED: "true"
     PROD_BUILD_DISABLED: "true"
     # DEV_RELEASE_DISABLED: "true"
     PROD_RELEASE_DISABLED: "true"
@@ -32,7 +32,7 @@
   # This stage is triggered when code is commited from any branch other than master and the Vairable DEV_BUILD_DISABLED is commented out.
 
   dev-build:
-    image: kbaddi/awscli
+    image: axelerant/awscli-ci
     stage: dev-build
     services:
     - docker:dind
@@ -56,7 +56,7 @@
   # Production Build stage: Builds mautic and nginx images with the tag "latest".
   # Runs only when code is commited from master and the Vairable PROD_BUILD_DISABLED is commented out.
   prod-build:
-    image: kbaddi/awscli
+    image: axelerant/awscli-ci
     stage: prod-build
     variables:
       MAUTIC_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
@@ -86,9 +86,9 @@
   # This stage is triggered when code is commited from any branch other than master and the Vairable DEV_RELEASE_DISABLED is commented out.
   dev-deploy:
     stage: dev-deploy
-    image: kbaddi/awscli:k8s
+    image: axelerant/awscli-helm
     variables:
-      REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com  
+      REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com 
     services:
     - docker:dind
 
@@ -100,15 +100,14 @@
       # Create secret for registry credentials in the namespace if it doesn't exist
       - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
       
-      
 
     script:
-      - cd k8s/                
+      - cd k8s/                 
       - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE 
         --set project.replicaCount=4
         --set project.branch=$CI_COMMIT_BRANCH
-        --set project.nginxImage.tag=latest
-        --set project.mauticImage.tag=latest
+        --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
+        --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
         --set traefik.ssl.defaultCert=$TLS_CERT 
         --set traefik.ssl.defaultKey=$TLS_KEY        
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password 
@@ -146,7 +145,7 @@
 # Runs only when code is committed from master and the Variable PROD_RELEASE_DISABLED is commented out.
   prod-deploy:
       stage: prod-deploy
-      image: kbaddi/awscli:k8s
+      image: axelerant/awscli-helm
 
       variables:
         REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com
