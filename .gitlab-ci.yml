@@ -193,11 +193,8 @@
       GIT_STRATEGY: none
     stage: cleanup
     image: kbaddi/awscli:k8s
-    script:
-        - echo $RELEASE_NAME
-        - echo $NAMESPACE
-        - helm ls
-        # - helm delete --purge $RELEASE_NAME
+    script:        
+        - helm delete --purge $RELEASE_NAME
         - kubectl get namespace $NAMESPACE
     when: manual
     environment:
