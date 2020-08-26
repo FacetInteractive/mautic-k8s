@@ -195,7 +195,7 @@
     image: kbaddi/awscli:k8s
     script:        
         - helm delete --purge $RELEASE_NAME
-        - kubectl get namespace $NAMESPACE
+        - kubectl delete namespace $NAMESPACE
     when: manual
     environment:
       name: mautic-$CI_COMMIT_BRANCH
