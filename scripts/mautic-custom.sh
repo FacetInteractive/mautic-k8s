@@ -3,7 +3,7 @@
 # This is an alternative to using rsync, such that local development goes much more smoothly.
 #
 # usage:
-#   bash mautic-custom.sh mautic_eb
+#   bash mautic-custom.sh mautic_override
 #   bash mautic-custom.sh mautic_custom
 
 BASEDIR=$(dirname "$BASH_SOURCE")

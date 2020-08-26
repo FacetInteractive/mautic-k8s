@@ -42,7 +42,7 @@ RUN docker-php-ext-configure gd --with-gd --with-webp-dir --with-jpeg-dir \
 
 FROM php-7.2-base AS mautic
 
-# @TODO - Copy config/php.ini file into container
+COPY php7-fpm/php.ini "$PHP_INI_DIR/php.ini"
 
 COPY . /var/www/symfony
 
