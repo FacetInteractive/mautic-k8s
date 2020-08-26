@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Release.Name }}-mautic-{{ randAlphaNum 3 | quote }}
+  name: {{ .Release.Name }}-mautic{{ randAlphaNum 3 | quote }}
   annotations:
     rollme: {{ randAlphaNum 5 | quote }}
   labels:
