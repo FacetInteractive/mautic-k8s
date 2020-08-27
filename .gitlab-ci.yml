@@ -192,7 +192,7 @@
     variables:
       GIT_STRATEGY: none
     stage: cleanup
-    image: kbaddi/awscli:k8s
+    image: axelerant/awscli-helm
     script:
         - echo $RELEASE_NAME
         - echo $NAMESPACE
