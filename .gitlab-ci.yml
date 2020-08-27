@@ -23,9 +23,9 @@
     
     # various stages, currently disabled, remove the variable to enable those steps
     # DEV_BUILD_DISABLED: "true"
-    PROD_BUILD_DISABLED: "true"
+    # PROD_BUILD_DISABLED: "true"
     # DEV_RELEASE_DISABLED: "true"
-    PROD_RELEASE_DISABLED: "true"
+    # PROD_RELEASE_DISABLED: "true"
 
 
   # Dev Build stage:  Builds mautic and nginx images with the tag $CI_COMMIT_SHORT_SHA
@@ -117,12 +117,12 @@
         --set project.secretKey=$DEV_APP_SECRET_KEY
         --set ExternalDb.host=$RDS_HOST
         --set ExternalDb.password=$RDS_PASSWORD
-        --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD      
+        --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD  
+        --set project.trustedIPs=$TRUSTED_PROXIES   
       
     # Post deployment script
     after_script:
-      # wait for pod to be up
-      
+      # wait for pod to be up      
       - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w       
       - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
       - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh      
@@ -174,10 +174,13 @@
           --set project.mailerPassword=$PROD_MAILER_SECRET_KEY          
           --set project.secretKey=$PROD_APP_SECRET_KEY
           --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password
+          --set project.trustedIPs=$TRUSTED_PROXIES
+
       # Post deployment script
       after_script:
         # wait for pod to be up
         - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
+        #Copy the post deployment scrip and execute it in the mautic container
         - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
         - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
       only:
@@ -188,6 +191,7 @@
       environment:
         name: prod
 
+  # Clean up of resources - triggered when a branch is deleted.         
   cleanup:
     variables:
       GIT_STRATEGY: none
