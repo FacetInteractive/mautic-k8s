@@ -102,7 +102,8 @@
       
 
     script:
-      - cd k8s/                 
+      - cd k8s/
+      - echo $CI_COMMIT_SHORT_SHA                 
       - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE 
         --set project.replicaCount=4
         --set project.branch=$CI_COMMIT_BRANCH
