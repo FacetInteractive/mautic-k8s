@@ -9,9 +9,6 @@ metadata:
     traefik.ingress.kubernetes.io/session-cookie-name: "route"            
     traefik.ingress.kubernetes.io/session-cookie-expires: "172800"
     traefik.ingress.kubernetes.io/session-cookie-max-age: "172800"       
-  {{- range $key, $value := .Values.ingress.annotations }}
-  {{ $key }}: {{ $value | quote }}
-  {{- end }}
 spec:
   rules:
 {{- if eq  .Values.project.branch "master" }}
@@ -27,5 +24,4 @@ spec:
         backend:
           serviceName: {{ .Release.Name }}-{{ .Values.project.name }}
           servicePort: 80
-
 {{- end }}

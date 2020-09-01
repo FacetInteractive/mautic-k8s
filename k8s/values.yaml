@@ -123,8 +123,10 @@ traefik:
   service:
     annotations:            
       traefik.backend.loadbalancer.stickiness: "true"
-      # traefik.backend.loadbalancer.stickiness.cookieName: "route"               
-      service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
+      traefik.backend.loadbalancer.stickiness.cookieName: "route"  
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: https
+      ingress.kubernetes.io/whitelist-x-forwarded-for: "true"
+  # annotations:
   ssl:
     enabled: true
     enforced: true
