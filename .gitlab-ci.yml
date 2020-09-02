@@ -124,8 +124,8 @@
     after_script:
       # wait for pod to be up
       - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w       
-      - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony/mautic -c mautic --namespace $NAMESPACE
-      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/mautic/post_deploy.sh
+      - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
+      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
     only:
       refs:
         - branches
