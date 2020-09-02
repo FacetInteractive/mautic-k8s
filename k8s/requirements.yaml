@@ -10,6 +10,6 @@ dependencies:
   version: '7.2.1'
   repository: 'https://charts.bitnami.com/bitnami'
 
-- name: redis
+- name: redis-cluster
   version: '10.8.1'
   repository: 'https://charts.bitnami.com/bitnami'
