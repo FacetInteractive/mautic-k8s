@@ -135,6 +135,7 @@
         - $DEV_RELEASE_DISABLED
     environment:
       name: mautic-$CI_COMMIT_BRANCH
+      on_stop: cleanup
 
 # Production Release stage: Deploys application in prod (mautic) namespace.
 # Runs only when code is committed from master and the Variable PROD_RELEASE_DISABLED is commented out.
@@ -181,3 +182,19 @@
           - $PROD_RELEASE_DISABLED
       environment:
         name: prod
+  
+
+  cleanup:
+    variables:
+      GIT_STRATEGY: none
+    stage: cleanup
+    image: axelerant/awscli-helm
+    script:       
+        - helm delete --purge $RELEASE_NAME
+        - kubectl delete namespace $NAMESPACE
+    when: manual
+    environment:
+      name: mautic-$CI_COMMIT_BRANCH
+      action: stop
+    except:
+    - master
