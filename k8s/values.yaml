@@ -52,7 +52,7 @@ project:
       size: 10Gi
   imagePullSecrets:
     - name: regcred
-
+  trustedIPs: '10.0.0.0/16, 172.16.0.0/12'
   resources: {}
 
     # We usually recommend not to specify default resources and to leave this as a conscious
@@ -105,7 +105,7 @@ ingress:
     nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
 
 # Values for the Ingress Controller
-traefik:
+traefik:  
   externalTrafficPolicy: Local
   proxyProtocol:
     enabled: true
@@ -121,10 +121,10 @@ traefik:
       - 10.0.0.0/8
       - 172.16.0.0/12
   service:
-    annotations:
+    annotations:            
+      traefik.backend.loadbalancer.stickiness: "true"
+      # traefik.backend.loadbalancer.stickiness.cookieName: "route"               
       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
-      traefik.backend.loadbalancer.stickiness: true
-      
   ssl:
     enabled: true
     enforced: true

@@ -4,9 +4,13 @@ apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
   name: {{ $.Release.Name }}-{{ .name }}
+  annotations:
+    rollme: {{ randAlphaNum 5 | quote }}
   labels:
 {{- toYaml $.Values.project.labels | nindent 4 }}
 spec:
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
   schedule: {{ .schedule | quote }}
   jobTemplate:
     spec:

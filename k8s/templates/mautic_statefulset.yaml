@@ -3,8 +3,12 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}-mautic 
+  annotations:
+    rollme: {{ randAlphaNum 5 | quote }}
   labels:
 {{- toYaml .Values.project.labels | nindent 4 }}
+  annotations:
+    rollme: {{ randAlphaNum 5 | quote }}
 spec:
   serviceName: {{ .Values.project.name }}
   replicas: {{ .Values.project.replicaCount }}
@@ -14,6 +18,8 @@ spec:
   template:
     metadata:
       name: {{ .Values.project.name }}
+      annotations:
+        rollme: {{ randAlphaNum 5 | quote }}
       labels:
 {{- toYaml .Values.project.labels | nindent 8 }}
     spec:
@@ -29,6 +35,7 @@ spec:
       containers:
         - image: "{{ .Values.project.nginxImage.repository }}:{{ .Values.project.nginxImage.tag }}"
           name: nginx
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.project.service.targetPort }}
               name: {{ .Values.project.name }}-nginxport
@@ -40,9 +47,13 @@ spec:
             value: {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
             {{- else }}
             value: {{ .Values.ingress.domain }}
-            {{- end }}                  
+            {{- end }}  
+          - name: TRUSTED_PROXIES
+            value: {{ .Values.project.trustedIPs | quote }}
+
         - image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
           name: mautic
+          imagePullPolicy: Always
           env:
           - name: MYSQL_DB_HOST
             {{- if .Values.ExternalDb.host }}
@@ -105,6 +116,8 @@ spec:
               secretKeyRef:
                 name: {{ .Release.Name }}-rabbitmq-password
                 key: rabbitmq-password
+          - name: TRUSTED_PROXIES
+            value: {{ .Values.project.trustedIPs | quote }}      
           volumeMounts:
             - name: cache  
               mountPath: /cache

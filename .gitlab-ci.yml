@@ -7,6 +7,7 @@
     - prod-build
     - dev-deploy
     - prod-deploy
+    - cleanup
 
   variables:
     # K8s Namespaces Naming.
@@ -31,7 +32,7 @@
   # This stage is triggered when code is commited from any branch other than master and the Vairable DEV_BUILD_DISABLED is commented out.
 
   dev-build:
-    image: kbaddi/awscli
+    image: axelerant/awscli-ci
     stage: dev-build
     services:
     - docker:dind
@@ -55,7 +56,7 @@
   # Production Build stage: Builds mautic and nginx images with the tag "latest".
   # Runs only when code is commited from master and the Vairable PROD_BUILD_DISABLED is commented out.
   prod-build:
-    image: kbaddi/awscli
+    image: axelerant/awscli-ci
     stage: prod-build
     variables:
       MAUTIC_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
@@ -85,28 +86,27 @@
   # This stage is triggered when code is commited from any branch other than master and the Vairable DEV_RELEASE_DISABLED is commented out.
   dev-deploy:
     stage: dev-deploy
-    image: kbaddi/awscli:k8s
+    image: axelerant/awscli-helm
     variables:
-      REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com
-
+      REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com 
     services:
     - docker:dind
 
     before_script:
       #Docker-login to ecr
       - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS  $REGISTRY
-      # Create namespace with the name $CI_COMMIT_BRANCH if it doesn't exist
-      - echo $NAMESPACE
-      - kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE
+      # Create namespace with the name $CI_COMMIT_BRANCH if it doesn't exist      
+      - kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE      
       # Create secret for registry credentials in the namespace if it doesn't exist
       - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
+      
 
     script:
-      - cd k8s/
+      - cd k8s/                 
       - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE 
         --set project.replicaCount=4
         --set project.branch=$CI_COMMIT_BRANCH
-        --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA 
+        --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
         --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
         --set traefik.ssl.defaultCert=$TLS_CERT 
         --set traefik.ssl.defaultKey=$TLS_KEY        
@@ -118,14 +118,19 @@
         --set ExternalDb.host=$RDS_HOST
         --set ExternalDb.password=$RDS_PASSWORD
         --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD      
+        --set project.trustedIPs=$TRUSTED_PROXIES
       
     # Post deployment script
     after_script:
       # wait for pod to be up
+      
       - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w       
-      - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE  
-      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
+      - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
+      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh      
     only:
+      variables:
+        - $CI_COMMIT_BRANCH =~ /^dev.*/
+        - $CI_COMMIT_BRANCH =~ /^release-.*/
       refs:
         - branches
     except:
@@ -135,12 +140,13 @@
         - $DEV_RELEASE_DISABLED
     environment:
       name: mautic-$CI_COMMIT_BRANCH
+      on_stop: cleanup
 
 # Production Release stage: Deploys application in prod (mautic) namespace.
 # Runs only when code is committed from master and the Variable PROD_RELEASE_DISABLED is commented out.
   prod-deploy:
       stage: prod-deploy
-      image: kbaddi/awscli:k8s
+      image: axelerant/awscli-helm
 
       variables:
         REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com
@@ -149,8 +155,9 @@
       before_script:
         - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS $REGISTRY
         - kubectl describe namespace $NAMESPACE  || kubectl create namespace $NAMESPACE
-        # Generates Regesitry Credentials in the mautic namespace
+        # Generates Registry Credentials in the mautic namespace
         - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
+
 
       script:
         - cd k8s/
@@ -168,6 +175,14 @@
           --set project.mailerPassword=$PROD_MAILER_SECRET_KEY          
           --set project.secretKey=$PROD_APP_SECRET_KEY
           --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password
+          --set project.trustedIPs=$TRUSTED_PROXIES
+          
+      # Post deployment script
+      after_script:
+        # wait for pod to be up
+        - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
+        - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
+        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
       only:
         - master
       except:
@@ -175,3 +190,18 @@
           - $PROD_RELEASE_DISABLED
       environment:
         name: prod
+
+  cleanup:
+    variables:
+      GIT_STRATEGY: none
+    stage: cleanup
+    image: axelerant/awscli-helm
+    script:       
+        - helm delete --purge $RELEASE_NAME
+        - kubectl delete namespace $NAMESPACE
+    when: manual
+    environment:
+      name: mautic-$CI_COMMIT_BRANCH
+      action: stop
+    except:
+    - master
