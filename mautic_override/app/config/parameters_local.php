@@ -157,7 +157,7 @@ if (getenv('LANDO_DOMAIN') == 'lndo.site') {
  */
 
 // Trusted Hosts
-$parameters['trusted_hosts'] = [];
+// $parameters['trusted_hosts'] = [];
 
 // Trusted Proxies
 // Required for Load Balanced Application Containers Behind a Proxy in Mautic
