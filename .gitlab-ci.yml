@@ -7,6 +7,7 @@
     - prod-build
     - dev-deploy
     - prod-deploy
+    - cleanup
 
   variables:
     # K8s Namespaces Naming.
@@ -102,11 +103,12 @@
       - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
 
     script:
+      - echo $CI_COMMIT_SHORT_SHA 
       - cd k8s/
       - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE 
         --set project.replicaCount=4
         --set project.branch=$CI_COMMIT_BRANCH
-        --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA 
+        --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
         --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
         --set traefik.ssl.defaultCert=$TLS_CERT 
         --set traefik.ssl.defaultKey=$TLS_KEY        
@@ -135,6 +137,7 @@
         - $DEV_RELEASE_DISABLED
     environment:
       name: mautic-$CI_COMMIT_BRANCH
+      on_stop: cleanup
 
 # Production Release stage: Deploys application in prod (mautic) namespace.
 # Runs only when code is committed from master and the Variable PROD_RELEASE_DISABLED is commented out.
@@ -172,8 +175,8 @@
       after_script:
         # wait for pod to be up
         - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
-        - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
-        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
+        - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony/mautic -c mautic --namespace $NAMESPACE
+        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/mautic/post_deploy.sh
       only:
         - master
       except:
@@ -181,3 +184,19 @@
           - $PROD_RELEASE_DISABLED
       environment:
         name: prod
+  
+
+  cleanup:
+    variables:
+      GIT_STRATEGY: none
+    stage: cleanup
+    image: axelerant/awscli-helm
+    script:       
+        - helm delete --purge $RELEASE_NAME
+        - kubectl delete namespace $NAMESPACE
+    when: manual
+    environment:
+      name: mautic-$CI_COMMIT_BRANCH
+      action: stop
+    except:
+    - master
