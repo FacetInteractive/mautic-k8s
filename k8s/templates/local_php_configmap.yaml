@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:  
-  name: local-php  
+  name: {{ .Release.Name }}-local-php
 data:
   local.php: "<?php\n$parameters = array(\n\t'db_driver' => 'pdo_mysql',\n\t'db_host'
     => getenv('MYSQL_DB_HOST'),\n\t'db_table_prefix' => null,\n\t'db_port' => '3306',\n\t'db_name'
