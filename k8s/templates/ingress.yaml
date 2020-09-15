@@ -4,11 +4,7 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-{{ .Values.project.name }}-ingress  
   annotations:
-    kubernetes.io/ingress.class: "traefik"
-    traefik.ingress.kubernetes.io/affinity: "true"
-    traefik.ingress.kubernetes.io/session-cookie-name: "route"            
-    traefik.ingress.kubernetes.io/session-cookie-expires: "172800"
-    traefik.ingress.kubernetes.io/session-cookie-max-age: "172800"       
+    kubernetes.io/ingress.class: "traefik"       
 spec:
   rules:
 {{- if eq  .Values.project.branch "master" }}
