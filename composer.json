@@ -4,9 +4,9 @@
   "description": "Mautic Open Source Distribution - Modified for K8s",
   "license": "GPL-3.0-only",
   "require": {
-    "mautic/core": "2.15.3",
-    "aws/aws-sdk-php": "3.36",
-    "twig/twig": "v1.35.0"
+      "mautic/core": "dev-master#64b4115367cb0956fed82f7b5dc53165e2128d81",
+      "aws/aws-sdk-php": "3.36",
+      "twig/twig": "v1.35.0"
   },
   "repositories": [
     {
@@ -14,7 +14,7 @@
       "package": {
         "type": "library",
         "name": "mautic/core",
-        "version": "2.15.3",
+        "version": "dev-master",
         "source": {
           "type": "git",
           "url": "https://github.com/mautic/mautic.git",
@@ -81,10 +81,14 @@
       "rm -rf ./mautic/vendor ./mautic/bin",
       "cd ./mautic ; ln -s ../vendor vendor",
       "cd ./mautic ; ln -s ../bin bin",
+      "bash ./scripts/mautic-custom.sh mautic_override",
+      "bash ./scripts/mautic-custom.sh mautic_custom",
+      "bash ./scripts/mautic-custom-plugins.sh",
       "echo 'deny from all' > ./mautic/vendor/.htaccess"
     ],
     "git-hooks": "@php -r \"if(file_exists('./mautic/.git')&&file_exists('./mautic/build/hooks/pre-commit'.(PHP_OS=='WINNT'?'.win':''))){copy('./mautic/build/hooks/pre-commit'.(PHP_OS=='WINNT'?'.win':''),'./mautic/.git/hooks/pre-commit');}\"",
     "iplookup": "@php ./mautic/app/console mautic:iplookup:download",
+    "installplugins": "@php ./mautic/app/console mautic:plugins:install",
     "migrate": "@php ./mautic/app/console doctrine:migrations:migrate --no-interaction",
     "db-drop-dev": [
       "@php ./mautic/app/console doctrine:database:drop --force --no-interaction --env=dev"
@@ -127,6 +131,11 @@
       "@custom",
       "@git-hooks",
       "@iplookup",
+      "@cc"
+    ],
+    "post-deploy": [
+      "@migrate",
+      "@installplugins",
       "@cc"
     ]
   },

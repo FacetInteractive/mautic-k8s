@@ -126,7 +126,7 @@ traefik:
       service.beta.kubernetes.io/aws-load-balancer-backend-protocol: https
       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
       # traefik.backend.loadbalancer.stickiness: "true"
-      # traefik.backend.loadbalancer.stickiness.cookieName: route  
+      # traefik.backend.loadbalancer.stickiness.cookieName: route
   ssl:
     enabled: true
     enforced: true

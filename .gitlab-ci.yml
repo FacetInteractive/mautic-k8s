@@ -38,10 +38,10 @@
     - docker:dind
 
     script:
-      - docker build -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA .
+      - docker build --target mautic -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA .
       - $(aws ecr get-login --no-include-email --region us-west-1)
       - docker push $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
-      - docker build -f Dockerfile-nginx -t $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA  .
+      - docker build -t $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA  .
       - docker push $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
 
     only:
@@ -102,6 +102,7 @@
       
 
     script:
+      - echo $CI_COMMIT_SHORT_SHA 
       - cd k8s/
       - echo $CI_COMMIT_SHORT_SHA                 
       - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE 
@@ -182,8 +183,8 @@
       after_script:
         # wait for pod to be up
         - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
-        - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
-        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
+        - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony/mautic -c mautic --namespace $NAMESPACE
+        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/mautic/post_deploy.sh
       only:
         - master
       except:
