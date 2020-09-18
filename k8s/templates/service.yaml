@@ -4,7 +4,11 @@ kind: Service
 metadata:
   name: {{ .Release.Name }}-{{ .Values.project.name }}
   labels:
-    {{ .Values.project.labels | toYaml -}}
+    {{ .Values.project.labels | toYaml  }}
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/affinity: "true"
+    traefik.ingress.kubernetes.io/session-cookie-name: route  
 spec:
   type: {{ .Values.project.service.type }}
   ports:

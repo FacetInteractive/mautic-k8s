@@ -5,5 +5,8 @@ dependencies:
 - name: rabbitmq
   repository: https://charts.bitnami.com/bitnami
   version: 7.2.1
-digest: sha256:fc1d1822972327001f0e43b37d408a83314f14cf58a1734f27ea93e60535441c
-generated: "2020-07-04T16:28:59.564764704+05:30"
+- name: redis-cluster
+  repository: https://charts.bitnami.com/bitnami
+  version: 3.2.2
+digest: sha256:be23068e8380e52746b09bba81645d12232af3ff3642b46f132278692cfe8d64
+generated: "2020-09-02T23:00:44.445439144+05:30"
