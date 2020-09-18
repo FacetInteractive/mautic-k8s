@@ -11,5 +11,5 @@ dependencies:
   repository: 'https://charts.bitnami.com/bitnami'
 
 - name: redis-cluster
-  version: '10.8.1'
+  version: '3.2.2'
   repository: 'https://charts.bitnami.com/bitnami'
