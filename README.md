@@ -1,6 +1,6 @@
 # Mautic K8s
 
-Includes PHP FPM 7.1, Facet's Mautic code base, Nginx, PHPMyAdmin and MySQL stacks consolidated into a docker-compose for both local and production use.
+Includes PHP FPM 7.2, Mautic code base, Nginx, MySQL, and RabbitMQ stacks consolidated into a K8s Helm Chart for both local and production use.
 
 The production docker compose uses Traefik as a web proxy.
 
@@ -15,7 +15,7 @@ The production docker compose uses Traefik as a web proxy.
 - [ ] Mautic/PHP: Setup Sessions for HA with Redis. 
 - [ ] Mautic: Solve `local.php` diff with `parameters_local.php` on new Mautic deploys.
 - [ ] PHP: Configure `php.ini` with memory_limit and other best practices. 
-- [ ] Local Dev: Standup `lando` configuration with LEMP stack. 
+- [x] Local Dev: Standup `lando` configuration with LEMP stack. 
 
 ## Documentation Cleanup Tasks
 

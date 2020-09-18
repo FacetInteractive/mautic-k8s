@@ -1,6 +1,6 @@
 # Changelog
 
-## YYYY-MM-DD - Lando LEMP Configuration
+## 2020-08-24 - Lando LEMP Configuration
 
 Lando requires a custom `nginx.conf` in order to work in a LEMP stack. 
 
