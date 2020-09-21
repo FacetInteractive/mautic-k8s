@@ -136,11 +136,6 @@
         - $CI_COMMIT_BRANCH =~ /^release-.*/
       refs:
         - branches
-    except:
-      refs:
-        - master
-      variables:
-        - $DEV_RELEASE_DISABLED
     environment:
       name: mautic-$CI_COMMIT_BRANCH
       on_stop: cleanup
@@ -189,9 +184,9 @@
         - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/mautic/post_deploy.sh
       only:
         - master
-      except:
-        variables:
-          - $PROD_RELEASE_DISABLED
+#      except:
+#        variables:
+#          - $PROD_RELEASE_DISABLED
       environment:
         name: prod
 
