@@ -11,6 +11,7 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          concurrencyPolicy: Forbid
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -87,6 +88,7 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          concurrencyPolicy: Replace
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -163,6 +165,7 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          concurrencyPolicy: Forbid
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -238,6 +241,7 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          concurrencyPolicy: Forbid
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -313,6 +317,7 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          concurrencyPolicy: Forbid
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -388,6 +393,7 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          concurrencyPolicy: Forbid
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -463,6 +469,7 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          concurrencyPolicy: Forbid
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -538,6 +545,7 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          concurrencyPolicy: Forbid
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -613,6 +621,7 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          concurrencyPolicy: Forbid
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
