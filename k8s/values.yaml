@@ -163,6 +163,15 @@ rabbitmq:
     username: user
     existingPasswordSecret: rabbitmq-password
 
+# Redis
+
+redis-cluster:
+  cluster:
+    nodes: 4
+    replicas: 1
+  usePassword: true
+  password: redis-password
+
 # Cron Job values
 cronjobs:
   - name: trigger-campaign
