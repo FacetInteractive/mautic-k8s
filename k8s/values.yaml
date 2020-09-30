@@ -170,7 +170,9 @@ redis-cluster:
     nodes: 4
     replicas: 1
   usePassword: true
-  password: redis-password
+  usePasswordFile: true
+  existingSecret: redis-password-file
+  password: 5Om3R2ndumw!n
 
 # Cron Job values
 cronjobs:
