@@ -122,6 +122,7 @@
         --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD      
         --set project.trustedIPs=$TRUSTED_PROXIES
         --set redis-cluster.password=$REDIS_PASSWORD
+        --set redis-cluster.existingSecret=redis-password
       
     # Post deployment script
     after_script:
