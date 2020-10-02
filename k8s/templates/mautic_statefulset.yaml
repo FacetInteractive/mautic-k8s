@@ -123,6 +123,11 @@ spec:
               secretKeyRef:
                 name: {{ .Release.Name }}-rabbitmq-password
                 key: rabbitmq-password
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: redis-password
+                key: redis-password     
           - name: TRUSTED_PROXIES
             value: {{ .Values.project.trustedIPs | quote }}      
           volumeMounts:
