@@ -108,8 +108,8 @@
       - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE 
         --set project.replicaCount=4
         --set project.branch=$CI_COMMIT_BRANCH
-        --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
-        --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
+        --set project.nginxImage.tag=7e11d0f9
+        --set project.mauticImage.tag=7e11d0f9
         --set traefik.ssl.defaultCert=$TLS_CERT 
         --set traefik.ssl.defaultKey=$TLS_KEY        
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password 
