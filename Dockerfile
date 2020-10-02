@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     libkrb5-dev \    
     wget \
     libwebp-dev libjpeg62-turbo-dev libpng-dev libxpm-dev \
-    libfreetype6-dev \
+    libfreetype6-dev redis-tools \
     && pecl install mcrypt-1.0.1 \
     && pecl install redis
 # Install Composer
