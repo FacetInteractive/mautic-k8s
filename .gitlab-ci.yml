@@ -22,7 +22,7 @@
     NGINX_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
     
     # various stages, currently disabled, remove the variable to enable those steps
-    # DEV_BUILD_DISABLED: "true"
+    DEV_BUILD_DISABLED: "true"
     # PROD_BUILD_DISABLED: "true"
     # DEV_RELEASE_DISABLED: "true"
     # PROD_RELEASE_DISABLED: "true"
@@ -121,7 +121,7 @@
         --set ExternalDb.password=$RDS_PASSWORD
         --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD      
         --set project.trustedIPs=$TRUSTED_PROXIES
-        --set project.redisPassowrd=$REDIS_PASSWORD
+        --set project.redisPassword=$REDIS_PASSWORD
         --set redis-cluster.existingSecret=redis-password
       
     # Post deployment script
@@ -163,8 +163,8 @@
         - helm upgrade $RELEASE_NAME  . --install --namespace $NAMESPACE
           --set project.replicaCount=1
           --set project.branch=$CI_COMMIT_BRANCH
-          --set project.nginxImage.tag=latest
-          --set project.mauticImage.tag=latest
+          --set project.nginxImage.tag=ad2ea06c
+          --set project.mauticImage.tag=ad2ea06c
           --set traefik.ssl.defaultCert=$PROD_TLS_CERT
           --set traefik.ssl.defaultKey=$PROD_TLS_KEY
           --set ExternalDb.host=$RDS_HOST

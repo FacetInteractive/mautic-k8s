@@ -41,8 +41,8 @@ project:
   secretKey: r2ndm$trin487
   rabbitmqUser: "user"
   rabbitmqPassword: v3r#r@ndum1
-  redisPassowrd:
-  # Persistence - Persistence Volume claims an
+  redisPassword: v3r#r@ndum1
+  # Persistence - Persistence Volume claims
   persistence:
     storageClass: "aws-efs"
     cache:
@@ -126,8 +126,8 @@ traefik:
       ingress.kubernetes.io/whitelist-x-forwarded-for: "true"
       service.beta.kubernetes.io/aws-load-balancer-backend-protocol: https
       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
-      traefik.backend.loadbalancer.stickiness: "true"
-      traefik.backend.loadbalancer.stickiness.cookieName: route
+      # traefik.backend.loadbalancer.stickiness: "true"
+      # traefik.backend.loadbalancer.stickiness.cookieName: route
   ssl:
     enabled: true
     enforced: true
