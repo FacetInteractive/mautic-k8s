@@ -25,8 +25,8 @@ RUN ln -s /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
 # Type docker-php-ext-install to see available extensions
 RUN docker-php-ext-configure  imap --with-kerberos --with-imap-ssl \
     && docker-php-ext-install imap
-RUN docker-php-ext-install pdo pdo_mysql bcmath zip \
-    && docker-php-ext-enable pdo pdo_mysql mcrypt bcmath zip
+RUN docker-php-ext-install pdo pdo_mysql bcmath zip redis \
+    && docker-php-ext-enable pdo pdo_mysql mcrypt bcmath zip redis
 RUN docker-php-ext-configure gd --with-gd --with-webp-dir --with-jpeg-dir \
     --with-png-dir --with-zlib-dir --with-xpm-dir --with-freetype-dir \
     && docker-php-ext-install gd
