@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     libwebp-dev libjpeg62-turbo-dev libpng-dev libxpm-dev \
     libfreetype6-dev \
     && pecl install mcrypt-1.0.1
+    && pecl install redis
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN composer --version
