@@ -1,6 +1,8 @@
 FROM bitnami/php-fpm:7.2-prod AS mautic
 
-RUN apt-get update && apt-get install redis-tools unzip git -y
+RUN apt-get update && apt-get install redis-tools unzip git build-essential libtool autoconf unzip wget -y
+
+RUN pecl install redis
 
 COPY php7-fpm/php.ini /opt/bitnami/php/etc/php.ini
 
