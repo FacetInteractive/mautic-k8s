@@ -12,8 +12,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     libwebp-dev libjpeg62-turbo-dev libpng-dev libxpm-dev \
     libfreetype6-dev redis-tools \
-    && pecl install mcrypt-1.0.1 \
-    && pecl install redis-4.3.0
+    && pecl install mcrypt-1.0.1
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 RUN composer --version
@@ -26,11 +25,26 @@ RUN ln -s /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
 RUN docker-php-ext-configure  imap --with-kerberos --with-imap-ssl \
     && docker-php-ext-install imap
 RUN docker-php-ext-install pdo pdo_mysql bcmath zip \
-    && docker-php-ext-enable pdo pdo_mysql mcrypt bcmath zip redis
+    && docker-php-ext-enable pdo pdo_mysql mcrypt bcmath zip
 RUN docker-php-ext-configure gd --with-gd --with-webp-dir --with-jpeg-dir \
     --with-png-dir --with-zlib-dir --with-xpm-dir --with-freetype-dir \
     && docker-php-ext-install gd
 
+ENV PHPREDIS_VERSION 4.3.0
+
+RUN curl -L -o /tmp/redis.tar.gz https://github.com/phpredis/phpredis/archive/$PHPREDIS_VERSION.tar.gz  \
+    && mkdir /tmp/redis \
+    && tar -xf /tmp/redis.tar.gz -C /tmp/redis \
+    && rm /tmp/redis.tar.gz \
+    && ( \
+    cd /tmp/redis/phpredis-$PHPREDIS_VERSION \
+    && phpize \
+    && ./configure \
+    && make -j$(nproc) \
+    && make install \
+    ) \
+    && rm -r /tmp/redis \
+    && docker-php-ext-enable redis
 # install xdebug
 # RUN pecl install xdebug && docker-php-ext-enable xdebug
 # RUN echo "error_reporting = E_ALL" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
