@@ -38,7 +38,7 @@
     - docker:dind
 
     script:
-      - docker build --target mautic -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA .
+      - docker build --target mautic -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA . --no-cache
       - $(aws ecr get-login --no-include-email --region us-west-1)
       - docker push $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
       - docker build -t $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA  .

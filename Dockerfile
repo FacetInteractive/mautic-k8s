@@ -1,9 +1,8 @@
 FROM bitnami/php-fpm:7.2-prod AS mautic
 
-
 RUN apt-get update && apt-get install redis-tools unzip git -y
 
-COPY php7-fpm/php.ini "$PHP_INI_DIR/php.ini"
+COPY php7-fpm/php.ini /opt/bitnami/php/etc/php.ini
 
 RUN composer global require hirak/prestissimo
 
