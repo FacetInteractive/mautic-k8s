@@ -121,6 +121,7 @@
         --set ExternalDb.password=$RDS_PASSWORD
         --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD      
         --set project.trustedIPs=$TRUSTED_PROXIES
+        --set db.database=devmautic
        
     # Post deployment script
     after_script:
