@@ -68,9 +68,11 @@
       - docker build --target mautic -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA . --no-cache
       - $(aws ecr get-login --no-include-email --region us-west-1)
       - docker push $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
+      - docker tag $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA $MAUTIC_REPOSITORY_URL:latest
       - docker push $MAUTIC_REPOSITORY_URL:latest
       - docker build -t $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA  .
-      - docker push $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
+      - docker tag $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA  $NGINX_REPOSITORY_URL:latest
+      - docker push $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA 
       - docker push $NGINX_REPOSITORY_URL:latest
 
     only:
