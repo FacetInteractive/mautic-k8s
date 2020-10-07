@@ -402,7 +402,7 @@ subjects:
 
 kubectl apply -f tiller_service_account.yaml
 
-1. Install helm
+Install helm
 
 ```bash
 curl -Lo https://git.io/get_helm.sh /tmp/get_helm.sh
@@ -410,19 +410,19 @@ chmod 700 /tmp/get_helm.sh
 bash /tmp/get_helm.sh
 ```
 
-1. Initialize helm with tiller
+Initialize helm with tiller
 
 ```bash
 helm init --service-account tiller
 ```
 
-1. Confirm installation by checking the pods in the `kube-system` namespace
+Confirm installation by checking the pods in the `kube-system` namespace
 
 ```bash
 kubectl get pods --namespace kube-system
 ```
 
-A successful helm initialization creates a pod with the name `tiller-deploy-xxxxxxx-xxxx` and it should in running status.
+A successful helm initialization creates a pod with the name `tiller-deploy-xxxxxxx-xxxx` and it should be in running status.
 
 ## Storage class for data persisentce
 
@@ -477,25 +477,6 @@ cronjobs                         |             Schedule and commands for various
 
 **Note on Database**: If no value is passed for ExternalDbHost parameter, a Database service is created on the Kubernetes cluster. Follow steps in [DB Import](#import-existing-database)
 
-### Import Existing Database
-
-Once the deployment is completed. Retrieve the Databse password by running the below commands
-
-```bash
-kubectl -n <namespace> get secrets {{RELEASE_NAME}}-db-secret -o yaml
-```
-
-The key `database-password` is base64 encoded. Decode it with the below command
-
-```bash
-echo <database-password-value> | base64 -d
-```
-
-Now restore the DB with the existing SQL dump
-
-```
-kubectl -n <namespace> exec -i  {{RELEASE_NAME}}-mysql-0 -c mysql -- mysql -u user -p mautic < /path/to/my_local_dump.sql
-```
 
 ### Cron Jobs.
 
@@ -598,7 +579,7 @@ Upon successful execution of the CI-CD, the application is deployed on the respe
 Map the CNAME to the ELB endpoint in the DNS records.
 
 
-## Destroying an Environment
+## Deleting an Environment
 
 To delete any particular environment:
 

@@ -40,8 +40,10 @@ project:
   mailerPassword: r2ndm$tri9n
   secretKey: r2ndm$trin487
   rabbitmqUser: "user"
-  rabbitmqPassword: v3r#r@ndum1  
-  # Persistence - Persistence Volume claims an
+  rabbitmqPassword: v3r#r@ndum1
+  redisPassword: v3r#r@ndum1
+  redisPort: 6379
+  # Persistence - Persistence Volume claims
   persistence:
     storageClass: "aws-efs"
     cache:
@@ -121,10 +123,12 @@ traefik:
       - 10.0.0.0/8
       - 172.16.0.0/12
   service:
-    annotations:            
-      traefik.backend.loadbalancer.stickiness: "true"
-      # traefik.backend.loadbalancer.stickiness.cookieName: "route"               
+    annotations:
+      ingress.kubernetes.io/whitelist-x-forwarded-for: "true"
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: https
       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
+      # traefik.backend.loadbalancer.stickiness: "true"
+      # traefik.backend.loadbalancer.stickiness.cookieName: route
   ssl:
     enabled: true
     enforced: true
@@ -160,6 +164,17 @@ rabbitmq:
     ##
     username: user
     existingPasswordSecret: rabbitmq-password
+
+# Redis
+
+redis-cluster:
+  cluster:
+    nodes: 4
+    replicas: 1
+  usePassword: true
+  usePasswordFile: true
+  existingSecret: redis-password-file
+  password: 5Om3R2ndumw!n
 
 # Cron Job values
 cronjobs:

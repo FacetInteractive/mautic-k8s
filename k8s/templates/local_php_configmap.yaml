@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:  
+  name: {{ .Release.Name }}-local-php
+data:
+  local.php: "<?php\n$parameters = array(\n\t'db_driver' => 'pdo_mysql',\n\t'db_host'
+    => getenv('MYSQL_DB_HOST'),\n\t'db_table_prefix' => null,\n\t'db_port' => '3306',\n\t'db_name'
+    => getenv('MYSQL_DATABASE'),\n\t'db_user' => 'user',\n\t'db_password' => getenv('MYSQL_PASSWORD'),\n\t'db_backup_tables'
+    => 0,\n\t'db_backup_prefix' => 'bak_',\n\t'db_server_version' => '5.7.31',\n\t'mailer_from_name'
+    => 'Lakshmi P',\n\t'mailer_from_email' => 'lakshmi@lakshminp.com',\n\t'mailer_transport'
+    => 'mail',\n\t'mailer_host' => null,\n\t'mailer_port' => null,\n\t'mailer_user'
+    => null,\n\t'mailer_password' => null,\n\t'mailer_encryption' => null,\n\t'mailer_auth_mode'
+    => null,\n\t'mailer_spool_type' => 'memory',\n\t'mailer_spool_path' => '%kernel.root_dir%/spool',\n\t'secret_key'
+    => '2b16c6a6357f1c64255576326ed84c0bdc9ec930527c9acca764332b142a64f5',\n\t'site_url'
+    => getenv('SITE_URL'),\n    'cache_path'
+    => '/cache',\n    'log_path' => '/logs',\n);\n\n"

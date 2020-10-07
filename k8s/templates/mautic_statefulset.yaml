@@ -32,6 +32,13 @@ spec:
         - name: logs
           persistentVolumeClaim:
             claimName: {{ .Release.Name }}-logs
+        - name: local-php
+          configMap:
+            name: {{ .Release.Name }}-local-php
+            defaultMode: 420
+            items:
+            - key: local.php
+              path: local.php      
       containers:
         - image: "{{ .Values.project.nginxImage.repository }}:{{ .Values.project.nginxImage.tag }}"
           name: nginx
@@ -109,13 +116,17 @@ spec:
                 key: mailer-password
           - name: RABBITMQ_HOST
             value: {{ .Release.Name }}-rabbitmq-headless
+          - name: REDIS_HOST
+            value: {{ .Release.Name }}-redis-svc
+          - name: REDIS_PORT
+            value: {{ .Values.project.redisPort | quote }}             
           - name: RABBITMQ_USER
             value: user
           - name: RABBITMQ_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: {{ .Release.Name }}-rabbitmq-password
-                key: rabbitmq-password
+                key: rabbitmq-password          
           - name: TRUSTED_PROXIES
             value: {{ .Values.project.trustedIPs | quote }}      
           volumeMounts:
@@ -123,5 +134,8 @@ spec:
               mountPath: /cache
             - name: logs
               mountPath: /logs
+            - name: local-php  
+              mountPath: /var/www/symfony/mautic/app/config/local.php
+              subPath: local.php  
       imagePullSecrets:
 {{- toYaml .Values.project.imagePullSecrets | nindent 6 }}
