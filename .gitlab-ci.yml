@@ -108,8 +108,8 @@
       - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE 
         --set project.replicaCount=4
         --set project.branch=$CI_COMMIT_BRANCH
-        --set project.nginxImage.tag=latest
-        --set project.mauticImage.tag=latest
+        --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
+        --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
         --set traefik.ssl.defaultCert=$TLS_CERT 
         --set traefik.ssl.defaultKey=$TLS_KEY        
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password 
@@ -121,9 +121,7 @@
         --set ExternalDb.password=$RDS_PASSWORD
         --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD      
         --set project.trustedIPs=$TRUSTED_PROXIES
-        --set project.redisPassword=$REDIS_PASSWORD
-        --set redis-cluster.existingSecret=redis-password
-      
+       
     # Post deployment script
     after_script:
       # wait for pod to be up
@@ -163,8 +161,8 @@
         - helm upgrade $RELEASE_NAME  . --install --namespace $NAMESPACE
           --set project.replicaCount=1
           --set project.branch=$CI_COMMIT_BRANCH
-          --set project.nginxImage.tag=ad2ea06c
-          --set project.mauticImage.tag=ad2ea06c
+          --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
+          --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
           --set traefik.ssl.defaultCert=$PROD_TLS_CERT
           --set traefik.ssl.defaultKey=$PROD_TLS_KEY
           --set ExternalDb.host=$RDS_HOST
@@ -175,7 +173,7 @@
           --set project.secretKey=$PROD_APP_SECRET_KEY
           --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password
           --set project.trustedIPs=$TRUSTED_PROXIES
-          --set redis-cluster.password=$REDIS_PASSWORD
+          
           
       # Post deployment script
       after_script:
