@@ -42,6 +42,7 @@ project:
   rabbitmqUser: "user"
   rabbitmqPassword: v3r#r@ndum1
   redisPassword: v3r#r@ndum1
+  redisPort: 6379
   # Persistence - Persistence Volume claims
   persistence:
     storageClass: "aws-efs"
