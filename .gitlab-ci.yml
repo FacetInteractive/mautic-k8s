@@ -10,7 +10,7 @@
     - cleanup
 
   variables:
-    # K8s Namespaces Naming.
+    # K8s Namespaces .
     NAMESPACE: $CI_COMMIT_BRANCH
     # Release name for helm
     RELEASE_NAME: mautic-$CI_COMMIT_BRANCH
