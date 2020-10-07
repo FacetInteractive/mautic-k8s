@@ -116,18 +116,19 @@ spec:
                 key: mailer-password
           - name: RABBITMQ_HOST
             value: {{ .Release.Name }}-rabbitmq-headless
+          - name: REDIS_HOST
+            value: {{ .Release.Name }}-redis-svc
+          - name: REDIS_HOST
+            value: {{ .Values.project.redisPort }}
+            
+          - name: REDIS_PORT   
           - name: RABBITMQ_USER
             value: user
           - name: RABBITMQ_PASSWORD
             valueFrom:
               secretKeyRef:
                 name: {{ .Release.Name }}-rabbitmq-password
-                key: rabbitmq-password
-          - name: REDIS_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: redis-password
-                key: redis-password     
+                key: rabbitmq-password          
           - name: TRUSTED_PROXIES
             value: {{ .Values.project.trustedIPs | quote }}      
           volumeMounts:
