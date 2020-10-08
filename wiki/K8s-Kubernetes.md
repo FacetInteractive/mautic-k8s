@@ -121,10 +121,6 @@ dependencies:
 - name: rabbitmq
   version: '7.2.1'
   repository: 'https://charts.bitnami.com/bitnami'
-
-- name: redis-cluster
-  version: '3.2.4'
-  repository: 'https://charts.bitnami.com/bitnami'
 ```
 
 
@@ -140,7 +136,7 @@ run
 
 ```bash
 helm delete --purge <release_name>
-kubectl delete <namesapce
+kubectl delete <namespace>
 ```
 
 If available run the cleanup job manually which basically does the same as above.
