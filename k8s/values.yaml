@@ -111,7 +111,7 @@ traefik:
   externalTrafficPolicy: Local
   proxyProtocol:
     enabled: true
-      # trustedIPs is required when enabled
+    # trustedIPs is required when enabled
     trustedIPs: 
       - 10.0.0.0/8
       - 172.16.0.0/12
@@ -125,7 +125,7 @@ traefik:
   service:
     annotations:
       ingress.kubernetes.io/whitelist-x-forwarded-for: "true"
-      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: https
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
       # traefik.backend.loadbalancer.stickiness: "true"
       # traefik.backend.loadbalancer.stickiness.cookieName: route
