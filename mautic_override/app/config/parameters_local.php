@@ -89,6 +89,7 @@ $parameters = array(
  * @TODO - db_server_version should be dynamic.
  */
 $parameters += [
+    /* Following has been added to the config map
     'db_driver' => 'pdo_mysql',
     'db_host' => getenv('MYSQL_DB_HOST'),
     'db_port' => '3306',
@@ -96,7 +97,11 @@ $parameters += [
     'db_user' => getenv('MYSQL_USER'),
     'db_password' => getenv('MYSQL_PASSWORD'),
     'db_path' => null,
+    'db_table_prefix' => null,
+    'db_backup_tables' => 0,
+    'db_backup_prefix' => 'bak_',
     'db_server_version' => '5.7',
+    */
 ];
 
 /**
@@ -104,8 +109,10 @@ $parameters += [
  */
 $parameters += [
     // Host Settings
+    /* Converted to config map for local.php
     'site_url' => getenv('SITE_URL'),
     'secret_key' => getenv('SECRET_KEY'),
+    */
     'webroot' => null,
     // Mautic Update Channel
     'update_stability' => 'stable',
@@ -157,7 +164,7 @@ if (getenv('LANDO_DOMAIN') == 'lndo.site') {
  */
 
 // Trusted Hosts
-// $parameters['trusted_hosts'] = [];
+$parameters['trusted_hosts'] = [];
 
 // Trusted Proxies
 // Required for Load Balanced Application Containers Behind a Proxy in Mautic
