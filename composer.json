@@ -130,7 +130,6 @@
     "post-install-cmd": [
       "@custom",
       "@git-hooks",
-      "@iplookup",
       "@cc"
     ],
     "post-deploy": [
