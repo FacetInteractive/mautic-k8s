@@ -12,9 +12,9 @@ spec:
     spec:
       template:
         spec:
-          restartPolicy: {{ $.Values.project.restartPolicy }}
-          concurrencyPolicy: {{ $.Values.project.concurrencyPolicy }}
-          startingDeadlineSeconds: {{ $.Values.project.startingDeadlineSeconds }}
+          restartPolicy: {{ $.Values.project.cron.restartPolicy }}
+          concurrencyPolicy: {{ $.Values.project.cron.concurrencyPolicy }}
+          startingDeadlineSeconds: {{ $.Values.project.cron.startingDeadlineSeconds }}
           securityContext:
 {{- toYaml $.Values.project.securityContext | nindent 12 }}
           volumes:
