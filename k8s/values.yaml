@@ -55,6 +55,10 @@ project:
   imagePullSecrets:
     - name: regcred
   trustedIPs: '10.0.0.0/8,172.16.0.0/12'
+  cron:
+    restartPolicy: onFailure
+    concurrencyPolicy: Forbid
+    startingDeadlineSeconds: 60
   resources: {}
 
     # We usually recommend not to specify default resources and to leave this as a conscious
