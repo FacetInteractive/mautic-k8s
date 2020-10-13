@@ -108,8 +108,8 @@
       - helm upgrade --force $RELEASE_NAME . --install --namespace $NAMESPACE
         --set project.replicaCount=4
         --set project.branch=$CI_COMMIT_BRANCH
-        --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA 
-        --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA        
+        --set-string project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
+        --set-string project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
         --set traefik.ssl.defaultCert=$TLS_CERT 
         --set traefik.ssl.defaultKey=$TLS_KEY        
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password 
@@ -128,8 +128,8 @@
       # wait for pod to be up
       
       - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w       
-      - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony/mautic -c mautic --namespace $NAMESPACE
-      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/mautic/post_deploy.sh
+      - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
+      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
     only:
       variables:
         - $CI_COMMIT_BRANCH =~ /^dev.*/
@@ -162,8 +162,8 @@
         - helm upgrade --force $RELEASE_NAME . --install --namespace $NAMESPACE
           --set project.replicaCount=4
           --set project.branch=$CI_COMMIT_BRANCH
-          --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA 
-          --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
+          --set-string project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
+          --set-string project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
           --set traefik.ssl.defaultCert=$PROD_TLS_CERT
           --set traefik.ssl.defaultKey=$PROD_TLS_KEY
           --set ExternalDb.host=$RDS_HOST
@@ -180,8 +180,8 @@
       after_script:
         # wait for pod to be up
         - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
-        - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony/mautic -c mautic --namespace $NAMESPACE
-        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/mautic/post_deploy.sh
+        - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
+        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
       only:
         - master
 #      except:
