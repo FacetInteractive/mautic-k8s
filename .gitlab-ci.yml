@@ -128,8 +128,8 @@
       # wait for pod to be up
       
       - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w       
-      - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony/mautic -c mautic --namespace $NAMESPACE
-      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/mautic/post_deploy.sh
+      - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
+      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
     only:
       variables:
         - $CI_COMMIT_BRANCH =~ /^dev.*/
@@ -159,7 +159,7 @@
 
       script:
         - cd k8s/
-        - helm upgrade $RELEASE_NAME  . --install --namespace $NAMESPACE
+        - helm upgrade --force $RELEASE_NAME . --install --namespace $NAMESPACE
           --set project.replicaCount=4
           --set project.branch=$CI_COMMIT_BRANCH
           --set-string project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
@@ -180,8 +180,8 @@
       after_script:
         # wait for pod to be up
         - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
-        - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony/mautic -c mautic --namespace $NAMESPACE
-        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/mautic/post_deploy.sh
+        - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
+        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
       only:
         - master
 #      except:
