@@ -1,5 +1,5 @@
 <?php
-$parameters += [
+$parameters = [
 	'install_source' => 'Mautic',
 	'theme' => 'Mauve',
 	'locale' => 'en_US',
@@ -89,7 +89,7 @@ $parameters += [
  * @TODO - db_server_version should be dynamic.
  */
 $parameters += [
-    /* Following has been added to the config map
+    // @TODO - This vs. Config Map... needs to be worked out
     'db_driver' => 'pdo_mysql',
     'db_host' => getenv('MYSQL_DB_HOST'),
     'db_port' => '3306',
@@ -100,8 +100,7 @@ $parameters += [
     'db_table_prefix' => null,
     'db_backup_tables' => 0,
     'db_backup_prefix' => 'bak_',
-    'db_server_version' => '5.7',
-    */
+    'db_server_version' => '5.7'
 ];
 
 /**
@@ -109,10 +108,9 @@ $parameters += [
  */
 $parameters += [
     // Host Settings
-    /* Converted to config map for local.php
+    // @TODO - Remove as this is Converted to config map for local.php
     'site_url' => getenv('SITE_URL'),
     'secret_key' => getenv('SECRET_KEY'),
-    */
     'webroot' => null,
     // Mautic Update Channel
     'update_stability' => 'stable',
