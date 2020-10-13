@@ -10,9 +10,10 @@ spec:
     spec:
       template:
         spec:
-          restartPolicy: OnFailure
+          restartPolicy: Never
           concurrencyPolicy: Forbid
           startingDeadlineSeconds: 10
+          backoffLimit: 0
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -88,9 +89,10 @@ spec:
     spec:
       template:
         spec:
-          restartPolicy: OnFailure
+          restartPolicy: Never
           concurrencyPolicy: Replace
           startingDeadlineSeconds: 10
+          backoffLimit: 0
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -166,9 +168,10 @@ spec:
     spec:
       template:
         spec:
-          restartPolicy: OnFailure
+          restartPolicy: Never
           concurrencyPolicy: Forbid
           startingDeadlineSeconds: 60
+          backoffLimit: 0
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -243,9 +246,10 @@ spec:
     spec:
       template:
         spec:
-          restartPolicy: OnFailure
+          restartPolicy: Never
           concurrencyPolicy: Forbid
           startingDeadlineSeconds: 60
+          backoffLimit: 0
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -320,9 +324,10 @@ spec:
     spec:
       template:
         spec:
-          restartPolicy: OnFailure
+          restartPolicy: Never
           concurrencyPolicy: Forbid
           startingDeadlineSeconds: 60
+          backoffLimit: 0
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -397,9 +402,10 @@ spec:
     spec:
       template:
         spec:
-          restartPolicy: OnFailure
+          restartPolicy: Never
           concurrencyPolicy: Forbid
           startingDeadlineSeconds: 60
+          backoffLimit: 0
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -474,9 +480,10 @@ spec:
     spec:
       template:
         spec:
-          restartPolicy: OnFailure
+          restartPolicy: Never
           concurrencyPolicy: Forbid
           startingDeadlineSeconds: 60
+          backoffLimit: 0
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -551,9 +558,10 @@ spec:
     spec:
       template:
         spec:
-          restartPolicy: OnFailure
+          restartPolicy: Never
           concurrencyPolicy: Forbid
           startingDeadlineSeconds: 300
+          backoffLimit: 0
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -628,9 +636,10 @@ spec:
     spec:
       template:
         spec:
-          restartPolicy: OnFailure
+          restartPolicy: Never
           concurrencyPolicy: Forbid
           startingDeadlineSeconds: 300
+          backoffLimit: 0
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
