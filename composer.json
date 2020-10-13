@@ -143,10 +143,7 @@
     "vendor-dir": "./vendor",
     "bin-dir": "./bin",
     "optimize-autoloader": true,
-    "discard-changes": true,
-    "platform": {
-      "php": "7.2"
-    }
+    "discard-changes": true
   },
   "minimum-stability": "dev",
   "prefer-stable": true,
