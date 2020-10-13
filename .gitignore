@@ -2,6 +2,7 @@
 db-data
 db-init
 .env
+lando/*
 
 # Projects not invented here.
 /mautic
