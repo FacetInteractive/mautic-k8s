@@ -56,9 +56,10 @@ project:
     - name: regcred
   trustedIPs: '10.0.0.0/8,172.16.0.0/12'
   cron:
-    restartPolicy: OnFailure
+    restartPolicy: Never
     concurrencyPolicy: Forbid
     startingDeadlineSeconds: 60
+    backoffLimit: 0
   resources: {}
 
     # We usually recommend not to specify default resources and to leave this as a conscious

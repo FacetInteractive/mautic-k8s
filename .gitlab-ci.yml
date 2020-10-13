@@ -105,7 +105,7 @@
       - echo $CI_COMMIT_SHORT_SHA 
       - cd k8s/
       - echo $CI_COMMIT_SHORT_SHA                 
-      - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE 
+      - helm upgrade --force $RELEASE_NAME . --install --namespace $NAMESPACE
         --set project.replicaCount=4
         --set project.branch=$CI_COMMIT_BRANCH
         --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA 

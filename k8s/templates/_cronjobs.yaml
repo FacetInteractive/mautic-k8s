@@ -16,7 +16,10 @@ spec:
     spec:
       template:
         spec:
-          restartPolicy: OnFailure
+          restartPolicy: {{ $.Values.project.cron.restartPolicy }}
+          concurrencyPolicy: { { $.Values.project.cron.concurrencyPolicy } }
+          startingDeadlineSeconds: { { $.Values.project.cron.startingDeadlineSeconds } }
+          backoffLimit: { { $.Values.project.cron.backoffLimit } }
           securityContext:
 {{- toYaml $.Values.project.securityContext | nindent 12 }}
           volumes:
