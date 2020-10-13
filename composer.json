@@ -52,7 +52,7 @@
   },
   "scripts": {
     "cc": [
-      "rm -rf ./mautic/app/cache/*",
+      "rm -rf /cache/*",
       "@php ./mautic/app/console cache:clear --no-interaction --no-warmup -vvv",
       "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
       "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::clearCache"
