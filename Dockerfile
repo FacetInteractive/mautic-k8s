@@ -17,7 +17,7 @@ RUN mkdir /logs && chown -R 1001:0 /logs && chmod -R g+rwX /logs
 
 WORKDIR /var/www/symfony
 
-RUN composer install --no-dev --prefer-dist --no-interaction --no-ansi --optimize-autoloader
+RUN composer install --no-dev --prefer-dist --no-interaction --no-ansi --optimize-autoloader --verbose
 
 RUN chown -R 1001:0 /var/www/symfony && chmod -R g+rwX /var/www/symfony
 

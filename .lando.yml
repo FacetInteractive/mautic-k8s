@@ -22,13 +22,20 @@ services:
   appserver:
     build:
       - "cd /app && composer install"
+      - "ln -s /logs /app/mautic/app/logs"
+      - "ln -s /cache /app/mautic/app/cache"
+      - "ln -s /app/config/local.php /app/mautic/config/local.php"
     overrides:
       environment:
         PHP_IDE_CONFIG: "serverName=mautic.lndo.site"
         # Other Environment variables included via .env
+      volumes:
+        - ./lando/cache:/cache
+        - ./lando/media:/app/media/files
+        - ./lando/logs:/logs
     build_as_root:
-      - cd / && mkdir cache && chown -R www-data:dialout /cache && chmod -R g+rwX /cache
-      - cd / && mkdir logs && chown -R www-data:dialout /logs && chmod -R g+rwX /logs
+      # - cd / && mkdir cache && chown -R www-data:dialout /cache && chmod -R g+rwX /cache
+      # - cd / && mkdir logs && chown -R www-data:dialout /logs && chmod -R g+rwX /logs
       - apt-get update -y
       - apt-get install -y libmcrypt-dev
       - apt-get install -y zlib1g-dev
