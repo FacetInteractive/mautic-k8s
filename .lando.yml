@@ -34,8 +34,8 @@ services:
         - ./lando/media:/app/media/files
         - ./lando/logs:/logs
     build_as_root:
-      - cd / && mkdir cache && chown -R www-data:dialout /cache && chmod -R g+rwX /cache
-      - cd / && mkdir logs && chown -R www-data:dialout /logs && chmod -R g+rwX /logs
+      # - cd / && mkdir cache && chown -R www-data:dialout /cache && chmod -R g+rwX /cache
+      # - cd / && mkdir logs && chown -R www-data:dialout /logs && chmod -R g+rwX /logs
       - apt-get update -y
       - apt-get install -y libmcrypt-dev
       - apt-get install -y zlib1g-dev
