@@ -12,6 +12,7 @@ spec:
         spec:
           restartPolicy: OnFailure
           concurrencyPolicy: Forbid
+          startingDeadlineSeconds: 10
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -89,6 +90,7 @@ spec:
         spec:
           restartPolicy: OnFailure
           concurrencyPolicy: Replace
+          startingDeadlineSeconds: 10
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -166,6 +168,7 @@ spec:
         spec:
           restartPolicy: OnFailure
           concurrencyPolicy: Forbid
+          startingDeadlineSeconds: 60
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -242,6 +245,7 @@ spec:
         spec:
           restartPolicy: OnFailure
           concurrencyPolicy: Forbid
+          startingDeadlineSeconds: 60
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -318,6 +322,7 @@ spec:
         spec:
           restartPolicy: OnFailure
           concurrencyPolicy: Forbid
+          startingDeadlineSeconds: 60
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -394,6 +399,7 @@ spec:
         spec:
           restartPolicy: OnFailure
           concurrencyPolicy: Forbid
+          startingDeadlineSeconds: 60
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -470,6 +476,7 @@ spec:
         spec:
           restartPolicy: OnFailure
           concurrencyPolicy: Forbid
+          startingDeadlineSeconds: 60
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -546,6 +553,7 @@ spec:
         spec:
           restartPolicy: OnFailure
           concurrencyPolicy: Forbid
+          startingDeadlineSeconds: 300
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
@@ -622,6 +630,7 @@ spec:
         spec:
           restartPolicy: OnFailure
           concurrencyPolicy: Forbid
+          startingDeadlineSeconds: 300
           securityContext:
             runAsUser: 1001
             fsGroup: 1000
