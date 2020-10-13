@@ -1,5 +1,5 @@
 <?php
-$parameters = array(
+$parameters += [
 	'install_source' => 'Mautic',
 	'theme' => 'Mauve',
 	'locale' => 'en_US',
@@ -81,7 +81,7 @@ $parameters = array(
 	'parallel_import_limit' => '1',
 	'background_import_if_more_rows_than' => 0,
 	'events_orderby_dir' => 'ASC',
-);
+];
 
 /**
  * Database Credentials
