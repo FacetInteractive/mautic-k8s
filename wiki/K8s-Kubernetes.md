@@ -163,18 +163,41 @@ kubectl get ingress mautic-mautic-composer-3-hello-ingress  --namespace mautic-c
 kubectl get svc mautic-mautic-composer-3-traefik --namespace mautic-composer-3 -o jsonpath='{.status.loadBalancer.ingress[*].hostname}'
 ```
 
+## Destroy and Redeploy a Namespace
+
+Ongoing failures with the K8s pods may drive the need to re-deploy the whole namespace. 
+
+```bash
+helm upgrade mautic-master . --install --namespace mautic-prod --reuse-values --force
+```
+
 ## Issues with helm --set
 
 1. Commas must be escaped in deployment variables set in GitLab CI/CD Variables settings.
 
-e.g. if you encounter something like 
+    e.g. if you encounter something like 
 
-```
-helm Error: failed parsing --set data: key map "172" has no value
-```
+    ```text
+    helm Error: failed parsing --set data: key map "172" has no value
+    ```
 
-The error doesn't mention anything about the variable it effects, but you can guess this is an IP range, the first number after a comma.
+    The error doesn't mention anything about the variable it effects, but you can guess this is an IP range, the first number after a comma.
 
-We escape it:
+    We escape it:
 
-``````
+    ```
+    10.0.0.0/8\,172.16.0.0/12
+    ```
+
+2. Issues with Helm --set integers
+
+    * In Helm 2 integers are typecast to float64.
+    * To resolve this issue we must use `--set-string` instead of `--set`
+
+    e.g.
+
+    ```
+    --set-string $COMMIT_SHA_SHORT
+    ```
+
+    We've encountered this issue where the commit string is all integers and gets typecast to scientific notation, e.g. 3.1234567e-07
