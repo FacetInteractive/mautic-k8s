@@ -15,7 +15,7 @@
     # Release name for helm
     RELEASE_NAME: mautic-$CI_COMMIT_BRANCH
     # RDS Host End point
-    RDS_HOST: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
+    RDS_HOST: mautic-db2.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
     #Docker Registry (ECR) URL for Mautic image
     MAUTIC_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
     #Docker Registry (ECR) URL for Nginx image

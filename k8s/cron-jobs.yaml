@@ -30,7 +30,7 @@ spec:
               name: mautic
               env:
               - name: MYSQL_DB_HOST
-                value: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
+                value: mautic-db2.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
               - name: MYSQL_DATABASE
                 value: mautic
               - name: MYSQL_USER
@@ -109,7 +109,7 @@ spec:
               name: mautic
               env:
               - name: MYSQL_DB_HOST
-                value: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
+                value: mautic-db2.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
               - name: MYSQL_DATABASE
                 value: mautic
               - name: MYSQL_USER
@@ -188,7 +188,7 @@ spec:
               name: mautic
               env:
               - name: MYSQL_DB_HOST
-                value: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
+                value: mautic-db2.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
               - name: MYSQL_DATABASE
                 value: mautic
               - name: MYSQL_USER
@@ -266,7 +266,7 @@ spec:
               name: mautic
               env:
               - name: MYSQL_DB_HOST
-                value: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
+                value: mautic-db2.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
               - name: MYSQL_DATABASE
                 value: mautic
               - name: MYSQL_USER
@@ -344,7 +344,7 @@ spec:
               name: mautic
               env:
               - name: MYSQL_DB_HOST
-                value: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
+                value: mautic-db2.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
               - name: MYSQL_DATABASE
                 value: mautic
               - name: MYSQL_USER
@@ -422,7 +422,7 @@ spec:
               name: mautic
               env:
               - name: MYSQL_DB_HOST
-                value: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
+                value: mautic-db2.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
               - name: MYSQL_DATABASE
                 value: mautic
               - name: MYSQL_USER
@@ -500,7 +500,7 @@ spec:
               name: mautic
               env:
               - name: MYSQL_DB_HOST
-                value: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
+                value: mautic-db2.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
               - name: MYSQL_DATABASE
                 value: mautic
               - name: MYSQL_USER
@@ -578,7 +578,7 @@ spec:
               name: mautic
               env:
               - name: MYSQL_DB_HOST
-                value: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
+                value: mautic-db2.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
               - name: MYSQL_DATABASE
                 value: mautic
               - name: MYSQL_USER
@@ -656,7 +656,7 @@ spec:
               name: mautic
               env:
               - name: MYSQL_DB_HOST
-                value: mauticdb.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
+                value: mautic-db2.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
               - name: MYSQL_DATABASE
                 value: mautic
               - name: MYSQL_USER
