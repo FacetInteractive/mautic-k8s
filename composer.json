@@ -51,7 +51,7 @@
     "symfony-web-dir": "./"
   },
   "scripts": {
-    "cc": [
+    "clearcache": [
       "rm -rf /cache/*",
       "@php ./mautic/app/console cache:clear --no-interaction --no-warmup -vvv",
       "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
@@ -128,14 +128,12 @@
       "@php ./mautic/app/console mautic:assets:generate"
     ],
     "post-install-cmd": [
-      "@custom",
-      "@git-hooks",
-      "@cc"
+      "@custom"
     ],
     "post-deploy": [
       "@migrate",
       "@installplugins",
-      "@cc"
+      "@clearcache"
     ]
   },
   "config": {
