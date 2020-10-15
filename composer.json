@@ -51,7 +51,7 @@
     "symfony-web-dir": "./"
   },
   "scripts": {
-    "clearcache": [
+    "mcc": [
       "rm -rf /cache/*",
       "@php ./mautic/app/console cache:clear --no-interaction --no-warmup -vvv",
       "Sensio\\Bundle\\DistributionBundle\\Composer\\ScriptHandler::buildBootstrap",
@@ -81,6 +81,7 @@
       "rm -rf ./mautic/vendor ./mautic/bin",
       "cd ./mautic ; ln -s ../vendor vendor",
       "cd ./mautic ; ln -s ../bin bin",
+      "cd ./ ; ln -s /cache/composer ./.composer/cache",
       "bash ./scripts/mautic-custom.sh mautic_override",
       "bash ./scripts/mautic-custom.sh mautic_custom",
       "bash ./scripts/mautic-custom-plugins.sh",
@@ -133,7 +134,7 @@
     "post-deploy": [
       "@migrate",
       "@installplugins",
-      "@clearcache"
+      "@mcc"
     ]
   },
   "config": {
