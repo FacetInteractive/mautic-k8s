@@ -1,3 +1,3 @@
 <?php
 
-var_export($_SERVER);
+echo var_export($_SERVER);
