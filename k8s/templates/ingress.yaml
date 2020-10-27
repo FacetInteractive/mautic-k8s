@@ -4,7 +4,7 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-{{ .Values.project.name }}-ingress  
   annotations:
-    kubernetes.io/ingress.class: "traefik"       
+    kubernetes.io/ingress.class: "nginx"       
 spec:
   rules:
 {{- if eq  .Values.project.branch "master" }}
@@ -19,5 +19,6 @@ spec:
       - path: /
         backend:
           serviceName: {{ .Release.Name }}-{{ .Values.project.name }}
-          servicePort: 80
+          servicePort: {{ .Values.project.service.port }}
 {{- end }}
+

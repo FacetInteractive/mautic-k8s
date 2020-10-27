@@ -6,7 +6,7 @@ metadata:
   labels:
     {{ .Values.project.labels | toYaml  }}
   annotations:
-    kubernetes.io/ingress.class: "traefik"
+    kubernetes.io/ingress.class: "nginx"
 
 spec:
   type: {{ .Values.project.service.type }}
