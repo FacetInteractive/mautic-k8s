@@ -52,6 +52,8 @@
         - master
       variables:
         - $DEV_BUILD_DISABLED
+    environment:
+        name: dev
 
   # Production Build stage: Builds mautic and nginx images with the tag "latest".
   # Runs only when code is commited from master and the Vairable PROD_BUILD_DISABLED is commented out.
@@ -91,7 +93,6 @@
       REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com 
     services:
     - docker:dind
-
     before_script:
       #Docker-login to ecr
       - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS  $REGISTRY
@@ -99,8 +100,6 @@
       - kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE      
       # Create secret for registry credentials in the namespace if it doesn't exist
       - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
-      
-
     script:
       - echo $CI_COMMIT_SHORT_SHA 
       - cd k8s/
@@ -137,7 +136,7 @@
       refs:
         - branches
     environment:
-      name: mautic-$CI_COMMIT_BRANCH
+      name: dev
       on_stop: cleanup
 
 # Production Release stage: Deploys application in prod (mautic) namespace.
@@ -164,8 +163,6 @@
           --set project.branch=$CI_COMMIT_BRANCH
           --set-string project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
           --set-string project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
-          --set traefik.ssl.defaultCert=$PROD_TLS_CERT
-          --set traefik.ssl.defaultKey=$PROD_TLS_KEY
           --set ExternalDb.host=$RDS_HOST
           --set ExternalDb.password=$RDS_PASSWORD
           --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
@@ -200,7 +197,7 @@
         - kubectl delete namespace $NAMESPACE
     when: manual
     environment:
-      name: mautic-$CI_COMMIT_BRANCH
+      name: dev
       action: stop
     except:
     - master
