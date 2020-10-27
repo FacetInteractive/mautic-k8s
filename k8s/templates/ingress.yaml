@@ -21,4 +21,3 @@ spec:
           serviceName: {{ .Release.Name }}-{{ .Values.project.name }}
           servicePort: {{ .Values.project.service.port }}
 {{- end }}
-
