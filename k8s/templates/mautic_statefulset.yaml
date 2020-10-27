@@ -123,12 +123,6 @@ spec:
               mountPath: /var/www/symfony/mautic/app/config/local.php
               subPath: local.php
       volumes:
-      # - name: cache
-      #   persistentVolumeClaim:
-      #     claimName: {{ .Release.Name }}-cache
-      # - name: logs
-      #   persistentVolumeClaim:
-      #     claimName: {{ .Release.Name }}-logs
       - name: local-php
         configMap:
           name: {{ .Release.Name }}-local-php
