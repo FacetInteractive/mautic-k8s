@@ -4,10 +4,7 @@ kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}-mysql
 spec:
-  volumes:
-    - name: mysql
-      persistentVolumeClaim: {{ .Release.Name }}-mysql
-  service: {{ .Release.Name }}-{{ .Values.db.name }}
+  serviceName: {{ .Release.Name }}-{{ .Values.db.name }}
   replicas: {{ .Values.db.replicas }}
   selector:
     matchLabels:
