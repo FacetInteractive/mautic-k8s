@@ -1,11 +1,7 @@
 dependencies:
-- name: traefik
-
-  version: '1.87.1'
-  # This is the binaries repository, as documented in the GitHub repo
-  # repository: 'https://containous.github.io/traefik-helm-chart/'
-  repository: 'https://kubernetes-charts.storage.googleapis.com'
-
+- name: nginx-ingress
+  version: '1.41.3'
+  repository: 'https://kubernetes-charts.storage.googleapis.com/'
 - name: rabbitmq
   version: '7.2.1'
   repository: 'https://charts.bitnami.com/bitnami'
