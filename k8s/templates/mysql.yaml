@@ -30,7 +30,7 @@ spec:
               name: {{ .Release.Name }}-db-secret
               key: database-root-password
         - name: MYSQL_DATABASE
-          value: mautic
+          value: {{ .Values.db.database }}
         - name: MYSQL_USER
           valueFrom:
             secretKeyRef:
