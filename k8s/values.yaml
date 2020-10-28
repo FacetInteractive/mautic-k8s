@@ -110,6 +110,8 @@ ingress:
     kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-name: "route"
+  defaultCert:
+  defaultKey: 
 nginx-ingress:
   controller:
     extraArgs:
