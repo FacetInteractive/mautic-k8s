@@ -88,7 +88,7 @@
   # This stage is triggered when code is commited from any branch other than master and the Vairable DEV_RELEASE_DISABLED is commented out.
   dev-deploy:
     stage: dev-deploy
-    image: axelerant/awscli-helm
+    image: registry.gitorious.xyz/infra/awscli-helm3:015dcaaf
     variables:
       REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com 
     services:
@@ -100,28 +100,24 @@
       - kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE      
       # Create secret for registry credentials in the namespace if it doesn't exist
       - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
+      - kubectl describe secret nginx-default-tls -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret tls nginx-default-tls --key $NGINX_TLS_PRIV_KEY --cert $NGINX_TLS_FULL_CHAIN --namespace $NAMESPACE
     script:
       - echo $CI_COMMIT_SHORT_SHA 
       - cd k8s/
       - echo $CI_COMMIT_SHORT_SHA                 
       - helm upgrade --force $RELEASE_NAME . --install --namespace $NAMESPACE
-        --set project.replicaCount=4
+        --set project.replicaCount=1
         --set project.branch=$CI_COMMIT_BRANCH
         --set-string project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
-        --set-string project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
-        --set traefik.ssl.defaultCert=$TLS_CERT 
-        --set traefik.ssl.defaultKey=$TLS_KEY        
+        --set-string project.mauticImage.tag=$CI_COMMIT_SHORT_SHA    
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password 
         --set ingress.domain=k8s.facetinteractive.com
         --set project.mailerUser=$DEV_MAILER_USER
         --set project.mailerPassword=$DEV_MAILER_SECRET_KEY
-        --set project.secretKey=$DEV_APP_SECRET_KEY
-        --set ExternalDb.host=$RDS_HOST
-        --set ExternalDb.password=$RDS_PASSWORD
-        --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD      
+        --set project.secretKey=$DEV_APP_SECRET_KEY    
         --set project.trustedIPs=$TRUSTED_PROXIES
         --set db.database=devmautic
-       
+    
     # Post deployment script
     after_script:
       # wait for pod to be up
