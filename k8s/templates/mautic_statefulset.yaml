@@ -123,6 +123,12 @@ spec:
               mountPath: /var/www/symfony/mautic/app/config/local.php
               subPath: local.php
       volumes:
+      - name: cache
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-cache
+      - name: logs
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-logs
       - name: local-php
         configMap:
           name: {{ .Release.Name }}-local-php
@@ -132,20 +138,20 @@ spec:
             path: local.php     
       imagePullSecrets:
       {{- toYaml .Values.project.imagePullSecrets | nindent 6 }}
-  volumeClaimTemplates:
-  - metadata:
-      name: cache
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      storageClassName: {{ .Values.project.persistence.storageClass | quote }}
-      resources:
-        requests:
-          storage: {{ .Values.project.persistence.cache.size | default "10G" | quote }}
-  - metadata:
-      name: logs
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      storageClassName: {{ .Values.project.persistence.storageClass | quote }}
-      resources:
-        requests:
-          storage: {{ .Values.project.persistence.logs.size | default "10G" | quote }}
+  # volumeClaimTemplates:
+  # - metadata:
+  #     name: cache
+  #   spec:
+  #     accessModes: ["ReadWriteMany"]
+  #     storageClassName: {{ .Values.project.persistence.storageClass | quote }}
+  #     resources:
+  #       requests:
+  #         storage: {{ .Values.project.persistence.cache.size | default "10G" | quote }}
+  # - metadata:
+  #     name: logs
+  #   spec:
+  #     accessModes: ["ReadWriteMany"]
+  #     storageClassName: {{ .Values.project.persistence.storageClass | quote }}
+  #     resources:
+  #       requests:
+  #         storage: {{ .Values.project.persistence.logs.size | default "10G" | quote }}
