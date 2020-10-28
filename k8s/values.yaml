@@ -4,11 +4,11 @@
 
 project:
   replicaCount: 1
-  name: hello
+  name: hello-test
   labels:
     app: facetmautic
   # This can be replaced with Gitlab $COMMIT_BRANCH_NAME During deploy  
-  branch: master  
+  branch: test  
   nginxImage:
     # This will be subsituted with Gitlab Environment variable
     repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx  
@@ -45,13 +45,14 @@ project:
   redisPort: 6379
   # Persistence - Persistence Volume claims
   persistence:
-    #storageClass: "aws-efs"
+    storageClass: "aws-efs"
     cache:
       name: "cache"
       size: 10Gi
     logs:
       name: "logs"
       size: 10Gi
+    efsId: fs-b5be4340
   imagePullSecrets:
     - name: regcred
   trustedIPs: '10.0.0.0/8,172.16.0.0/12'
@@ -59,7 +60,7 @@ project:
     restartPolicy: Never
     concurrencyPolicy: Forbid
     startingDeadlineSeconds: 60
-    backoffLimit: 0
+    backoffLimit: 2
   resources: {}
 
     # We usually recommend not to specify default resources and to leave this as a conscious
@@ -79,6 +80,7 @@ ExternalDb:
   host:
   password:
   rootPassword:
+
 
 # The below  configuration is for the Kubernetes DB host.
 # If ExternalDb is used  this can be ignored.
