@@ -104,7 +104,8 @@
     script:
       - cd k8s/
       - echo $CI_COMMIT_SHORT_SHA                 
-      - helm upgrade --force $RELEASE_NAME . --install --namespace $NAMESPACE
+      - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE
+        --set-string timestamp=$CI_COMMIT_TIMESTAMP 
         --set project.replicaCount=1
         --set project.branch=$CI_COMMIT_BRANCH
         --set-string project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
