@@ -1,9 +1,6 @@
 dependencies:
-- name: nginx-ingress
-  repository: https://kubernetes-charts.storage.googleapis.com/
-  version: 1.41.3
 - name: rabbitmq
   repository: https://charts.bitnami.com/bitnami
   version: 7.2.1
-digest: sha256:b72363c0d7eeaecbed128b42673beb1c4ba130619a3162f8d9930c4c60f427cb
-generated: "2020-10-27T16:49:00.074749+05:30"
+digest: sha256:c29c46b5844c23b64baf23d207cf3a89ff5062dd78f1fde4a920673c3bd83db7
+generated: "2020-10-29T13:02:45.915974+05:30"

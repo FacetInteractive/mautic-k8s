@@ -114,18 +114,18 @@ ingress:
     nginx.ingress.kubernetes.io/session-cookie-name: "route"
   defaultCert:
   defaultKey: 
-nginx-ingress:
-  controller:
-    # config:
-    #   use-proxy-protocol: "true"
-    service:
-      externalTrafficPolicy: Local
-    extraArgs:
-      default-ssl-certificate: "mautic/nginx-default-tls"
-    annotations:
-      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
-      service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
-# Rabbit MQ
+# nginx-ingress:
+#   controller:
+#     # config:
+#     #   use-proxy-protocol: "true"
+#     service:
+#       externalTrafficPolicy: Local
+#     extraArgs:
+#       default-ssl-certificate: "mautic/nginx-default-tls"
+#     annotations:
+#       service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+#       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
+# # Rabbit MQ
 
 clusterDomain: cluster.local
 rabbitmq:
