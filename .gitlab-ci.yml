@@ -195,7 +195,7 @@
     stage: cleanup
     image: registry.gitorious.xyz/infra/awscli-helm3:015dcaaf
     script:       
-        - helm delete $RELEASE_NAME
+        - helm delete $RELEASE_NAME --namespace $NAMESPACE
         - kubectl delete namespace $NAMESPACE
     when: manual
     environment:
