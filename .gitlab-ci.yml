@@ -120,6 +120,9 @@
         --set project.secretKey=$DEV_APP_SECRET_KEY    
         --set project.trustedIPs=$TRUSTED_PROXIES
         --set db.database=devmautic
+        --set ExternalDb.host=$RDS_HOST
+        --set ExternalDb.password=$RDS_PASSWORD
+        --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
     
     # Post deployment script
     after_script:
@@ -127,7 +130,7 @@
       
       - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w       
       - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
-      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
+      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/k8s/post_deploy.sh
     only:
       variables:
         - $CI_COMMIT_BRANCH =~ /^dev.*/
@@ -178,7 +181,7 @@
         # wait for pod to be up
         - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
         - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
-        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/post_deploy.sh
+        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/k8s/post_deploy.sh
       only:
         - master
 #      except:
@@ -186,12 +189,11 @@
 #          - $PROD_RELEASE_DISABLED
       environment:
         name: prod
-
   cleanup:
     variables:
       GIT_STRATEGY: none
     stage: cleanup
-    image: axelerant/awscli-helm
+    image: registry.gitorious.xyz/infra/awscli-helm3:015dcaaf
     script:       
         - helm delete --purge $RELEASE_NAME
         - kubectl delete namespace $NAMESPACE
