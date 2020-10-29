@@ -102,7 +102,7 @@ spec:
           - name: RABBITMQ_HOST
             value: {{ .Release.Name }}-rabbitmq-headless
           - name: REDIS_HOST
-            value: {{ .Release.Name }}-redis-svc
+            value: {{ .Release.Name }}-redis-master-svc
           - name: REDIS_PORT
             value: {{ .Values.project.redisPort | quote }}             
           - name: RABBITMQ_USER
@@ -138,20 +138,3 @@ spec:
             path: local.php     
       imagePullSecrets:
       {{- toYaml .Values.project.imagePullSecrets | nindent 6 }}
-  # volumeClaimTemplates:
-  # - metadata:
-  #     name: cache
-  #   spec:
-  #     accessModes: ["ReadWriteMany"]
-  #     storageClassName: {{ .Values.project.persistence.storageClass | quote }}
-  #     resources:
-  #       requests:
-  #         storage: {{ .Values.project.persistence.cache.size | default "10G" | quote }}
-  # - metadata:
-  #     name: logs
-  #   spec:
-  #     accessModes: ["ReadWriteMany"]
-  #     storageClassName: {{ .Values.project.persistence.storageClass | quote }}
-  #     resources:
-  #       requests:
-  #         storage: {{ .Values.project.persistence.logs.size | default "10G" | quote }}
