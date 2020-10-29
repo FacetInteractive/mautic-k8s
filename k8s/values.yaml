@@ -123,8 +123,9 @@ nginx-ingress:
     extraArgs:
       default-ssl-certificate: "mautic/nginx-default-tls"
     annotations:
-        # service.beta.kubernetes.io/aws-load-balancer-backend-protocol: https
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
+      service.beta.kubernetes.io/aws-load-balancer-type: nlb
 # Rabbit MQ
 
 clusterDomain: cluster.local
