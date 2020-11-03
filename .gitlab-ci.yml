@@ -102,8 +102,7 @@
       - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
       #- kubectl describe secret nginx-default-tls -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret tls nginx-default-tls --key $NGINX_TLS_PRIV_KEY --cert $NGINX_TLS_FULL_CHAIN --namespace $NAMESPACE
     script:
-      - cd k8s/
-      - echo $CI_COMMIT_SHORT_SHA                 
+      - cd k8s/               
       - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE
         --set-string timestamp=$CI_COMMIT_TIMESTAMP 
         --set project.replicaCount=1
@@ -161,7 +160,8 @@
 
       script:
         - cd k8s/
-        - helm upgrade --force $RELEASE_NAME . --install --namespace $NAMESPACE
+        - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE
+          --set-string timestamp=$CI_COMMIT_TIMESTAMP 
           --set project.replicaCount=1
           --set project.branch=$CI_COMMIT_BRANCH
           --set-string project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
@@ -184,9 +184,6 @@
         - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/k8s/post_deploy.sh
       only:
         - master
-#      except:
-#        variables:
-#          - $PROD_RELEASE_DISABLED
       environment:
         name: prod
   cleanup:
