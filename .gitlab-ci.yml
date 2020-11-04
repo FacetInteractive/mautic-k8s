@@ -110,9 +110,6 @@
         --set-string project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
         --set-string project.mauticImage.tag=$CI_COMMIT_SHORT_SHA    
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password 
-        --set ingress.defaultCert=$NGINX_TLS_FULL_CHAIN
-        --set ingress.defaultKey=$NGINX_TLS_PRIV_KEY
-        --set nginx-ingress.controller.extraArgs.default-ssl-certificate=$NAMESPACE/nginx-default-tls
         --set ingress.domain=k8s.facetinteractive.com
         --set project.mailerUser=$DEV_MAILER_USER
         --set project.mailerPassword=$DEV_MAILER_SECRET_KEY
@@ -145,7 +142,7 @@
 # Runs only when code is committed from master and the Variable PROD_RELEASE_DISABLED is commented out.
   prod-deploy:
       stage: prod-deploy
-      image: axelerant/awscli-helm
+      image: registry.gitorious.xyz/infra/awscli-helm3:015dcaaf
 
       variables:
         REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com
@@ -164,6 +161,7 @@
           --set-string timestamp=$CI_COMMIT_TIMESTAMP 
           --set project.replicaCount=1
           --set project.branch=$CI_COMMIT_BRANCH
+          --set ingress.domain=facetinteractive.com
           --set-string project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
           --set-string project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
           --set ExternalDb.host=$RDS_HOST
