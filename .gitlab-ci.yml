@@ -173,7 +173,6 @@
           --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password
           --set project.trustedIPs=$TRUSTED_PROXIES
           
-          
       # Post deployment script
       after_script:
         # wait for pod to be up
