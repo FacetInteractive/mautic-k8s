@@ -8,7 +8,7 @@ project:
   labels:
     app: facetmautic
   # This can be replaced with Gitlab $COMMIT_BRANCH_NAME During deploy  
-  branch: master  
+  branch: test  
   nginxImage:
     # This will be subsituted with Gitlab Environment variable
     repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx  
@@ -26,7 +26,7 @@ project:
     runAsUser: 1001
   service:
     type: ClusterIP
-    port: 80
+    port: 8080
     targetPort: 8080
   # Environment  Values
   # Data base Variables
@@ -43,6 +43,8 @@ project:
   rabbitmqPassword: v3r#r@ndum1
   redisPassword: v3r#r@ndum1
   redisPort: 6379
+  redis:
+    enabled: true
   # Persistence - Persistence Volume claims
   persistence:
     storageClass: "aws-efs"
@@ -52,6 +54,7 @@ project:
     logs:
       name: "logs"
       size: 10Gi
+    efsId: fs-b5be4340
   imagePullSecrets:
     - name: regcred
   trustedIPs: '10.0.0.0/8,172.16.0.0/12'
@@ -59,7 +62,7 @@ project:
     restartPolicy: Never
     concurrencyPolicy: Forbid
     startingDeadlineSeconds: 60
-    backoffLimit: 0
+    backoffLimit: 2
   resources: {}
 
     # We usually recommend not to specify default resources and to leave this as a conscious
@@ -79,6 +82,7 @@ ExternalDb:
   host:
   password:
   rootPassword:
+
 
 # The below  configuration is for the Kubernetes DB host.
 # If ExternalDb is used  this can be ignored.
@@ -102,62 +106,26 @@ db:
 
 ingress:
   enabled: true
-  domain: facetinteractive.com
-  class: "traefik"
+  domain: k8s.facetinteractive.com
+  class: "nginx"
   annotations:
-    kubernetes.io/ingress.class: "traefik"
+    kubernetes.io/ingress.class: "nginx"
     nginx.ingress.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-name: "route"
-    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
-    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
-
-# Values for the Ingress Controller
-traefik:  
-  externalTrafficPolicy: Local
-  proxyProtocol:
-    enabled: true
-      # trustedIPs is required when enabled
-    trustedIPs: 
-      - 10.0.0.0/8
-      - 172.16.0.0/12
-      
-  forwardedHeaders:
-    enabled: true
-    # trustedIPs is required when enabled
-    trustedIPs: 
-      - 10.0.0.0/8
-      - 172.16.0.0/12
-  service:
-    annotations:
-      ingress.kubernetes.io/whitelist-x-forwarded-for: "true"
-      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: https
-      service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
-      # traefik.backend.loadbalancer.stickiness: "true"
-      # traefik.backend.loadbalancer.stickiness.cookieName: route
-  ssl:
-    enabled: true
-    enforced: true
-    permanentRedirect: false
-    upstream: false
-    insecureSkipVerify: false
-    generateTLS: false
-    # defaultCN: "example.com"
-      # or *.example.com
-    defaultSANList: []
-      # - example.com
-      # - test1.example.com
-    defaultIPList: []
-      # - 1.2.3.4
-    # cipherSuites: []
-    # https://docs.traefik.io/configuration/entrypoints/#specify-minimum-tls-version
-    # tlsMinVersion: VersionTLS12
-    # https://docs.traefik.io/configuration/entrypoints/#strict-sni-checking
-    # sniStrict: false
-    defaultCert:
-    defaultKey:
-
-
-# Rabbit MQ
+  # defaultCert:
+  # defaultKey: 
+# nginx-ingress:
+#   controller:
+#     # config:
+#     #   use-proxy-protocol: "true"
+#     service:
+#       externalTrafficPolicy: Local
+#     extraArgs:
+#       default-ssl-certificate: "mautic/nginx-default-tls"
+#     annotations:
+#       service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+#       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
+# # Rabbit MQ
 
 clusterDomain: cluster.local
 rabbitmq:
@@ -168,7 +136,7 @@ rabbitmq:
     ## ref: https://github.com/bitnami/bitnami-docker-rabbitmq#environment-variables
     ##
     username: user
-    existingPasswordSecret: rabbitmq-password
+    existingPasswordSecret: mautic-rabbitmq-password
 
 # Redis
 
@@ -185,33 +153,33 @@ redis-cluster:
 cronjobs:
   - name: trigger-campaign
     schedule: "10,25,40,55 * * * *"
-    command: '"app/console", "mautic:campaigns:trigger", "--env=prod"'
+    command: '"mautic/app/console", "mautic:campaigns:trigger", "--env=prod"'
   - name: emails-send
     schedule: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
-    command: '"app/console", "mautic:emails:send", "--env=prod"'
+    command: '"mautic/app/console", "mautic:emails:send", "--env=prod"'
   - name: email-fetch
     schedule: "9,14,19,24,29,34,39,44,49,54 * * * *"
-    command: '"app/console", "mautic:email:fetch", "--env=prod"'
+    command: '"mautic/app/console", "mautic:email:fetch", "--env=prod"'
   - name: segments-update
     schedule: "0,15,30,45 * * * *"
-    command: '"app/console", "mautic:segments:update", "--env=prod"'
+    command: '"mautic/app/console", "mautic:segments:update", "--env=prod"'
   - name: campaigns-rebuild
     schedule: "2 * * * *"
-    command: '"app/console", "mautic:campaigns:rebuild", "--env=prod"'
+    command: '"mautic/app/console", "mautic:campaigns:rebuild", "--env=prod"'
   - name: broadcasts-send
     schedule: "5 * * * *"
-    command: '"app/console", "mautic:broadcasts:send", "--env=prod"'
+    command: '"mautic/app/console", "mautic:broadcasts:send", "--env=prod"'
   - name: social-monitoring
     schedule: "7 * * * *"
-    command: '"app/console", "mautic:social:monitoring", "--env=prod"'
+    command: '"mautic/app/console", "mautic:social:monitoring", "--env=prod"'
   - name: integration-fetchleads-hubspot
     schedule: "10,40 0 * * *"
-    command: '"app/console", "mautic:integration:fetchleads", "--integration=Hubspot"'
+    command: '"mautic/app/console", "mautic:integration:fetchleads", "--integration=Hubspot"'
   - name: integration-pushactivity-hubspot
     schedule: "16,46 0 * * *"
-    command: '"app/console", "mautic:integration:pushactivity", "--integration=Hubspot"'
+    command: '"mautic/app/console", "mautic:integration:pushactivity", "--integration=Hubspot"'
   - name: import
     schedule: "3,11,19,27,34,42,50 * * * *"
-    command: '"app/console", "mautic:import", "--env=prod"'
+    command: '"mautic/app/console", "mautic:import", "--env=prod"'
 
 

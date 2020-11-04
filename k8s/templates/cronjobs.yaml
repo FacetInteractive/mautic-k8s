@@ -8,14 +8,16 @@ metadata:
 {{- toYaml $.Values.project.labels | nindent 4 }}
 spec:
   schedule: {{ .schedule | quote }}
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 2
+  successfulJobsHistoryLimit: 1
+  startingDeadlineSeconds: {{ $.Values.project.cron.startingDeadlineSeconds }}
   jobTemplate:
     spec:
+      backoffLimit: {{ $.Values.project.cron.backoffLimit }}
       template:
         spec:
           restartPolicy: {{ $.Values.project.cron.restartPolicy }}
-          concurrencyPolicy: {{ $.Values.project.cron.concurrencyPolicy }}
-          startingDeadlineSeconds: {{ $.Values.project.cron.startingDeadlineSeconds }}
-          backoffLimit: {{ $.Values.project.cron.backoffLimit }}
           securityContext:
 {{- toYaml $.Values.project.securityContext | nindent 12 }}
           volumes:

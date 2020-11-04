@@ -10,7 +10,7 @@ metadata:
   annotations:
     rollme: {{ randAlphaNum 5 | quote }}
 spec:
-  serviceName: {{ .Values.project.name }}
+  serviceName: {{ .Release.Name }}-{{ .Values.project.name }}
   replicas: {{ .Values.project.replicaCount }}
   selector:
     matchLabels:
@@ -24,40 +24,25 @@ spec:
 {{- toYaml .Values.project.labels | nindent 8 }}
     spec:
       securityContext:
-{{- toYaml .Values.project.securityContext | nindent 8 }}
-      volumes:
-        - name: cache
-          persistentVolumeClaim:
-            claimName: {{ .Release.Name }}-cache
-        - name: logs
-          persistentVolumeClaim:
-            claimName: {{ .Release.Name }}-logs
-        - name: local-php
-          configMap:
-            name: {{ .Release.Name }}-local-php
-            defaultMode: 420
-            items:
-            - key: local.php
-              path: local.php      
+{{- toYaml .Values.project.securityContext | nindent 8 }} 
       containers:
         - image: "{{ .Values.project.nginxImage.repository }}:{{ .Values.project.nginxImage.tag }}"
           name: nginx
           imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.project.service.targetPort }}
-              name: {{ .Values.project.name }}-nginxport
+              name: web
           env:
           - name: SERVER_NAME  
-          {{- if eq  .Values.project.branch "master" }}
+            {{- if eq  .Values.project.branch "master" }}
             value: {{ .Values.project.name }}.{{ .Values.ingress.domain }}
             {{- else if .Values.project.branch }}
             value: {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
             {{- else }}
             value: {{ .Values.ingress.domain }}
-            {{- end }}  
+            {{- end }}
           - name: TRUSTED_PROXIES
             value: {{ .Values.project.trustedIPs | quote }}
-
         - image: "{{ .Values.project.mauticImage.repository }}:{{ .Values.project.mauticImage.tag }}"
           name: mautic
           imagePullPolicy: Always
@@ -66,7 +51,7 @@ spec:
             {{- if .Values.ExternalDb.host }}
             value: {{ .Values.ExternalDb.host }}
             {{- else }}
-            value: {{ .Release.Name }}-{{ .Values.db.name }} 
+            value: {{ .Release.Name }}-{{ $.Values.db.name }}
             {{- end }}
           - name: MYSQL_DATABASE
             value: {{ .Values.db.database }}
@@ -90,7 +75,7 @@ spec:
             value: {{ .Values.project.s3Bucket }}
           {{- end  }}
           - name: SITE_URL
-          {{- if eq  .Values.project.branch "master" }}
+            {{- if eq  .Values.project.branch "master" }}
             value: https://{{ .Values.project.name }}.{{ .Values.ingress.domain }}
             {{- else if .Values.project.branch }}
             value: https://{{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
@@ -98,7 +83,7 @@ spec:
             value:  https://{{ .Values.ingress.domain }}
             {{- end }}            
           - name: SERVER_NAME  
-          {{- if eq  .Values.project.branch "master" }}
+            {{- if eq  .Values.project.branch "master" }}
             value: {{ .Values.project.name }}.{{ .Values.ingress.domain }}
             {{- else if .Values.project.branch }}
             value: {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
@@ -117,7 +102,7 @@ spec:
           - name: RABBITMQ_HOST
             value: {{ .Release.Name }}-rabbitmq-headless
           - name: REDIS_HOST
-            value: {{ .Release.Name }}-redis-svc
+            value: {{ .Release.Name }}-redis-master-svc
           - name: REDIS_PORT
             value: {{ .Values.project.redisPort | quote }}             
           - name: RABBITMQ_USER
@@ -136,6 +121,20 @@ spec:
               mountPath: /logs
             - name: local-php  
               mountPath: /var/www/symfony/mautic/app/config/local.php
-              subPath: local.php  
+              subPath: local.php
+      volumes:
+      - name: cache
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-cache
+      - name: logs
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-logs
+      - name: local-php
+        configMap:
+          name: {{ .Release.Name }}-local-php
+          defaultMode: 420
+          items:
+          - key: local.php
+            path: local.php     
       imagePullSecrets:
-{{- toYaml .Values.project.imagePullSecrets | nindent 6 }}
+      {{- toYaml .Values.project.imagePullSecrets | nindent 6 }}

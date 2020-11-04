@@ -12,7 +12,6 @@ spec:
     requests:
       storage: {{ .Values.project.persistence.cache.size | default "10G" | quote }}
 
-
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -27,12 +26,9 @@ spec:
   resources:
     requests:
       storage: {{ .Values.project.persistence.logs.size | default "10G" | quote }}
-
-
-{{- if not .Values.ExternalDb.host }}
 ---
 kind: PersistentVolumeClaim
-apiVersion: v1
+apiVersion: v1  
 metadata:
   name: {{ .Release.Name }}-mysql
 spec:
