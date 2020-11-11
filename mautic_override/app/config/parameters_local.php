@@ -166,10 +166,10 @@ $parameters['trusted_hosts'] = [];
 
 // Trusted Proxies
 // Required for Load Balanced Application Containers Behind a Proxy in Mautic
-$parameters['trusted_proxies'] = explode(",",getenv('TRUSTED_PROXIES'));
+$parameters['trusted_proxies'] = array_filter(explode(",",getenv('TRUSTED_PROXIES')));
 
 // Do Not Track IPs
-$parameters['do_not_track_ips'] = explode(",", getenv('DONOTTRACK_IPS'));
+$parameters['do_not_track_ips'] = array_filter(explode(",", getenv('DONOTTRACK_IPS')));
 
 // IP Lookup Service
 $parameters += [
