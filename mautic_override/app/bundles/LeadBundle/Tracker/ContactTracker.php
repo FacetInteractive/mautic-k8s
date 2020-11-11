@@ -308,7 +308,7 @@ class ContactTracker
     private function getContactByIpAddress()
     {
         $ip = $this->ipLookupHelper->getIpAddress();
-        $this->logger->addDebug("IP Address: {$ip->getIpAddress()}. Trackable: {$ip->isTrackable()}");
+        $this->logger->addDebug("IP Address: {$ip->getIpAddress()}. Trackable: " . ($ip->isTrackable() ? "Yes" : "No"));
         $this->logger->addDebug("Do not track list: " . json_encode($ip->getDoNotTrackList()));
         // if no trackingId cookie set the lead is not tracked yet so create a new one
         if ($ip && !$ip->isTrackable()) {
