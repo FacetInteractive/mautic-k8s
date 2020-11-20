@@ -118,7 +118,7 @@ $parameters += [
     // Path Settings
     'cache_path' => '/cache',
     'log_path' => '/logs',
-    'image_path' => 'media/images',
+    'image_path' => '/media/images',
     'tmp_path' => '/cache',
 
     // System Defaults
@@ -185,7 +185,7 @@ $parameters['link_shortener_url'] = null;
  * Asset Settings
  */
 $parameters += [
-    'upload_dir' => '%kernel.root_dir%/media/files',
+    'upload_dir' => '/media/files',
     'max_size' => '6',
     'allowed_extensions' => array(
         "0" => "csv",
@@ -245,7 +245,7 @@ $parameters += [
     'mailer_encryption' => 'tls',
     'mailer_auth_mode' => 'login',
     'mailer_spool_type' => 'memory',
-    'mailer_spool_path' => '%kernel.root_dir%/spool',
+    'mailer_spool_path' => '/spool',
     'mailer_return_path' => null,
     'mailer_spool_msg_limit' => null,
     'mailer_spool_time_limit' => null,

@@ -54,6 +54,12 @@ project:
     logs:
       name: "logs"
       size: 10Gi
+    media:
+      name: "media"
+      size: 10Gi
+    spool:
+      name: "spool"
+      size: 10Gi
     efsId: fs-b5be4340
   imagePullSecrets:
     - name: regcred

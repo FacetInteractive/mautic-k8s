@@ -119,6 +119,10 @@ spec:
               mountPath: /cache
             - name: logs
               mountPath: /logs
+            - name: media
+              mountPath: /media
+            - name: spool
+              mountPath: /spool
             - name: local-php  
               mountPath: /var/www/symfony/mautic/app/config/local.php
               subPath: local.php
@@ -129,6 +133,12 @@ spec:
       - name: logs
         persistentVolumeClaim:
           claimName: {{ .Release.Name }}-logs
+      - name: media
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-media
+      - name: spool
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-spool
       - name: local-php
         configMap:
           name: {{ .Release.Name }}-local-php
