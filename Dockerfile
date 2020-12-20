@@ -14,8 +14,8 @@ RUN useradd -u 1001 -r -g 0 -d /app -s /bin/bash -c "Default Application User" d
 
 RUN mkdir /cache && chown -R 1001:0 /cache && chmod -R g+rwX /cache
 RUN mkdir /logs && chown -R 1001:0 /logs && chmod -R g+rwX /logs
-RUN mkdir /mnt/mautic && chown -R 1001:0 /media && chmod -R g+rwX /mnt/mautic
-RUN mkdir /mnt/spool && chown -R 1001:0 /spool && chmod -R g+rwX /mnt/spool
+RUN mkdir /mnt/mautic && chown -R 1001:0 /mnt/media && chmod -R g+rwX /mnt/mautic
+RUN mkdir /mnt/spool && chown -R 1001:0 /mnt/spool && chmod -R g+rwX /mnt/spool
 
 WORKDIR /var/www/symfony
 
