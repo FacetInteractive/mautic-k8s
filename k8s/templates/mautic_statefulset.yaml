@@ -120,9 +120,9 @@ spec:
             - name: logs
               mountPath: /logs
             - name: media
-              mountPath: /media
+              mountPath: /mnt/media
             - name: spool
-              mountPath: /spool
+              mountPath: /mnt/spool
             - name: local-php  
               mountPath: /var/www/symfony/mautic/app/config/local.php
               subPath: local.php
