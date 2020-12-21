@@ -10,7 +10,7 @@ project:
   # This can be replaced with Gitlab $COMMIT_BRANCH_NAME During deploy  
   branch: test  
   nginxImage:
-    # This will be subsituted with Gitlab Environment variable
+    # This will be substituted with Gitlab Environment variable
     repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx  
     tag: latest                       # This will be replaced with the Tag from GitlabCI
     pullPolicy: IfNotPresent
@@ -28,24 +28,22 @@ project:
     type: ClusterIP
     port: 8080
     targetPort: 8080
-  # Environment  Values
-  # Data base Variables
-  # Host address of the External DB instance.
-  # If ExternalDbHost is left empty , a local DB (K8s)is created.
+  # Environment Values
+  # Database Variables
   s3Bucket: {}
   secret: database-user
   mailerHost: "email-smtp.us-east-1.amazonaws.com"
-  mailerUser: AQIODFIDOJFDJ
   mailerUser: AIPWODHJDLFIKDJ
   mailerPassword: r2ndm$tri9n
   secretKey: r2ndm$trin487
+  # RabbitMQ
   rabbitmqUser: "user"
   rabbitmqPassword: v3r#r@ndum1
   redisPassword: v3r#r@ndum1
   redisPort: 6379
   redis:
     enabled: true
-  # Persistence - Persistence Volume claims
+  # Persistence - Persistence Volume Claims
   persistence:
     storageClass: "aws-efs"
     cache:
@@ -65,9 +63,12 @@ project:
     - name: regcred
   trustedIPs: '10.0.0.0/8,172.16.0.0/12'
   cron:
+    # Do not restart if a cronjob fails, continue to next
     restartPolicy: Never
+    # Do not let multiple cronjobs run concurrently
     concurrencyPolicy: Forbid
     startingDeadlineSeconds: 60
+    # Do not spin up cronjobs repetitively if the job is failing.
     backoffLimit: 2
   resources: {}
 
@@ -84,6 +85,8 @@ project:
 
   
 # External DB (ex: RDS, AzureSQL) configuration
+# Host address of the External DB instance.
+# If ExternalDbHost is left empty , a local DB (K8s)is created.
 ExternalDb: 
   host:
   password:
@@ -120,7 +123,7 @@ ingress:
     nginx.ingress.kubernetes.io/session-cookie-name: "route"
   # defaultCert:
   # defaultKey: 
-# nginx-ingress:
+#  nginx-ingress:
 #   controller:
 #     # config:
 #     #   use-proxy-protocol: "true"
@@ -131,8 +134,8 @@ ingress:
 #     annotations:
 #       service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
 #       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
-# # Rabbit MQ
 
+## Rabbit MQ
 clusterDomain: cluster.local
 rabbitmq:
 ## RabbitMQ Authentication parameters
