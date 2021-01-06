@@ -20,5 +20,5 @@ mysqldump -h ${PROD_DB_HOST} \
           --set-gtid-purged=OFF | \
           pv --progress -r -b -t -w 60 > /tmp/db-init/aws_facet_mautic_live-dump-${TIMESTAMP}.sql
 
-echo "A copy of the AWS Facet Mautic Live MySQL database is availabe at 'db-init/aws_facet_mautic_live-dump-${TIMESTAMP}.sql'."
+echo "A copy of the AWS Facet Mautic Live MySQL database is available at 'db-init/aws_facet_mautic_live-dump-${TIMESTAMP}.sql'."
 echo "Please import the file using 'lando db-import'."
