@@ -1,6 +1,6 @@
-### Import Existing Database
+### How to Import Existing Database to MySQL K8s Instance
 
-Once the deployment is completed. Retrieve the Databse password by running the below commands
+Once the deployment is completed. Retrieve the Database password by running the below commands
 
 ```bash
 kubectl -n <namespace> get secrets {{RELEASE_NAME}}-db-secret -o yaml
