@@ -2,11 +2,11 @@
 
 Get started with Mautic on a LEMP stack.
 
-Simply download Lando and run: 
+1. `git clone` to copy this project locally
+2. `cp .env.lando.dist .env` and customize your environment variables as needed
+3. Download Lando and run `lando start`
+4. Import a shim version of the database with `lando db-import path/to/db`
 
-```
-lando start
-```
 
 References:
 
