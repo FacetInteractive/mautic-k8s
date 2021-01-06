@@ -3,6 +3,7 @@ recipe: lemp
 config:
   webroot: mautic
   php: '7.2'
+  composer_version: '1.10.19'
   database: mysql:5.7
   xdebug: false
   config:
@@ -21,18 +22,23 @@ services:
   # Mautic Appserver
   appserver:
     build:
+      - "composer global require hirak/prestissimo"
+      - "cd /app && rm -rf vendor/*"
+      - "cd /app && rm -rf bin/*"
+      - "cd /app && rm -rf mautic && mkdir mautic"
       - "cd /app && composer install"
       - "ln -s /logs /app/mautic/app/logs"
       - "ln -s /cache /app/mautic/app/cache"
-      - "ln -s /app/config/local.php /app/mautic/config/local.php"
     overrides:
       environment:
         PHP_IDE_CONFIG: "serverName=mautic.lndo.site"
         # Other Environment variables included via .env
       volumes:
         - ./lando/cache:/cache
-        - ./lando/media:/app/media/files
+        - ./lando/media:/mnt/media
         - ./lando/logs:/logs
+        - ./lando/spool:/mnt/spool
+        - ./db-init:/tmp/db-init
     build_as_root:
       # - cd / && mkdir cache && chown -R www-data:dialout /cache && chmod -R g+rwX /cache
       # - cd / && mkdir logs && chown -R www-data:dialout /logs && chmod -R g+rwX /logs
@@ -92,6 +98,8 @@ tooling:
     service: appserver
     cmd:
       - appserver: rm -rf ./mautic/vendor/* ./mautic/bin/*
+      - appserver: rm -rf ./mautic/*
+      - appserver: cd /app && composer install
       - appserver: echo 'deny from all' > ./mautic/vendor/.htaccess
       - appserver: rm -rf /cache/*
       - appserver: php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv --env=dev
@@ -181,7 +189,7 @@ tooling:
     cmd: /app/scripts/reset_admin_password.sh
   pull-live-db:
     service: database
-    cmd: /app/script/pull_live_db.sh
+    cmd: /app/scripts/pull_live_db.sh
 
 events:
   # Shows IP address on 'lando start'
