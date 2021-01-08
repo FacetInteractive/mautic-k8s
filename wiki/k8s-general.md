@@ -1,6 +1,5 @@
 # K8s Kubernetes
 
-
 ## Setting up helm
 
 [**Helm**](https://helm.sh/) is a package manager for kubernetes. Helm Charts help you define, install, and upgrade even the most complex Kubernetes application. helm v2 has a Client component - helm and the server side component  - tiller. 
@@ -8,9 +7,9 @@
 
 ### Install helm
 
-Follow this guide to install helm on your local machine
+Follow this guide to install helm on your local machine:
 
-https://v2.helm.sh/docs/using_helm/#installing-helm
+https://helm.sh/docs/intro/install/
 
 
 ### Initialize helm

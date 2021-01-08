@@ -1,28 +1,57 @@
 # Mautic K8s
 
-Includes PHP FPM 7.2, Mautic code base, Nginx, MySQL, and RabbitMQ stacks consolidated into a K8s Helm Chart for both local and production use.
+**Deploy Mautic in a scalable Kubernetes cluster.**
 
-The production docker compose uses Traefik as a web proxy.
+This project is an _opinionated_ way to deploy Mautic using:
 
-## TODOs
+- **Helm 3 charts** to manage deploying Mautic 2.x
+- **nginx-proxy** as our ingress
+- **PHP-FPM** with PHP 7.2
+- **Nginx** on each application server to work with php-fpm
+- **PVC on EFS** for Mautic `media`, `spool`, `cache`, and `logs`.
+- **EFK** in cluster
+- **Redis** for shared php sessions (but we hope to use this for another Cache plugin soon)
+- **RabbitMQ**
+- **GitLab CI/CD** with multidev branches
+- **RDS** for managed MariaDB
 
-- [x] ~~Make local.php more in tune with app specific settings.~~
-- [x] ~~Update this mautic to latest stable version.~~
-- [x] ~~Explore separate caching tier like Redis. - Will be handled by stateful sets in Kubernetes.~~
-- [x] ~~Env specific settings.~~
-- [x] ~~Send logs to stdout.~~
-- [x] ~~Separate containers for running cronjobs.~~
-- [ ] Mautic/PHP: Setup Sessions for HA with Redis. 
-- [ ] Mautic: Solve `local.php` diff with `parameters_local.php` on new Mautic deploys.
-- [ ] PHP: Configure `php.ini` with memory_limit and other best practices. 
-- [x] Local Dev: Standup `lando` configuration with LEMP stack. 
+### Notes on Opinionated Mautic Setup
+
+- We make `local.php` read-only with an empty array and require developers to configure everything in `parameters_local.php` where we insert environment based switches.
+- We use specialized bash scripts to programmatically link `vendor` and `bin` directories, along with `/mautic_overrides` which are specified in a relative folder path to the `/mautic` project. 
+
+## Requirements
+
+The following are current requirements to work with this project, but considering the interoperability of Helm Charts, we plan to support other Kubernetes platforms and configurations in the future. 
+
+- [AWS Account](https://aws.amazon.com/) - To deploy to AWS EKS.
+- [GitLab](https://gitlab.com/) - To leverage CI/CD to deploy. 
+- [Helm CLI](https://helm.sh/) - To manage your Kubernetes instance.
+- [Lando](https://lando.dev/) - To develop locally.
+
+## Supports
+
+- [x] AWS EKS - Amazon Elastic Container Service for Kubernetes
+- [ ] GKE - Google Kubernetes Engine
+- [ ] AKS - Azure Kubernetes Service
+- [ ] Digital Ocean Kubernetes
+- [ ] Rancher Kubernetes
+
+_[Open an issue](https://github.com/FacetInteractive/mautic-k8s/issues/new) if you plan to work on one of the unchecked Kubernetes providers, we'd love to know!_
 
 ## Documentation Cleanup Tasks
 
-- [ ] Remove docker-compose instructions
-- [ ] Add lando instructions
-- [ ] Add K8s Instructions under wiki.
+- [x] Remove docker-compose instructions
+- [x] Add lando instructions
+- [x] Add K8s Instructions under wiki.
 - [ ] Organize Wiki based on _standard functions_: `setup`, `build`, `deploy` and _components_: `k8s`, `mautic`, `nginx`  
+
+# Current Major Initiatives
+
+- [ ] Upgrade to Mautic 2.16.4
+- [ ] Upgrade to PHP 7.3
+- [ ] Confirm Redis Connection in PHP 7.3 for Shared Sessions
+- [ ] Branch to support Mautic 3.x / PHP 7.4
 
 ## Required Access To Build via AWS
 
@@ -40,187 +69,13 @@ The production docker compose uses Traefik as a web proxy.
     aws --profile {facet.mktg} ecr get-login --no-include-email
     ```
 
-## Installation
+# Local Mautic Dev With Lando
 
-1. Create a `.env` from the `.env.dist` file. Adapt it according to your symfony application
+For instructions on how to set up `mautic-k8s` with Lando, [see the documentation here](./wiki/local-dev-getting-started.md)
 
-    ```bash
-    cp .env.dist .env
-    ```
+# Kubernetes Setup
 
-2. Copy over DB dump into the `db-init` directory.
-
-
-3. Replace the below line in `symfony.conf`,
-
-        fastcgi_pass 127.0.0.1:9000;
-with,
-
-        fastcgi_pass php:9000;
-
-For local, php and nginx run as 2 separate services. For K8s though, they are 2 processes part of the same container.
-
-4. Build/run containers with (with and without detached mode)
-
-    ```bash
-    $ docker-compose -f docker-compose-local.yml build
-    $ docker-compose -f docker-compose-local.yml up -d
-    ```
-
-5. Warm up cache.
-
-	```bash
-	$ docker-compose -f docker-compose-local.yml run php app/console cache:warmup
-	```
-
-5. Run DB migrations.
-
-	```bash
-	$ docker-compose -f docker-compose-local.yml run php app/console doctrine:migrations:migrate
-	```
-
-6. Update admin user password and reset it to `secret`.
-
-    ```sql
-	UPDATE users SET password = "$2a$04$LrQYZmEMFi7GghF0EIv4FOdNv8bFcnlXM9Bta0eb8BWLLlRwcKrUm" where id = 1;
-    ```
-
-7. App can be accessed at "http://localhost:8080". Mautic will be installed in this step.
-
-
-# Kubernetes setup
-
-## Prerequisites
-
-1. Working Kubernetes cluster with ingress controller. This code is tested with EKS, but should work with minor tweaks in other providers.
-
-2. AWS ECR. Used to push the Mautic and Nginx docker images we build. This can be substituted with Gitlab registry or any other container registry provider we give the appropriate image pull secrets in the Deployment spec.
-
-3. You are logged into your AWS account using the aws cli tool.
-
-4. docker installed on your local.
-
-5. kubectl binary for interacting with Kubernetes cluster.
-
-## Building the RabbitMQ image
-
-```
-cd k8s/rabbitmq
-$(aws ecr get-login --no-include-email --region us-west-1)
-docker build -t rabbitmq:3.8 .
-docker tag rabbitmq:3.8 993385208142.dkr.ecr.us-west-1.amazonaws.com/rabbitmq:3.8
-docker push 993385208142.dkr.ecr.us-west-1.amazonaws.com/rabbitmq:3.8
-```
-
-## Step 1: Build the containers
-
-Login to the AWS container registry.
-
-```bash
-$(aws ecr get-login --no-include-email --region us-west-1)
-```
-
-Build, tag and deploy the mautic image.
-
-```bash
-docker build -t facet-mautic:2.15.3 .
-docker tag facet-mautic:2.15.3 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic:2.15.3
-docker push 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic:2.15.3
-```
-
-Build, tag and deploy the nginx image.
-
-```bash
-docker build -f Dockerfile-nginx -t facet-mautic-nginx:1.6 .
-docker tag facet-mautic-nginx:1.6 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.6
-docker push 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx:1.6
-```
-
-**Note** We might eliminate the need for a separate nginx image in future by co-mounting the same volume in both containers.
-
-## Step 2: Deploy the new images to Kubernetes
-
-First, login to the kubernetes cluster using the kubeconfig file provided to you.
-
-```bash
-export KUBECONFIG=/path/to/kubeconfig
-```
-
-Create the `mautic` namespace.
-
-```bash
-kubectl create ns mautic
-```
-
-Create the artifacts required to run Mautic in the cluster.
-
-```bash
-kubectl apply -f k8s/rabbitmq/rabbitmq.yml -n mautic
-kubectl apply -f k8s/mautic.yml -n mautic
-```
-
-This will create
-1. a highly available stateful set for mautic, running 2 containers, one each for mautic(php-fpm) and nginx.
-2. expose the above statefulset as a service
-3. a persistent volume each for cache and logs directory.(logs will be emitted to stdout/stderr in the near future).
-4. A deployment, persistent volume and a service for MySQL.
-5. A secret resource for MySQL credentials
-6. An ingress for the mautic instance.
-
-To dive into the mautic shell, run
-
-```bash
-kubectl exec -it  mautic-0 -n mautic  -c mautic -- /bin/bash
-```
-
-To increase the number of HA replicas, change the count in the yaml file,
-
-```yml
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: mautic
-  labels:
-    app: facet-mautic
-spec:
-  serviceName: mautic
-  replicas: 4
-```
-
-and apply the changes again.
-
-```bash
-kubectl apply -f k8s/mautic.yml -n mautic
-```
-
-## How to clear cache and then warm it
-
-Login to mautic shell.
-
-```
-kubectl exec -it  mautic-0 -n mautic  -c mautic -- /bin/bash
-```
-
-Remove cache dir contents.
-
-```
-cd /cache
-rm -rf *
-```
-
-Warm up cache.
-
-```
-cd /var/www/symfony
-app/console cache:warmup
-```
-
-If you get a PHP OOM error, re-run the last command.
-
-```
-app/console cache:warmup
-```
-
+For instructions on how to _manually_ deploy `mautic-k8s` to AWS EKS, see the documentation here.
 
 
 
@@ -612,17 +467,20 @@ Once the helm release is deleted, ensure the `namespace` is deleted to clean up 
 kubectl delete namespace <namespace>
 ```
 
+# Contributors
 
-# Lando Docker Setup
+[Facet Interactive](https://facetinteractive.com/services/mautic-development-managed-services?utm_source=mautic-k8s&utm_medium=github&utm_campaign=README.md) leads and sponsors the `mautic-k8s` project to support enterprise deployments of Mautic on Kubernetes. 
 
-Get started with Mautic on a LEMP stack.
+& special thanks to: 
 
-Simply download Lando and run: 
+- [Axelerant](https://axelerant.com/?utm_source=mautic-k8s&utm_medium=github&utm_campaign=README.md) for Helmizing Mautic and setting up GitLab CI/CD.
 
-```
-lando start
-```
+## Contributing
 
-References:
+If you would like to get involved, please: 
 
-- https://github.com/Tim-MultiSafepay/Lando-RabbitMQ
+* **Open an Issue** to let others know what you plan to work on.
+* **Join the [#kubernetes](https://mautic.slack.com/archives/C01G6LHLM5M) channel in Mautic Slack**. 
+* **Submit a Pull Request**. Don't forget to update the CHANGELOG.md with a summary of your changes. 
+
+# License
