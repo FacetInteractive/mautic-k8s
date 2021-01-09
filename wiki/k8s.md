@@ -16,30 +16,35 @@ Note: check if your AWS_PROFILE is set if you're using multiple aws profiles.
 
 Confirm if your able to read cluster resources:
 
-`kubectl get pods -A`
-
+```bash
+kubectl get pods -A
+```
 
 ### Get Kubernetes URL:
 
-`kubectl cluster-info | grep 'Kubernetes master' | awk '/http/ {print $NF}'`
-
+```bash
+kubectl cluster-info | grep 'Kubernetes master' | awk '/http/ {print $NF}'
+```
 
 ### Get Kubernetes Certificate
 
-
 Get list of all secrets:
 
-`kubectl get secrets`
+```bash
+kubectl get secrets
+```
 
 There is a secret named " `default-token-<random-string>` . get that secret:
 
-`kubectl get secret <secret-name> -o jsonpath="{['data']['ca\.crt']}" | base64 --decode`
-
+```bash
+kubectl get secret <secret-name> -o jsonpath="{['data']['ca\.crt']}" | base64 --decode
+```
 
 ### Create a cluster-admin Service account
 
 Save the below code as `eks-admin.yaml`
-```
+
+```yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -62,16 +67,19 @@ subjects:
 ```
 
 Then run
-`kubectl apply -f eks-admin.yaml`
+```bash
+kubectl apply -f eks-admin.yaml
+```
 
 ### Retrieve the token fo eks-admin service account:
 
-`kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}')`
+```bash
+kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep eks-admin | awk '{print $1}')
+```
 
-Copy the Authentication token from the output
+Copy the Authentication token from the output.
 
-
-After successfully adding the cluster, Add the `Helm Tiller` application
+After successfully adding the cluster, Add the `Helm Tiller` application.
 
 In the Project Menu, go to Operations --> Kubernetes --> <clustername> --> Applications --> Install Helm Tiller
 
@@ -92,7 +100,7 @@ The pod lifecycle is the duration of the cron job. The pod gets terminated upon 
 
 The cron logs are stored and can be queried from the cli using the command:
 
-```
+```bash
 $ kubectl logs mautic-cron-trigger-campaign-1580262660-b7fjl -n mautic
 Triggering events for campaign 42
 Triggering events for newly added contacts
@@ -116,7 +124,7 @@ Triggering events for inactive contacts
 
 To get the pod name:
 
-```
+```bash
 $ kubectl get pod -n mautic
 NAME                                            READY     STATUS              RESTARTS   AGE
 mautic-0                                        2/2       Running             0          34h
@@ -134,15 +142,6 @@ To alter cron schedule, edit the cron job and change the `spec/schedule` entry.
 To alter the cron process, edit the cron job and change the `jobTemplate/spec/template/containers/command` entry.
 
 **NOTE** Each crontab entry will be a new cron job construct in the cluster and they are all mutually exclusive.
-
-## TODOs/Improvements
-- ~~Expose logs through stdout/stderr~~
-- ~~Add RabbitMQ service~~
-- Convert the above YML into a Helm chart
-- ~~Add a separate cron resource for runnning periodic tasks~~
-- Test with a from scratch Mautic setup
-- Periodic DB snapshot backups/restores
-- ~~Convert ingress into TLS using ACME/Let's Encrypt.~~
 
 # Using Helm to install Mautic.
 
@@ -224,11 +223,18 @@ In the above command replace FileSytemId with your EFS File system ID and the re
 
 2. These values can be overridden at the command line or in your CI-CD pipeline with the `--set` option. For example, if you would like to update the variable `ExternalDbHost` which is under project header, you use the set command like below:
 
-helm upgrade --install $RELEASE_NAME_ /path/to/mautic/helm/chartroot_ --namespace $KUBE_NAMESPACE \ --set project.branch=$CI_COMMIT_BRANCH --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA \ --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA \ --set project.ExternalDbHost="
+```bash
+helm upgrade --install $RELEASE_NAME_ /path/to/mautic/helm/chartroot_ \
+    --namespace $KUBE_NAMESPACE \ 
+    --set project.branch=$CI_COMMIT_BRANCH \
+    --set project.mauticImage.tag=$CI_COMMIT_SHORT_SHA \ 
+    --set project.nginxImage.tag=$CI_COMMIT_SHORT_SHA \ 
+    --set project.ExternalDbHost={{externalDbHostname}}
+```
 
-<externaldbhostname>" \</externaldbhostname>
-
-Note: the Variable Name is denoted along with the parent item as defined in Values.yaml For instance to override the `key` value as defined below, use `foo.dict.key`, to override value for `name` use `foo.name`
+_Notes:_ 
+- The Variable Name is denoted along with the parent item as defined in Values.yaml For instance to override the `key` value as defined below, use `foo.dict.key`, to override value for `name` use `foo.name`
+- @TODO Update the `{{externalDbHostname}}` to leverage a GitLab CI/CD variable. 
 
 ```yaml
 foo:
@@ -239,9 +245,11 @@ foo:
 
 A new _values.yaml_ file can be cloned from the original values.yaml and the values can be replced with custom values and be passed as an argument to the command pipeline.
 
-helm upgrade --install $RELEASE_NAME_ /path/to/helm/chart _--values_ /path/to/custom_values.yaml_
+```bash
+helm upgrade --install $RELEASE_NAME /path/to/helm/chart --values /path/to/custom_values.yaml
+```
 
-Read more about _Helm Values_ [here](https://helm.sh/docs/chart_best_practices/values/)
+Read more about _Helm Values_ [here](https://helm.sh/docs/chart_best_practices/values/).
 
 ### **Important Values**:
 
@@ -254,7 +262,7 @@ ingress.domain                   |       The URL would be {{ project.Name }}.{{ 
 project.persisentce.storageClass | [Storage Class for Persistence](#storage-class-for-data-persisentce) |              aws-efs
 cronjobs                         |             Schedule and commands for various cron jobs              |              10 jobs
 
-**Note on Database**: If no value is passed for ExternalDbHost parameter, a Database service is created on the Kubernetes cluster. Follow steps in [DB Import](#import-existing-database)
+**Note on Database**: If no value is passed for ExternalDbHost parameter, a Database service is created on the Kubernetes cluster. Follow steps in [DB Import to MySQL K8s Service](./db-database-import-to-mysql-k8s-pod.md)
 
 
 ### Cron Jobs.
@@ -266,6 +274,7 @@ This deployment deploys 10 cron jobs as listed in the default values.yaml. Comme
   schedule: _Cron Schedule_
   command: '"app/console", _"command"_, "--env=prod"'
 ```
+
 Example:
 
 ```yaml
@@ -273,6 +282,7 @@ Example:
   schedule: "10,25,40,55 _**_"
   command: '"app/console", "mautic:campaigns:trigger", "--env=prod"'
 ```
+
 ### Dependencies/Requirements:
 
 Helm provides an easy way to deploy other helm charts along with the current chart. All that is to be done is include the details of the chart in the `requirements.yaml` file and run `helm dependency update` to include the helm charts in the deployment.
@@ -287,7 +297,6 @@ If new charts are to be added, edit the requirements.yaml under the helm chart a
   repository: <chart_URL>
 ```
 
-
 Example:
 ```yaml
 - name: rabbitmq
@@ -296,7 +305,6 @@ Example:
 ```
 
 ## CI-CD
-
 
 This project uses `.gitlab-ci.yml` for  Continuous Integration and Deployment. There are four stages in the pipeline.
 
@@ -348,7 +356,6 @@ ECR can be replaced with any other Image repository by updating `MAUTIC_REPOSITO
 
   This stage creates a namespace with the branch name ($CI_COMMIT_BRANCH) when code is commited from non-master branch, if one doesn't exist and deploy the applications with helm charts. If the namespace already exists, the helm upgrade will be run and the application will be upgraded as per the changes. A secret called `regcred` is also created when the code is commited from the branch for the first time. This is used to pull images from ecr.
 
-
 - prod-deploy
 
   This stage creates a namespace with the name mautic-code when code is commited from master branch and deploy the applications with helm charts. If the namespace already exists, the helm upgrade will be run and the application will be upgraded as per the changes. A secret called `regcred` is also created when the code is commited from the branch for the first time. This is used to pull images from ecr.
@@ -367,6 +374,7 @@ To delete any particular environment:
 ```bash
 helm ls
 ```
+
 The output would be simlar to this
 
 ```bash
