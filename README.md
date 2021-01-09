@@ -29,7 +29,7 @@ The following are current requirements to work with this project, but considerin
 - [Helm CLI](https://helm.sh/) - To manage your Kubernetes instance.
 - [Lando](https://lando.dev/) - To develop locally.
 
-## Supports
+## Supported K8s Backplanes
 
 - [x] AWS EKS - Amazon Elastic Container Service for Kubernetes
 - [ ] GKE - Google Kubernetes Engine
@@ -39,13 +39,6 @@ The following are current requirements to work with this project, but considerin
 
 _[Open an issue](https://github.com/FacetInteractive/mautic-k8s/issues/new) if you plan to work on one of the unchecked Kubernetes providers, we'd love to know!_
 
-## Documentation Cleanup Tasks
-
-- [x] Remove docker-compose instructions
-- [x] Add lando instructions
-- [x] Add K8s Instructions under wiki.
-- [ ] Organize Wiki based on _standard functions_: `setup`, `build`, `deploy` and _components_: `k8s`, `mautic`, `nginx`  
-
 # Current Major Initiatives
 
 - [ ] Upgrade to Mautic 2.16.4
@@ -53,36 +46,17 @@ _[Open an issue](https://github.com/FacetInteractive/mautic-k8s/issues/new) if y
 - [ ] Confirm Redis Connection in PHP 7.3 for Shared Sessions
 - [ ] Branch to support Mautic 3.x / PHP 7.4
 
-## Required Access To Build via AWS
-
-* Have AWS CLI installed and configured
-    * Setup a profile for your AWS credentials
-    * Region: `us-west-1`
-
-* Login to AWS ECR
-
-    ```bash
-    # Request ECR Login
-    aws ecr get-login --no-include-email
-
-    # With a profile
-    aws --profile {facet.mktg} ecr get-login --no-include-email
-    ```
-
 # Local Mautic Dev With Lando
 
 For instructions on how to set up `mautic-k8s` with Lando, [see the documentation here](./wiki/local-dev-getting-started.md)
 
 # Kubernetes Setup
 
-For instructions on how to _manually_ deploy `mautic-k8s` to AWS EKS, see the documentation here.
+For instructions on how to _manually_ deploy `mautic-k8s` to AWS EKS, [see the documentation here](./wiki/k8s-eks-how-to-manually-deploy.md).
 
+# Kubernetes Integration with GitLab
 
-
-# Kubernetes Integration with Gitlab
-
-## Add existing Cluster to Gitlab
-
+## How to Add Existing Cluster to GitLab
 
 ### Import the kube-config:
 
@@ -151,7 +125,7 @@ After successfully adding the cluster, Add the `Helm Tiller` application
 
 In the Project Menu, go to Operations --> Kubernetes --> <clustername> --> Applications --> Install Helm Tiller
 
-Cluster role to Gitlab Project to run ci-cd
+Cluster role to GitLab Project to run ci-cd
 
 ```bash
 kubectl create clusterrolebinding gitlabci-rolebinding \
@@ -374,11 +348,11 @@ Example:
 ## CI-CD
 
 
-This project uses .gitlabci for  Continuous Integration and Deployment. There are four stages in the pipeline.
+This project uses `.gitlab-ci.yml` for  Continuous Integration and Deployment. There are four stages in the pipeline.
 
 ### Environment Variables
 
-The below variables are updated in the Gitlab variables and not as part of `.gitlabci.yml` as these are sensitive.
+The below variables are updated in the GitLab variables and not as part of `.gitlab-ci.yml` as these are sensitive.
 These can be updated by going to the Repository --> LeftPane --> Settings --> CI/CD --> Variables
 
 | Variable                         |                             Description                           
@@ -397,7 +371,7 @@ These can be updated by going to the Repository --> LeftPane --> Settings --> CI
 | PROD_MAILER_SECRET_KEY           | Password for the email host for Prod env|
 
 
-Variables used in gitlabci:
+Variables used in GitLab CI:
 
 Variable                         |                             Description                           
 :------------------------------- | :--------------------------------------------------------------- |
