@@ -9,14 +9,18 @@ config:
   config:
     vhosts: nginx-lando.conf
     php: php7-fpm/php.ini
+
+
 # Copy from .env.lando.dist to .env
 env_file:
   - .env
+
 
 # Set a reachable management site ( User: guest, Pass: guest )
 proxy:
   rabbitmq:
     - rabbit.lndo.site:15672
+
 
 services:
   # Mautic Appserver
@@ -69,15 +73,12 @@ services:
       # Grab RabbitMQ management image
       image: "rabbitmq:3-management"
       hostname: "rabbit"
-
       # Start the server for RabbitMQ
       command: rabbitmq-server
-
       # Expose RabbitMQ Ports
       ports:
         - '15672:15672'
         - '5672:5672'
-
       # Link RabbitMQ Configs
       volumes:
         - rabbitmq-isolated.conf:/etc/rabbitmq/rabbitmq.config
