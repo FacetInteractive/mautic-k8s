@@ -199,9 +199,9 @@ events:
     - rabbitmq: hostname -i | cut -d' ' -f1
   post-db-import:
     - database: /app/scripts/reset_admin_password.sh
-    - appserver: rm -rf /cache/*
-    - appserver: php /app/mautic/app/console doctrine:migrations:migrate --no-interaction
-    - appserver: php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv
+    - appserver: rm -rf /cache/* && echo "Clearing cache."
+    - appserver: php /app/mautic/app/console doctrine:migrations:migrate --no-interaction && echo "Running doctrine migrations."
+    - appserver: php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv && echo "Warming cache."
   # @TODO - before running tests locally take a backup of the working database as a snapshot
 #  pre-test:
 #    - database:
