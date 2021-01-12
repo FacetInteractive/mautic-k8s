@@ -91,6 +91,7 @@ ExternalDb:
   host:
   password:
   rootPassword:
+  # database uses db.database
 
 
 # The below  configuration is for the Kubernetes DB host.
@@ -99,7 +100,7 @@ db:
   image: mysql:5
   repicas: 1
   name: db
-  database: mautic
+  database: devmautic
   labels:
     app: mautic-db
   persistence:    
