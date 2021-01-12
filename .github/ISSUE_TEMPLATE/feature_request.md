@@ -1,6 +1,10 @@
 ---
 name: Feature request
-about: Please share your ideas and find support at https://mautic.org
+
+about: 
+
+- Please first search for your feature or idea to make sure there isn't a pre-existing issue for it.
+- If you still want to submit an issue, make sure to link any relevant issues.
 
 ---
 

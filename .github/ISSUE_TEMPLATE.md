@@ -1,4 +1,4 @@
-**Please DO NOT report security vulnerabilities here. Send them to security@mautic.com instead.**
+**Please DO NOT report security vulnerabilities here. Send them to security@mautic.com OR mautic-k8s@facetinteractive.com instead.**
 
 What type of report is this:
 
@@ -17,6 +17,9 @@ The more details the better...
 | --- | ---
 | Mautic version | 
 | PHP version | 
+| Helm Chart version |
+| Kubernetes version |
+| Kubernetes backplane provider | 
 
 ### Steps to reproduce:
 1. 
@@ -24,5 +27,5 @@ The more details the better...
  
 ### Log errors: 
 
-_Please check for related errors in the latest log file in [mautic root]/app/log/ and/or the web server's logs and post them here. Be sure to remove sensitive information if applicable._ 
+_Please check for related errors in the latest log file in /log/ and/or the k8s cluster's logs and post them here. Be sure to remove sensitive information if applicable._ 
 
