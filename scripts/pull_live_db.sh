@@ -17,6 +17,7 @@ mysqldump -h ${PROD_DB_HOST} \
           --triggers \
           --databases ${PROD_DB_NAME} \
           --compress \
+          --no-create-db \
           --set-gtid-purged=OFF | \
           pv --progress -r -b -t -w 60 > /tmp/db-init/aws_facet_mautic_live-dump-${TIMESTAMP}.sql.gz
 
