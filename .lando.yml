@@ -8,7 +8,7 @@ config:
   xdebug: false
   config:
     vhosts: nginx-lando.conf
-    php: php7-fpm/php.ini
+    php: php7-fpm/php-lando.ini
 
 
 # Copy from .env.lando.dist to .env
