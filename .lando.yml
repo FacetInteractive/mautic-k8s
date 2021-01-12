@@ -1,5 +1,6 @@
 name: mautic
-recipe: lemp
+recipe: lamp
+#recipe: lemp
 config:
   webroot: mautic
   php: '7.2'
@@ -7,8 +8,8 @@ config:
   database: mysql:5.7
   xdebug: false
   config:
-    vhosts: nginx-lando.conf
-    php: php7-fpm/php-lando.ini
+    # vhosts: nginx-lando.conf
+    php: php7-fpm/php.ini
 
 
 # Copy from .env.lando.dist to .env
