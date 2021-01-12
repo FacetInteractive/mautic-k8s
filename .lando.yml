@@ -26,6 +26,7 @@ services:
   # Mautic Appserver
   appserver:
     build:
+      - "composer -V"
       - "composer global require hirak/prestissimo"
       - "cd /app && rm -rf vendor/*"
       - "cd /app && rm -rf bin/*"
