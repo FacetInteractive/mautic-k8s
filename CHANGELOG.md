@@ -1,5 +1,14 @@
 # Changelog
 
+## 2021-01-XX - Lando LAMP Configuration
+
+- While working with recent updates to Lando containers, we started seeing an error related to `security.limit_extensions` and couldn't resolve it.
+- Brought parity to nginx-lando.conf and symfony.conf, but still needs some work. 
+- Implemented Lando LAMP recipe as a configuration to keep development moving. These aren't interchangeable with the K8s deployment, however we're not experiencing these issues on our production Docker images.
+- Fix for `scripts/pull_live_db.sh` to allow for gzip compression.
+- Fix for `scripts/pull_live_db.sh` to stop passing `--databases` flag which creates a `USE databasename;` statement and messes up imports elsewhere.
+- Fix for `scripts/reset_admin_password.sh` to escape characters into mysql query.
+
 ## 2020-08-24 - Lando LEMP Configuration
 
 Lando requires a custom `nginx.conf` in order to work in a LEMP stack. 
