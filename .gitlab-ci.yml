@@ -131,7 +131,6 @@
       variables:
         - $CI_COMMIT_BRANCH =~ /^dev.*/
         - $CI_COMMIT_BRANCH =~ /^release-.*/
-        - $CI_COMMIT_BRANCH =~ /^ak.*/
       refs:
         - branches
     environment:
