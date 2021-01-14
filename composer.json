@@ -6,7 +6,8 @@
   "require": {
       "mautic/core": "dev-master#64b4115367cb0956fed82f7b5dc53165e2128d81",
       "aws/aws-sdk-php": "3.36",
-      "twig/twig": "v1.35.0"
+      "twig/twig": "v1.35.0",
+      "cweagans/composer-patches": "1.7.0"
   },
   "repositories": [
     {
@@ -47,6 +48,7 @@
       "merge-extra-deep": true,
       "merge-scripts": false
     },
+    "patches-file": "composer.patches.json",
     "symfony-app-dir": "./mautic/app",
     "symfony-web-dir": "./"
   },
@@ -137,7 +139,7 @@
     ]
   },
   "config": {
-    "preferred-install": "dist",
+    "preferred-install": "source",
     "vendor-dir": "./vendor",
     "bin-dir": "./bin",
     "optimize-autoloader": true,

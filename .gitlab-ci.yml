@@ -131,7 +131,6 @@
       variables:
         - $CI_COMMIT_BRANCH =~ /^dev.*/
         - $CI_COMMIT_BRANCH =~ /^release-.*/
-        - $CI_COMMIT_BRANCH =~ /^ak.*/
       refs:
         - branches
     environment:
@@ -167,6 +166,7 @@
           --set ExternalDb.host=$RDS_HOST
           --set ExternalDb.password=$RDS_PASSWORD
           --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
+          --set db.database=mautic
           --set project.mailerUser=$PROD_MAILER_USER
           --set project.mailerPassword=$PROD_MAILER_SECRET_KEY          
           --set project.secretKey=$PROD_APP_SECRET_KEY

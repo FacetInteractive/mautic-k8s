@@ -12,18 +12,13 @@ mysqldump -h ${PROD_DB_HOST} \
           -u ${PROD_DB_USER} \
           -p${PROD_DB_PASS} \
           --port=${PROD_DB_PORT} \
+          ${PROD_DB_NAME} \
           --single-transaction \
           --routines \
           --triggers \
-          --databases ${PROD_DB_NAME} \
           --compress \
           --set-gtid-purged=OFF | \
-          pv --progress -r -b -t -w 60 > /tmp/db-init/aws_facet_mautic_live-dump-${TIMESTAMP}.sql.gz
+          pv --progress -r -b -t -w 60 | gzip -c > /tmp/db-init/aws_facet_mautic_live-dump-${TIMESTAMP}.sql.gz
 
-# @TODO - Compress to gzip
-#cd /tmp/db-init && \
-#tar -cvf aws_facet_mautic_live-dump-${TIMESTAMP}.sql.gz aws_facet_mautic_live-dump-${TIMESTAMP}.sql && \
-#rm aws_facet_mautic_live-dump-${TIMESTAMP}.sql
-
-echo "A copy of the AWS Facet Mautic Live MySQL database is available at 'db-init/aws_facet_mautic_live-dump-${TIMESTAMP}.sql'."
-echo "Please import the file using 'lando db-import'."
+echo "A copy of the AWS Facet Mautic Live MySQL database is available at [db-init/aws_facet_mautic_live-dump-${TIMESTAMP}.sql.gz]."
+echo "Please import the file using [lando db-import]."

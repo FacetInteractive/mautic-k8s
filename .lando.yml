@@ -1,5 +1,6 @@
 name: mautic
-recipe: lemp
+recipe: lamp
+#recipe: lemp
 config:
   webroot: mautic
   php: '7.2'
@@ -7,21 +8,26 @@ config:
   database: mysql:5.7
   xdebug: false
   config:
-    vhosts: nginx-lando.conf
+    # vhosts: nginx-lando.conf
     php: php7-fpm/php.ini
+
+
 # Copy from .env.lando.dist to .env
 env_file:
   - .env
+
 
 # Set a reachable management site ( User: guest, Pass: guest )
 proxy:
   rabbitmq:
     - rabbit.lndo.site:15672
 
+
 services:
   # Mautic Appserver
   appserver:
     build:
+      - "composer -V"
       - "composer global require hirak/prestissimo"
       - "cd /app && rm -rf vendor/*"
       - "cd /app && rm -rf bin/*"
@@ -69,15 +75,12 @@ services:
       # Grab RabbitMQ management image
       image: "rabbitmq:3-management"
       hostname: "rabbit"
-
       # Start the server for RabbitMQ
       command: rabbitmq-server
-
       # Expose RabbitMQ Ports
       ports:
         - '15672:15672'
         - '5672:5672'
-
       # Link RabbitMQ Configs
       volumes:
         - rabbitmq-isolated.conf:/etc/rabbitmq/rabbitmq.config
@@ -198,9 +201,9 @@ events:
     - rabbitmq: hostname -i | cut -d' ' -f1
   post-db-import:
     - database: /app/scripts/reset_admin_password.sh
-    - appserver: rm -rf /cache/*
-    - appserver: php /app/mautic/app/console doctrine:migrations:migrate --no-interaction
-    - appserver: php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv
+    - appserver: rm -rf /cache/* && echo "Clearing cache."
+    - appserver: php /app/mautic/app/console doctrine:migrations:migrate --no-interaction && echo "Running doctrine migrations."
+    - appserver: php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv && echo "Warming cache."
   # @TODO - before running tests locally take a backup of the working database as a snapshot
 #  pre-test:
 #    - database:
