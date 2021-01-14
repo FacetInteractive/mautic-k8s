@@ -3,7 +3,7 @@ recipe: lamp
 #recipe: lemp
 config:
   webroot: mautic
-  php: '7.2'
+  php: '7.3'
   composer_version: '1.10.19'
   database: mysql:5.7
   xdebug: false
