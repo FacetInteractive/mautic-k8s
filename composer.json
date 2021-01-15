@@ -4,7 +4,7 @@
   "description": "Mautic Open Source Distribution - Modified for K8s",
   "license": "GPL-3.0-only",
   "require": {
-      "mautic/core": "dev-master#039289f16b4c6a4dad7c0ed4b7314e12a59789dc",
+      "mautic/core": "dev-master#0e05617f12dab886e0d45ec26aa43973f25a134d",
       "aws/aws-sdk-php": "3.36",
       "twig/twig": "v1.35.0",
       "cweagans/composer-patches": "1.7.0"

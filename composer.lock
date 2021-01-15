@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "864df19dd7ce7b03114b1a40b58d986f",
+    "content-hash": "49aaa45ab4a3cae687e8a5435a7f9648",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -3272,14 +3272,14 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/mautic/mautic.git",
-                "reference": "039289f16b4c6a4dad7c0ed4b7314e12a59789dc"
+                "reference": "0e05617f12dab886e0d45ec26aa43973f25a134d"
             },
             "require": {
                 "mnsami/composer-custom-directory-installer": "1.1.*",
                 "wikimedia/composer-merge-plugin": "dev-master"
             },
             "type": "library",
-            "time": "2020-12-07T08:54:59+00:00"
+            "time": "2021-01-14T15:10:59+00:00"
         },
         {
             "name": "maxmind-db/reader",
@@ -5420,6 +5420,7 @@
                 }
             ],
             "description": "A security checker for your composer.lock",
+            "abandoned": "https://github.com/fabpot/local-php-security-checker",
             "time": "2019-11-01T13:20:14+00:00"
         },
         {
