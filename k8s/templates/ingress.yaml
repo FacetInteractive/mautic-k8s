@@ -9,6 +9,12 @@ metadata:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"     
   {{- end }}
 spec:
+{{- if ne  .Values.project.branch "master"}}
+  tls:
+  - hosts:
+    - {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
+    secretName: {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}-tls
+{{- end }}
   rules:
 {{- if eq  .Values.project.branch "master" }}
   - host: {{ .Values.project.name }}.{{ .Values.ingress.domain }}
@@ -16,12 +22,6 @@ spec:
   - host: {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
 {{- else }}
   - host:  {{ .Values.ingress.domain }}
-{{- end }}
-{{- if ne  .Values.project.branch "master"}}
-  tls:
-  - hosts:
-    - {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
-    secretName: {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}-tls
 {{- end }}
     http:
       paths:
