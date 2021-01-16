@@ -118,6 +118,8 @@
         --set ExternalDb.host=$RDS_HOST
         --set ExternalDb.password=$RDS_PASSWORD
         --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
+        --set nginxImage.repository=$NGINX_REPOSITORY_URL
+        --set mauticImage.repository=$MAUTIC_REPOSITORY_URL
     
     # Post deployment script
     after_script:
@@ -173,6 +175,8 @@
           --set project.secretKey=$PROD_APP_SECRET_KEY
           --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password
           --set project.trustedIPs=$TRUSTED_PROXIES
+          --set nginxImage.repository=$NGINX_REPOSITORY_URL
+          --set mauticImage.repository=$MAUTIC_REPOSITORY_URL
           
       # Post deployment script
       after_script:
