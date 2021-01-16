@@ -18,7 +18,7 @@
 ## Building the RabbitMQ image
 
 ```
-cd k8s/rabbitmq
+cd infra/k8s/rabbitmq
 $(aws ecr get-login --no-include-email --region us-west-1)
 docker build -t rabbitmq:3.8 .
 docker tag rabbitmq:3.8 993385208142.dkr.ecr.us-west-1.amazonaws.com/rabbitmq:3.8
@@ -68,8 +68,8 @@ kubectl create ns mautic
 Create the artifacts required to run Mautic in the cluster.
 
 ```bash
-kubectl apply -f k8s/rabbitmq/rabbitmq.yml -n mautic
-kubectl apply -f k8s/mautic.yml -n mautic
+kubectl apply -f infra/k8s/rabbitmq/rabbitmq.yml -n mautic
+kubectl apply -f infra/k8s/mautic.yml -n mautic
 ```
 
 This will create
@@ -103,7 +103,7 @@ spec:
 and apply the changes again.
 
 ```bash
-kubectl apply -f k8s/mautic.yml -n mautic
+kubectl apply -f infra/k8s/mautic.yml -n mautic
 ```
 
 ## How to clear cache and then warm it
