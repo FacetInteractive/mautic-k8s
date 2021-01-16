@@ -14,12 +14,9 @@
     NAMESPACE: $CI_COMMIT_BRANCH
     # Release name for helm
     RELEASE_NAME: mautic-$CI_COMMIT_BRANCH
-    # RDS Host End point
-    RDS_HOST: mautic-db2.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
-    #Docker Registry (ECR) URL for Mautic image
-    MAUTIC_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
-    #Docker Registry (ECR) URL for Nginx image
-    NGINX_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
+    # $RDS_HOST - endpoint (set in CI Variables)
+    # $MAUTIC_REPOSITORY_URL - Docker Registry (ECR) URL for Mautic image (set in CI Variables)
+    # $NGINX_REPOSITORY_URL - Docker Registry (ECR) URL for Nginx image (set in CI Variables)
     
     # various stages, currently disabled, remove the variable to enable those steps
     # DEV_BUILD_DISABLED: "true"
@@ -39,7 +36,7 @@
 
     script:
       - docker build --target mautic -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA . --no-cache
-      - $(aws ecr get-login --no-include-email --region us-west-1)
+      - $(aws ecr get-login --no-include-email --region $REGISTRY_AWS_REGION)
       - docker push $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
       - docker build -t $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA  .
       - docker push $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
@@ -61,14 +58,14 @@
     image: axelerant/awscli-ci
     stage: prod-build
     variables:
-      MAUTIC_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
-      NGINX_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
+      # $MAUTIC_REPOSITORY_URL - Docker Registry (ECR) URL for Mautic image (set in CI Variables)
+      # $NGINX_REPOSITORY_URL - Docker Registry (ECR) URL for Nginx image (set in CI Variables)
 
     services:
     - docker:dind
     script:
       - docker build --target mautic -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA . --no-cache
-      - $(aws ecr get-login --no-include-email --region us-west-1)
+      - $(aws ecr get-login --no-include-email --region $REGISTRY_AWS_REGION)
       - docker push $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
       - docker tag $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA $MAUTIC_REPOSITORY_URL:latest
       - docker push $MAUTIC_REPOSITORY_URL:latest
@@ -90,12 +87,13 @@
     stage: dev-deploy
     image: registry.gitorious.xyz/infra/awscli-helm3:015dcaaf
     variables:
-      REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com 
+      # $ECR_REGISTRY - Registry where Images are Stored (Stored in CI Variable), e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com
+      # $REGISTRY_AWS_REGION - Region where ECR Images are Stored (Stored in CI Variables), e.g. us-east-1
     services:
     - docker:dind
     before_script:
       #Docker-login to ecr
-      - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS  $REGISTRY
+      - aws ecr get-login-password --region $REGISTRY_AWS_REGION | docker login --password-stdin --username AWS $ECR_REGISTRY
       # Create namespace with the name $CI_COMMIT_BRANCH if it doesn't exist      
       - kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE      
       # Create secret for registry credentials in the namespace if it doesn't exist
@@ -115,6 +113,7 @@
         --set project.mailerPassword=$DEV_MAILER_SECRET_KEY
         --set project.secretKey=$DEV_APP_SECRET_KEY    
         --set project.trustedIPs=$TRUSTED_PROXIES
+        # @TODO Change this to mautic-$NAMESPACE
         --set db.database=devmautic
         --set ExternalDb.host=$RDS_HOST
         --set ExternalDb.password=$RDS_PASSWORD
@@ -144,11 +143,12 @@
       image: registry.gitorious.xyz/infra/awscli-helm3:015dcaaf
 
       variables:
-        REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com
+        # $ECR_REGISTRY - Registry where Images are Stored (Stored in CI Variable), e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com
+        # $REGISTRY_AWS_REGION - Region where ECR Images are Stored (Stored in CI Variables), e.g. us-east-1
         NAMESPACE: mautic-prod
 
       before_script:
-        - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS $REGISTRY
+        - aws ecr get-login-password --region $REGISTRY_AWS_REGION | docker login --password-stdin --username AWS $ECR_REGISTRY
         - kubectl describe namespace $NAMESPACE  || kubectl create namespace $NAMESPACE
         # Generates Registry Credentials in the mautic namespace
         - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
@@ -166,6 +166,7 @@
           --set ExternalDb.host=$RDS_HOST
           --set ExternalDb.password=$RDS_PASSWORD
           --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
+          # @TODO - Update database name to be consistent with NAMESPACE
           --set db.database=mautic
           --set project.mailerUser=$PROD_MAILER_USER
           --set project.mailerPassword=$PROD_MAILER_SECRET_KEY          
