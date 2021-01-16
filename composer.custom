@@ -8,5 +8,9 @@
         }
     },
     "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/Logicify/mautic-advanced-templates-bundle.git"
+        }
     ]
 }
