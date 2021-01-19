@@ -4,8 +4,17 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-{{ .Values.project.name }}-ingress  
   annotations:
-    kubernetes.io/ingress.class: "nginx"       
+    kubernetes.io/ingress.class: "nginx"
+  {{- if ne  .Values.project.branch "master"}}
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"     
+  {{- end }}
 spec:
+{{- if ne  .Values.project.branch "master"}}
+  tls:
+  - hosts:
+    - {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}
+    secretName: {{ .Values.project.branch }}-{{ .Values.project.name }}.{{ .Values.ingress.domain }}-tls
+{{- end }}
   rules:
 {{- if eq  .Values.project.branch "master" }}
   - host: {{ .Values.project.name }}.{{ .Values.ingress.domain }}
