@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "44fdc7910bfac53d573341b6549ad608",
+    "content-hash": "49aaa45ab4a3cae687e8a5435a7f9648",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -1352,6 +1352,9 @@
             "extra": {
                 "branch-alias": {
                     "dev-master": "2.6.x-dev"
+                },
+                "patches_applied": {
+                    "#6991 Support PHP 7.3 without dropping support for 5.6/7.0": "https://github.com/doctrine/doctrine2/commit/07fc401d255a4cdb4a557147d1c8a3fc7a0c718d.diff"
                 }
             },
             "autoload": {
@@ -3219,7 +3222,7 @@
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/logicify/mautic-advanced-templates-bundle.git",
+                "url": "https://github.com/Logicify/mautic-advanced-templates-bundle.git",
                 "reference": "a70b187922b6e96f7fd0fbf1c7f1112d884bbe78"
             },
             "require": {
@@ -3269,20 +3272,14 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/mautic/mautic.git",
-                "reference": "64b4115367cb0956fed82f7b5dc53165e2128d81"
+                "reference": "0e05617f12dab886e0d45ec26aa43973f25a134d"
             },
             "require": {
                 "mnsami/composer-custom-directory-installer": "1.1.*",
                 "wikimedia/composer-merge-plugin": "dev-master"
             },
             "type": "library",
-            "extra": {
-                "patches_applied": {
-                    "HubSpot Config Field Sync": "patches/hubspot-sync.patch",
-                    "CVE-20210114": "patches/CVE-20210114-m2.patch"
-                }
-            },
-            "time": "2019-10-08T16:42:42+00:00"
+            "time": "2021-01-14T15:10:59+00:00"
         },
         {
             "name": "maxmind-db/reader",
@@ -8941,6 +8938,71 @@
             "time": "2018-11-11T11:18:13+00:00"
         },
         {
+            "name": "symfony/serializer",
+            "version": "v2.8.52",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/serializer.git",
+                "reference": "2939e67396f7356aace05c90e5913736fcb46a20"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/serializer/zipball/2939e67396f7356aace05c90e5913736fcb46a20",
+                "reference": "2939e67396f7356aace05c90e5913736fcb46a20",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.9",
+                "symfony/polyfill-ctype": "~1.8",
+                "symfony/polyfill-php55": "~1.0"
+            },
+            "require-dev": {
+                "doctrine/annotations": "~1.0",
+                "doctrine/cache": "~1.0",
+                "symfony/config": "~2.2|~3.0.0",
+                "symfony/property-access": "~2.3|~3.0.0",
+                "symfony/yaml": "^2.0.5|~3.0.0"
+            },
+            "suggest": {
+                "doctrine/annotations": "For using the annotation mapping. You will also need doctrine/cache.",
+                "doctrine/cache": "For using the default cached annotation reader and metadata cache.",
+                "symfony/config": "For using the XML mapping loader.",
+                "symfony/property-access": "For using the ObjectNormalizer.",
+                "symfony/yaml": "For using the default YAML mapping loader."
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.8-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\Serializer\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony Serializer Component",
+            "homepage": "https://symfony.com",
+            "time": "2018-11-11T11:18:13+00:00"
+        },
+        {
             "name": "symfony/service-contracts",
             "version": "v2.2.0",
             "source": {
@@ -9583,30 +9645,34 @@
         },
         {
             "name": "twilio/sdk",
-            "version": "4.12.1",
+            "version": "5.42.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/twilio/twilio-php.git",
-                "reference": "0a88c48262fbee1c3841f721f46439d3de450b95"
+                "reference": "0cfcb871b18a9c427dd9e8f0ed7458d43009b48a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/twilio/twilio-php/zipball/0a88c48262fbee1c3841f721f46439d3de450b95",
-                "reference": "0a88c48262fbee1c3841f721f46439d3de450b95",
+                "url": "https://api.github.com/repos/twilio/twilio-php/zipball/0cfcb871b18a9c427dd9e8f0ed7458d43009b48a",
+                "reference": "0cfcb871b18a9c427dd9e8f0ed7458d43009b48a",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.2.1"
+                "php": ">=5.5.0"
             },
             "require-dev": {
-                "mockery/mockery": ">=0.7.2",
-                "phpunit/phpunit": "4.5.*"
+                "apigen/apigen": "^4.1",
+                "guzzlehttp/guzzle": "^6.3",
+                "phpunit/phpunit": ">=4.5"
+            },
+            "suggest": {
+                "guzzlehttp/guzzle": "An HTTP client to execute the API requests"
             },
             "type": "library",
             "autoload": {
-                "files": [
-                    "Services/Twilio.php"
-                ]
+                "psr-4": {
+                    "Twilio\\": "src/Twilio/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -9614,12 +9680,8 @@
             ],
             "authors": [
                 {
-                    "name": "Kevin Burke",
-                    "email": "kevin@twilio.com"
-                },
-                {
-                    "name": "Kyle Conroy",
-                    "email": "kyle+pear@twilio.com"
+                    "name": "Twilio API Team",
+                    "email": "api@twilio.com"
                 }
             ],
             "description": "A PHP wrapper for Twilio's API",
@@ -9629,7 +9691,7 @@
                 "sms",
                 "twilio"
             ],
-            "time": "2017-11-17T22:59:03+00:00"
+            "time": "2020-02-05T19:55:13+00:00"
         },
         {
             "name": "voku/portable-ascii",
@@ -12260,7 +12322,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=5.6.19 <7.3"
+        "php": ">=5.6.19 <7.4"
     },
     "platform-dev": [],
     "plugin-api-version": "1.1.0"
