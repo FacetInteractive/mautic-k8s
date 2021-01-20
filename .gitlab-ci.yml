@@ -125,9 +125,10 @@
     after_script:
       # wait for pod to be up
       
-      - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w       
-      - kubectl cp infra/k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
-      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/infra/k8s/post_deploy.sh
+      - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
+      # @TODO - not sure this copy command is necessary, Deprecating.
+      # - kubectl cp scripts/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
+      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/scripts/post_deploy.sh
     only:
       variables:
         - $CI_COMMIT_BRANCH =~ /^dev.*/
@@ -182,8 +183,9 @@
       after_script:
         # wait for pod to be up
         - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
-        - kubectl cp infra/k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
-        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/infra/k8s/post_deploy.sh
+        # @TODO - not sure this copy command is necessary, Deprecating.
+        # - kubectl cp scripts/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
+        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/scripts/post_deploy.sh
       only:
         - master
       environment:
