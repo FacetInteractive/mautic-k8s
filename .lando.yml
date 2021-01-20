@@ -8,8 +8,9 @@ config:
   database: mysql:5.7
   xdebug: false
   config:
-    # vhosts: nginx-lando.conf
-    php: php7-fpm/php.ini
+    # @TODO - Refactor Lando specific config files to include the General Config files
+    # vhosts: infra/lando/nginx-lando.conf
+    php: infra/lando/php-lando.ini
 
 
 # Copy from .env.lando.dist to .env

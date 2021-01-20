@@ -101,7 +101,7 @@
       #- kubectl describe secret nginx-default-tls -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret tls nginx-default-tls --key $NGINX_TLS_PRIV_KEY --cert $NGINX_TLS_FULL_CHAIN --namespace $NAMESPACE
     # @TODO Change this to mautic-$NAMESPACE
     script:
-      - cd k8s/
+      - cd infra/k8s/
       - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE
         --set-string timestamp=$CI_COMMIT_TIMESTAMP 
         --set project.replicaCount=1
@@ -125,9 +125,10 @@
     after_script:
       # wait for pod to be up
       
-      - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w       
-      - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
-      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/k8s/post_deploy.sh
+      - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
+      # @TODO - not sure this copy command is necessary, Deprecating.
+      # - kubectl cp scripts/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
+      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/scripts/post_deploy.sh
     only:
       variables:
         - $CI_COMMIT_BRANCH =~ /^dev.*/
@@ -157,7 +158,7 @@
 
       # @TODO - Update database name to be consistent with NAMESPACE
       script:
-        - cd k8s/
+        - cd infra/k8s/
         - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE
           --set-string timestamp=$CI_COMMIT_TIMESTAMP 
           --set project.replicaCount=1
@@ -181,8 +182,9 @@
       after_script:
         # wait for pod to be up
         - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
-        - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
-        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/k8s/post_deploy.sh
+        # @TODO - not sure this copy command is necessary, Deprecating.
+        # - kubectl cp scripts/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
+        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/scripts/post_deploy.sh
       only:
         - master
       environment:
