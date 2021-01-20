@@ -1,7 +1,8 @@
 {
   "patches": {
     "mautic/core": {
-      "HubSpot Config Field Sync": "patches/hubspot-sync.patch"
+      "HubSpot Config Field Sync": "patches/hubspot-sync.patch",
+      "CVE-20210114": "patches/CVE-20210114-m2.patch"
     }
   }
 }
