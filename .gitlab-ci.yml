@@ -92,15 +92,16 @@
     services:
     - docker:dind
     before_script:
-      #Docker-login to ecr
+      # Docker-login to ecr
       - aws ecr get-login-password --region $REGISTRY_AWS_REGION | docker login --password-stdin --username AWS $ECR_REGISTRY
       # Create namespace with the name $CI_COMMIT_BRANCH if it doesn't exist      
       - kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE      
       # Create secret for registry credentials in the namespace if it doesn't exist
       - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
       #- kubectl describe secret nginx-default-tls -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret tls nginx-default-tls --key $NGINX_TLS_PRIV_KEY --cert $NGINX_TLS_FULL_CHAIN --namespace $NAMESPACE
+    # @TODO Change this to mautic-$NAMESPACE
     script:
-      - cd k8s/               
+      - cd k8s/
       - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE
         --set-string timestamp=$CI_COMMIT_TIMESTAMP 
         --set project.replicaCount=1
@@ -113,7 +114,6 @@
         --set project.mailerPassword=$DEV_MAILER_SECRET_KEY
         --set project.secretKey=$DEV_APP_SECRET_KEY    
         --set project.trustedIPs=$TRUSTED_PROXIES
-        # @TODO Change this to mautic-$NAMESPACE
         --set db.database=devmautic
         --set ExternalDb.host=$RDS_HOST
         --set ExternalDb.password=$RDS_PASSWORD
@@ -155,7 +155,7 @@
         # Generates Registry Credentials in the mautic namespace
         - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
 
-
+      # @TODO - Update database name to be consistent with NAMESPACE
       script:
         - cd k8s/
         - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE
@@ -168,7 +168,6 @@
           --set ExternalDb.host=$RDS_HOST
           --set ExternalDb.password=$RDS_PASSWORD
           --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
-          # @TODO - Update database name to be consistent with NAMESPACE
           --set db.database=mautic
           --set project.mailerUser=$PROD_MAILER_USER
           --set project.mailerPassword=$PROD_MAILER_SECRET_KEY          
