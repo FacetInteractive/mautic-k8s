@@ -1,4 +1,4 @@
-FROM bitnami/php-fpm:7.2-prod AS mautic
+FROM bitnami/php-fpm:7.3-prod AS mautic
 
 RUN apt-get update && apt-get install redis-tools unzip git build-essential libtool autoconf unzip wget -y
 
