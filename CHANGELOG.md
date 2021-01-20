@@ -23,7 +23,7 @@ While implementing this a number of other Mautic configuration improvements were
 - Added `redis` configuration to Lando services.
 - Set up `TRUSTED_PROXIES` as an environment variable, and Lando does not require a proxy.
 - Remove `/mautic/vendor` and `/mautic/bin` from the git history
-- Clean up Dockerfile-base to remove `--enable-gd-native-ttf` flag which is no longer necessary in PHP7.3.
+- Clean up Dockerfile-base to remove `--enable-gd-native-ttf` flag which is no longer necessary in PHP7.2.
 - Remove `xdebug` from `Dockerfile-base`.
 - Preparing for future programmatic composer builds of Mautic, copy the `parameters_local.php` to a `config/` folder. Eventually we will symlink this file or copy it at build time. 
 - `reset_admin_password.sh` to Reset Admin Password for Local on lando build.
