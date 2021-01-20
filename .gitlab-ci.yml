@@ -57,7 +57,7 @@
   prod-build:
     image: axelerant/awscli-ci
     stage: prod-build
-    variables:
+    # variables:
       # $MAUTIC_REPOSITORY_URL - Docker Registry (ECR) URL for Mautic image (set in CI Variables)
       # $NGINX_REPOSITORY_URL - Docker Registry (ECR) URL for Nginx image (set in CI Variables)
 
@@ -86,7 +86,7 @@
   dev-deploy:
     stage: dev-deploy
     image: registry.gitorious.xyz/infra/awscli-helm3:015dcaaf
-    variables:
+    # variables:
       # $ECR_REGISTRY - Registry where Images are Stored (Stored in CI Variable), e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com
       # $REGISTRY_AWS_REGION - Region where ECR Images are Stored (Stored in CI Variables), e.g. us-east-1
     services:
