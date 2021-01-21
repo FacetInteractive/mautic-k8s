@@ -3,7 +3,7 @@ recipe: lamp
 #recipe: lemp
 config:
   webroot: mautic
-  php: '7.2'
+  php: '7.3'
   composer_version: '1.10.19'
   database: mysql:5.7
   xdebug: false
@@ -32,7 +32,7 @@ services:
       - "cd /app && rm -rf vendor/*"
       - "cd /app && rm -rf bin/*"
       - "cd /app && rm -rf mautic && mkdir mautic"
-      - "cd /app && composer install"
+      - "cd /app && composer install --no-dev"
       - "ln -s /logs /app/mautic/app/logs"
       - "ln -s /cache /app/mautic/app/cache"
     overrides:
@@ -56,7 +56,7 @@ services:
       - apt-get install -y libpng-dev
       - apt-get install -y libxpm-dev
       - apt-get install -y libfreetype6-dev
-      - printf "\n" | pecl install mcrypt-1.0.1
+      - printf "\n" | pecl install mcrypt-1.0.2
       # - pecl install mcrypt-1.0.1 -y
       # - docker-php-ext-enable imap pdo pdo_mysql mcrypt bcmath zip redis
       - docker-php-ext-configure gd --with-gd --with-webp-dir --with-jpeg-dir --with-png-dir --with-zlib-dir --with-xpm-dir --with-freetype-dir
@@ -102,7 +102,7 @@ tooling:
     cmd:
       - appserver: rm -rf ./mautic/vendor/* ./mautic/bin/*
       - appserver: rm -rf ./mautic/*
-      - appserver: cd /app && composer install
+      - appserver: cd /app && composer install --no-dev
       - appserver: echo 'deny from all' > ./mautic/vendor/.htaccess
       - appserver: rm -rf /cache/*
       - appserver: php /app/mautic/app/console cache:clear --no-interaction --no-warmup -vvv --env=dev

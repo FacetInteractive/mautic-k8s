@@ -1,6 +1,6 @@
 # Mautic K8s
 
-Includes PHP FPM 7.2, Mautic code base, Nginx, MySQL, and RabbitMQ stacks consolidated into a K8s Helm Chart for both local and production use.
+Includes PHP FPM 7.3, Mautic code base, Nginx, MySQL, and RabbitMQ stacks consolidated into a K8s Helm Chart for both local and production use.
 
 The production docker compose uses Traefik as a web proxy.
 
