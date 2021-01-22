@@ -437,8 +437,10 @@ $parameters += [
 
 /**
  * Error Level Settings
+ *
+ * @TODO - Change Helm to expose NAMESPACE so we can do an exact match
  */
-if (getenv('NAMESPACE') == 'mautic-prod') {
+if (str_contains(getenv('HOSTNAME'),'mautic-master-mautic')) {
     // Turn on All Error Reporting
     error_reporting(E_ALL && ~E_NOTICE && ~E_WARNING);
     ini_set('display_errors', FALSE);
