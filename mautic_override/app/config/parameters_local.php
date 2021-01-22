@@ -445,9 +445,15 @@ if (str_contains(getenv('HOSTNAME'),'mautic-master-mautic')) {
     error_reporting(E_ALL && ~E_NOTICE && ~E_WARNING);
     ini_set('display_errors', FALSE);
     ini_set('display_startup_errors', FALSE);
+    $parameters += [
+        'debug' => false,
+    ];
 } else {
     // Turn on All Error Reporting
     error_reporting(E_ALL);
     ini_set('display_errors', TRUE);
     ini_set('display_startup_errors', TRUE);
+    $parameters += [
+        'debug' => true,
+    ];
 }
