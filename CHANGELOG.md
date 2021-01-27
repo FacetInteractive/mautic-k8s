@@ -56,6 +56,6 @@ While implementing this a number of other Mautic configuration improvements were
 
 - [ ] Use one nginx.conf for both Lando local development and K8s deployments.
 - [ ] Use `php.ini` in K8s Deployments
-- [ ] Rebuild the Dockerfile-base with `from php7.2-base` instead of custom source. 
+- [ ] Rebuild the Dockerfile-base with `from php7.3-base` instead of custom source. 
 - [x] Lando Logs vs. Docker Logs - Determine if we should conditionally check for a LANDO environment before streaming to `/dev/stdout`
 - [ ] Allow `reset-admin-pw` to take an argument.
