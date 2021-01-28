@@ -41,9 +41,9 @@ _[Open an issue](https://github.com/FacetInteractive/mautic-k8s/issues/new) if y
 
 # Current Major Initiatives
 
-- [ ] Upgrade to Mautic 2.16.4
-- [ ] Upgrade to PHP 7.3
-- [ ] Confirm Redis Connection in PHP 7.3 for Shared Sessions
+- [x] Upgrade to Mautic 2.16.4
+- [x] Upgrade to PHP 7.3
+- [x] Confirm Redis Connection in PHP 7.3 for Shared Sessions
 - [ ] Branch to support Mautic 3.x / PHP 7.4
 
 # Local Mautic Dev With Lando
@@ -52,7 +52,7 @@ For instructions on how to set up `mautic-k8s` with Lando, [see the documentatio
 
 # K8s Setup
 
-For instructions 
+For instructions on how to deploy `mautic-k8s` for the first time, [see the documentation here](./wiki/k8s.md)
 
 # Contributors
 
