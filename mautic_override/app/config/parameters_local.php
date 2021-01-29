@@ -129,14 +129,12 @@ $parameters += [
     'date_format_dateonly' => 'F j, Y',
     'date_format_timeonly' => 'g:i a',
 
-    // CORS Settings
-    // @TODO - replace with getenv('CORS_DOMAINS')
-    'cors_restrict_domains' => 1,
-    'cors_valid_domains' => array(
-        "0" => "https://facetinteractive.com",
-        "1" => "https://www.facetinteractive.com"
-    ),
+
 ];
+
+// CORS Settings
+$parameters['cors_restrict_domains'] = 1;
+$parameters['cors_valid_domains'] = array_filter(explode(",",getenv('CORS_DOMAINS')));
 
 /**
  * Dev Settings

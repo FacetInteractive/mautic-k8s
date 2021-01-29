@@ -29,7 +29,8 @@ project:
     port: 8080
     targetPort: 8080
   # Environment Values
-  # Database Variables
+  # comma separated CORS Domains
+  corsDomains: https://facetinteractive.com,https://www.facetinteractive.com
   s3Bucket: {}
   secret: database-user
   # Mail Host, User, and Password Change based on Mailer Provider Selected

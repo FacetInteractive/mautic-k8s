@@ -47,6 +47,8 @@ spec:
           name: mautic
           imagePullPolicy: Always
           env:
+          - name: CORS_DOMAINS
+            value: {{ .Values.project.corsDomains }}
           - name: MYSQL_DB_HOST
             {{- if .Values.ExternalDb.host }}
             value: {{ .Values.ExternalDb.host }}

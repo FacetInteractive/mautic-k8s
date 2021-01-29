@@ -120,6 +120,7 @@
         --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
         --set nginxImage.repository=$NGINX_REPOSITORY_URL
         --set mauticImage.repository=$MAUTIC_REPOSITORY_URL
+        --set project.corsDomains=$MAUTIC_CORS_DOMAINS
     
     # Post deployment script
     after_script:
@@ -177,6 +178,7 @@
           --set project.trustedIPs=$TRUSTED_PROXIES
           --set nginxImage.repository=$NGINX_REPOSITORY_URL
           --set mauticImage.repository=$MAUTIC_REPOSITORY_URL
+          --set project.corsDomains=$MAUTIC_CORS_DOMAINS
           
       # Post deployment script
       after_script:
