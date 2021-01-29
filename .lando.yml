@@ -42,7 +42,7 @@ services:
         # Other Environment variables included via .env
       volumes:
         - ./lando/cache:/cache
-        - ./lando/media:/mnt/media
+        - ./lando/media:/app/mautic/media
         - ./lando/logs:/logs
         - ./lando/spool:/mnt/spool
         - ./db-init:/tmp/db-init

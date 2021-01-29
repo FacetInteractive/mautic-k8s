@@ -122,7 +122,7 @@ spec:
             - name: logs
               mountPath: /logs
             - name: media
-              mountPath: /mnt/media
+              mountPath: /var/www/symfony/mautic/media
             - name: spool
               mountPath: /mnt/spool
       volumes:

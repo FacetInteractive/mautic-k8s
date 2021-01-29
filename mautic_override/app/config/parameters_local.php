@@ -86,10 +86,8 @@ $parameters = [
 /**
  * Database Credentials
  *
- * @TODO - db_server_version should be dynamic.
  */
 $parameters += [
-    // @TODO - This vs. Config Map... needs to be worked out
     'db_driver' => 'pdo_mysql',
     'db_host' => getenv('MYSQL_DB_HOST'),
     'db_port' => '3306',
@@ -100,6 +98,7 @@ $parameters += [
     'db_table_prefix' => null,
     'db_backup_tables' => 0,
     'db_backup_prefix' => 'bak_',
+    // @TODO - db_server_version should be dynamic.
     'db_server_version' => '5.7'
 ];
 
@@ -108,7 +107,6 @@ $parameters += [
  */
 $parameters += [
     // Host Settings
-    // @TODO - Remove as this is Converted to config map for local.php
     'site_url' => getenv('SITE_URL'),
     'secret_key' => getenv('SECRET_KEY'),
     'webroot' => null,
@@ -118,7 +116,7 @@ $parameters += [
     // Path Settings
     'cache_path' => '/cache',
     'log_path' => '/logs',
-    'image_path' => '/mnt/media/images',
+    'image_path' => 'media/images',
     'tmp_path' => '/cache',
 
     // System Defaults
@@ -128,7 +126,6 @@ $parameters += [
     'date_format_short' => 'D, M d',
     'date_format_dateonly' => 'F j, Y',
     'date_format_timeonly' => 'g:i a',
-
 
 ];
 
@@ -183,7 +180,7 @@ $parameters['link_shortener_url'] = null;
  * Asset Settings
  */
 $parameters += [
-    'upload_dir' => '/mnt/media/files',
+    'upload_dir' => '%kernel.root_dir%/media/files',
     'max_size' => '6',
     'allowed_extensions' => array(
         "0" => "csv",
