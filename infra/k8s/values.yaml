@@ -32,6 +32,8 @@ project:
   # Database Variables
   s3Bucket: {}
   secret: database-user
+  # Mail Host, User, and Password Change based on Mailer Provider Selected
+  # @TODO - Add Mailer Provider selection
   mailerHost: "email-smtp.us-east-1.amazonaws.com"
   mailerUser: AIPWODHJDLFIKDJ
   mailerPassword: r2ndm$tri9n
@@ -61,6 +63,8 @@ project:
     efsId: fs-b5be4340
   imagePullSecrets:
     - name: regcred
+  # the IP address (or range) of your proxy
+  # Read more on Trusted Proxies - https://symfony.com/doc/current/deployment/proxies.html
   trustedIPs: '10.0.0.0/8,172.16.0.0/12'
   cron:
     # Do not restart if a cronjob fails, continue to next
