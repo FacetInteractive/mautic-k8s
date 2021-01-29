@@ -254,6 +254,7 @@ $parameters += [
     // Message Settings;
     // also see: Tracking Configuration
     'webview_text' => '<a href=\'|URL|\'>Trouble reading this email? Click here.</a>',
+    // @TODO: Convert to values.yaml file
     'default_signature_text' => 'Peter Vasilion
 
 O: (323) 909-2005x201
@@ -376,6 +377,8 @@ $parameters += [
 
 /**
  * Landing Page Settings
+ *
+ * @TODO - Convert into variable.
  */
 $parameters += [
     'cat_in_page_url' => 0,
