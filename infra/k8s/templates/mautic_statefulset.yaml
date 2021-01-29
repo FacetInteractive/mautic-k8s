@@ -48,7 +48,7 @@ spec:
           imagePullPolicy: Always
           env:
           - name: CORS_DOMAINS
-            value: {{ .Values.project.corsDomains }}
+            value: {{ .Values.project.corsDomains | quote }}
           - name: MYSQL_DB_HOST
             {{- if .Values.ExternalDb.host }}
             value: {{ .Values.ExternalDb.host }}
