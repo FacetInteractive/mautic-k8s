@@ -11,19 +11,19 @@
 project:
   replicaCount: 1
   # typically, this is the subdomain for your Mautic app.
-  name: hello
+  name: mautic
   labels:
-    app: facetmautic
+    app: mautic
   # This can be replaced with Gitlab $COMMIT_BRANCH_NAME During deploy  
-  branch: test  
+  branch: test
   nginxImage:
     # This will be replaced with Gitlab Environment variable
-    repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx  
+    repository: 123456789.dkr.ecr.us-east-1.amazonaws.com/mautic-nginx
     tag: latest                       # This will be replaced with the Tag from GitlabCI
     pullPolicy: IfNotPresent
   mauticImage:
     # This will be replaced with Gitlab Environment variable
-    repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic  
+    repository: 123456790.dkr.ecr.us-east-1.amazonaws.com/mautic-php-fpm
     tag: latest                        # This will be replaced with the Tag from GitlabCI
     pullPolicy: IfNotPresent
   # podSecurityContext: {}
@@ -37,10 +37,10 @@ project:
     targetPort: 8080
   # Environment Values
   # comma separated CORS Domains
-  corsDomains: https://facetinteractive.com,https://www.facetinteractive.com
+  corsDomains: https://mydomain.com,https://www.mydomain.com
   s3Bucket: {}
   secret: database-user
-  # Mail Host, User, and Password Change based on Mailer Provider Selected
+  # Email Host, User, and Password Change based on Mailer Provider Selected
   # @TODO - Add Mailer Provider selection
   # The following assumes AWS SES, however you can choose freely and need to configure based on your provider
   mailerHost: "email-smtp.us-east-1.amazonaws.com"
@@ -87,7 +87,6 @@ project:
     # Do not spin up cronjobs repetitively if the job is failing.
     backoffLimit: 2
   resources: {}
-
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -107,7 +106,7 @@ ExternalDb:
   host:
   password:
   rootPassword:
-  # database uses db.database
+  # database uses db.database to specify the name of the database.
 
 
 # The below  configuration is for the Kubernetes DB host.
@@ -135,7 +134,7 @@ db:
 
 ingress:
   enabled: true
-  domain: k8s.facetinteractive.com
+  domain: k8s.mydomain.com
   class: "nginx"
   annotations:
     kubernetes.io/ingress.class: "nginx"
