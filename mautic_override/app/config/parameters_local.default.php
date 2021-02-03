@@ -1,9 +1,17 @@
 <?php
+
+/**
+ * @file - `parameters_local.default.php` is to be copied to `parameters_local.php` in this same directory.
+ * @description - $parameters_local.php contains all of the Mautic configuration code to
+ *                override the current database configuration.
+ */
+
 $parameters = [
 	'install_source' => 'Mautic',
 	'theme' => 'Mauve',
 	'locale' => 'en_US',
-	'rememberme_key' => '0f687a26ee0c4221a7a3f8151236b6b12f123003',
+    // @TODO - Add rememberme_key via GitLab CI variable
+	'rememberme_key' => '',
 	'rememberme_lifetime' => '31536000',
 	'rememberme_path' => '/',
 	'cookie_path' => '/',
@@ -13,6 +21,7 @@ $parameters = [
 		"301" => "mautic.page.form.redirecttype.permanent", 
 		"302" => "mautic.page.form.redirecttype.temporary"
 	),
+    // Enable the API
 	'api_enabled' => 1,
 	'api_oauth2_access_token_lifetime' => 60,
 	'api_oauth2_refresh_token_lifetime' => 14,
@@ -218,9 +227,9 @@ $parameters += [
  */
 $parameters += [
     // Mail Send Settings
-    'mailer_from_name' => 'Facet Interactive',
+    'mailer_from_name' => 'My Mautic',
     // From Email Address
-    'mailer_from_email' => 'e@hello.facetinteractive.com',
+    'mailer_from_email' => 'mautic@mydomain.com',
     // SELECT Mailer Transport
     'mailer_transport' => 'mautic.transport.amazon',
     // Send email from Lead Owner
@@ -260,13 +269,9 @@ $parameters += [
     // also see: Tracking Configuration
     'webview_text' => '<a href=\'|URL|\'>Trouble reading this email? Click here.</a>',
     // @TODO: Convert to values.yaml file
-    'default_signature_text' => 'Peter Vasilion
+    'default_signature_text' => 'My Signature
 
-O: (323) 909-2005x201
-E:  peter@facetinteractive.com 
-A: 840 Apollo Street Suite 100, El Segundo, CA 90245
-W: facetinteractive.com
-Schedule a Meeting: https://calendly.com/facet-interactive',
+C: 123-456-7890',
 
     // Message Settings: Email Tracking
     'mailer_append_tracking_pixel' => 1,
