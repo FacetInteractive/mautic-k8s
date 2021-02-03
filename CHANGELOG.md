@@ -4,10 +4,10 @@
 
 - Move all relevant infrastructure-as-code (IaC) configuration into the `/infra` folder.
 - Move `post_deploy.sh` into the scripts folder and make some `@TODO`s for future improvements to make it agnostic of k8s. 
-- Update the `README` to better introduce the open source project. 
+- Update the `README` to better introduce the open source project.
 - Move all variables to GitLab CI. No variables should live within the project. 
-- Update `/wiki` to use a better naming convention for various pages.  
-- Update `/wiki` to relevant current project information. 
+- Update `/wiki` to use a better naming convention for various pages.
+- Update `/wiki` to relevant current project information.
 
 ## 2021-01-14 - Critical Mautic Security 2021-01-14
 
