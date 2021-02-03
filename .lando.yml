@@ -36,13 +36,14 @@ services:
       - "cd /app && composer install --no-dev"
       - "ln -s /logs /app/mautic/app/logs"
       - "ln -s /cache /app/mautic/app/cache"
+      - "ln -s /mnt/media /app/mautic/media"
     overrides:
       environment:
         PHP_IDE_CONFIG: "serverName=mautic.lndo.site"
         # Other Environment variables included via .env
       volumes:
         - ./lando/cache:/cache
-        - ./lando/media:/app/mautic/media
+        - ./lando/media:/mnt/media
         - ./lando/logs:/logs
         - ./lando/spool:/mnt/spool
         - ./db-init:/tmp/db-init

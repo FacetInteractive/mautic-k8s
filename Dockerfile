@@ -14,12 +14,14 @@ RUN useradd -u 1001 -r -g 0 -d /app -s /bin/bash -c "Default Application User" d
 
 RUN mkdir /cache && chown -R 1001:0 /cache && chmod -R g+rwX /cache
 RUN mkdir /logs && chown -R 1001:0 /logs && chmod -R g+rwX /logs
-#RUN mkdir /mnt/media && chown -R 1001:0 /mnt/media && chmod -R g+rwX /mnt/media
+RUN mkdir /mnt/media && chown -R 1001:0 /mnt/media && chmod -R g+rwX /mnt/media
 RUN mkdir /mnt/spool && chown -R 1001:0 /mnt/spool && chmod -R g+rwX /mnt/spool
 
 WORKDIR /var/www/symfony
 
 RUN composer install --no-dev --prefer-dist --no-interaction --no-ansi --optimize-autoloader --verbose
+
+RUN ln -s /mnt/media /var/www/symfony/mautic/media
 
 RUN chown -R 1001:0 /var/www/symfony && chmod -R g+rwX /var/www/symfony
 
