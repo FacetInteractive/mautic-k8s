@@ -49,6 +49,8 @@ spec:
           env:
           - name: CORS_DOMAINS
             value: {{ .Values.project.corsDomains | quote }}
+          - name: GA_TRACKING_ID
+            value: {{ .Values.project.gaTrackingId | quote }}
           - name: MYSQL_DB_HOST
             {{- if .Values.ExternalDb.host }}
             value: {{ .Values.ExternalDb.host }}
@@ -101,6 +103,8 @@ spec:
               secretKeyRef:
                 name: {{ .Release.Name }}-app-secret
                 key: mailer-password
+          - name: MAILER_AMAZON_REGION
+            value: {{ .Values.project.mailerAmazonRegion | quote }}
           - name: RABBITMQ_HOST
             value: {{ .Release.Name }}-rabbitmq-headless
           - name: REDIS_HOST
@@ -113,7 +117,9 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: {{ .Release.Name }}-rabbitmq-password
-                key: rabbitmq-password          
+                key: rabbitmq-password
+          - name: SAML_IDP_IDENTITY_ID
+            value: {{ .Values.project.samlIdpIdentityId | quote }}
           - name: TRUSTED_PROXIES
             value: {{ .Values.project.trustedIPs | quote }}      
           volumeMounts:

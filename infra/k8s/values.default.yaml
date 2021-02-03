@@ -38,6 +38,8 @@ project:
   # Environment Values
   # comma separated CORS Domains
   corsDomains: https://mydomain.com,https://www.mydomain.com
+  # Google Analytics Tracking ID
+  gaTrackingId: UA-1234567-1
   s3Bucket: {}
   secret: database-user
   # Email Host, User, and Password Change based on Mailer Provider Selected
@@ -46,6 +48,7 @@ project:
   mailerHost: "email-smtp.us-east-1.amazonaws.com"
   mailerUser: AIPWODHJDLFIKDJ
   mailerPassword: r2ndm$tri9n
+  mailerAmazonRegion: "email-smtp.us-east-1.amazonaws.com"
   # Mautic Secret Key
   secretKey: r2ndm$trin487
   # RabbitMQ
@@ -56,6 +59,7 @@ project:
   redisPort: 6379
   redis:
     enabled: true
+  samlIdpIdentityId: "https://www.facetinteractive.com"
   # Persistence - Persistence Volume Claims
   persistence:
     storageClass: "aws-efs"

@@ -121,6 +121,9 @@
         --set nginxImage.repository=$NGINX_REPOSITORY_URL
         --set mauticImage.repository=$MAUTIC_REPOSITORY_URL
         --set project.corsDomains=$MAUTIC_CORS_DOMAINS
+        --set project.gaTrackingId=$DEV_GA_TRACKING_ID
+        --set project.mailerAmazonRegion=$DEV_MAILER_REGION
+        --set project.samlIdpIdentityId=$DEV_SAML_IDP_IDENTITY_ID
     
     # Post deployment script
     after_script:
@@ -179,6 +182,9 @@
           --set nginxImage.repository=$NGINX_REPOSITORY_URL
           --set mauticImage.repository=$MAUTIC_REPOSITORY_URL
           --set project.corsDomains=$MAUTIC_CORS_DOMAINS
+          --set project.gaTrackingId=$PROD_GA_TRACKING_ID
+          --set project.mailerAmazonRegion=$PROD_MAILER_REGION
+          --set project.samlIdpIdentityId=$PROD_SAML_IDP_IDENTITY_ID
           
       # Post deployment script
       after_script:
