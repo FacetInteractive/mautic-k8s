@@ -110,6 +110,7 @@
         --set-string project.mauticImage.tag=$CI_COMMIT_SHORT_SHA    
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password 
         --set ingress.domain=$DEV_INGRESS_DOMAIN
+        --set project.mailerHost=$DEV_MAILER_HOST
         --set project.mailerUser=$DEV_MAILER_USER
         --set project.mailerPassword=$DEV_MAILER_SECRET_KEY
         --set project.secretKey=$DEV_APP_SECRET_KEY    
@@ -172,6 +173,7 @@
           --set ExternalDb.password=$RDS_PASSWORD
           --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
           --set db.database=mautic
+          --set project.mailerHost=$PROD_MAILER_HOST
           --set project.mailerUser=$PROD_MAILER_USER
           --set project.mailerPassword=$PROD_MAILER_SECRET_KEY          
           --set project.secretKey=$PROD_APP_SECRET_KEY

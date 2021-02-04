@@ -8,6 +8,7 @@
 - Move all variables to GitLab CI. No variables should live within the project. 
 - Update `/wiki` to use a better naming convention for various pages.
 - Update `/wiki` to relevant current project information.
+- Add environment variables table to README. 
 
 ## 2021-01-14 - Critical Mautic Security 2021-01-14
 
