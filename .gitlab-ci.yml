@@ -26,7 +26,7 @@
 
 
   # Dev Build stage:  Builds mautic and nginx images with the tag $CI_COMMIT_SHORT_SHA
-  # This stage is triggered when code is commited from any branch other than master and the Vairable DEV_BUILD_DISABLED is commented out.
+  # This stage is triggered when code is committed from any branch other than master and the Variable DEV_BUILD_DISABLED is commented out.
 
   dev-build:
     image: axelerant/awscli-ci
@@ -145,56 +145,56 @@
 # Production Release stage: Deploys application in prod (mautic) namespace.
 # Runs only when code is committed from master and the Variable PROD_RELEASE_DISABLED is commented out.
   prod-deploy:
-      stage: prod-deploy
-      image: registry.gitorious.xyz/infra/awscli-helm3:015dcaaf
+    stage: prod-deploy
+    image: registry.gitorious.xyz/infra/awscli-helm3:015dcaaf
 
-      variables:
-        # $ECR_REGISTRY - Registry where Images are Stored (Stored in CI Variable), e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com
-        # $REGISTRY_AWS_REGION - Region where ECR Images are Stored (Stored in CI Variables), e.g. us-east-1
-        NAMESPACE: mautic-prod
+    variables:
+      # $ECR_REGISTRY - Registry where Images are Stored (Stored in CI Variable), e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com
+      # $REGISTRY_AWS_REGION - Region where ECR Images are Stored (Stored in CI Variables), e.g. us-east-1
+      NAMESPACE: mautic-prod
 
-      before_script:
-        - aws ecr get-login-password --region $REGISTRY_AWS_REGION | docker login --password-stdin --username AWS $ECR_REGISTRY
-        - kubectl describe namespace $NAMESPACE  || kubectl create namespace $NAMESPACE
-        # Generates Registry Credentials in the mautic namespace
-        - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
+    before_script:
+      - aws ecr get-login-password --region $REGISTRY_AWS_REGION | docker login --password-stdin --username AWS $ECR_REGISTRY
+      - kubectl describe namespace $NAMESPACE  || kubectl create namespace $NAMESPACE
+      # Generates Registry Credentials in the mautic namespace
+      - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
 
-      # @TODO - Update database name to be consistent with NAMESPACE
-      script:
-        - cd infra/k8s/
-        - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE
-          --set-string timestamp=$CI_COMMIT_TIMESTAMP 
-          --set project.replicaCount=4
-          --set project.branch=$CI_COMMIT_BRANCH
-          --set ingress.domain=$PROD_INGRESS_DOMAIN
-          --set-string project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
-          --set-string project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
-          --set ExternalDb.host=$RDS_HOST
-          --set ExternalDb.password=$RDS_PASSWORD
-          --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
-          --set db.database=mautic
-          --set project.mailerHost=$PROD_MAILER_HOST
-          --set project.mailerUser=$PROD_MAILER_USER
-          --set project.mailerPassword=$PROD_MAILER_SECRET_KEY          
-          --set project.secretKey=$PROD_APP_SECRET_KEY
-          --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password
-          --set project.trustedIPs=$TRUSTED_PROXIES
-          --set nginxImage.repository=$NGINX_REPOSITORY_URL
-          --set mauticImage.repository=$MAUTIC_REPOSITORY_URL
-          --set project.corsDomains=$MAUTIC_CORS_DOMAINS
-          --set project.gaTrackingId=$PROD_GA_TRACKING_ID
-          --set project.mailerAmazonRegion=$PROD_MAILER_REGION
-          --set project.samlIdpIdentityId=$PROD_SAML_IDP_IDENTITY_ID
-          
-      # Post deployment script
-      after_script:
-        # wait for pod to be up
-        - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
-        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/scripts/post_deploy.sh
-      only:
-        - master
-      environment:
-        name: prod
+    # @TODO - Update database name to be consistent with NAMESPACE
+    script:
+      - cd infra/k8s/
+      - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE
+        --set-string timestamp=$CI_COMMIT_TIMESTAMP
+        --set project.replicaCount=4
+        --set project.branch=$CI_COMMIT_BRANCH
+        --set ingress.domain=$PROD_INGRESS_DOMAIN
+        --set-string project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
+        --set-string project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
+        --set ExternalDb.host=$RDS_HOST
+        --set ExternalDb.password=$RDS_PASSWORD
+        --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
+        --set db.database=mautic
+        --set project.mailerHost=$PROD_MAILER_HOST
+        --set project.mailerUser=$PROD_MAILER_USER
+        --set project.mailerPassword=$PROD_MAILER_SECRET_KEY
+        --set project.secretKey=$PROD_APP_SECRET_KEY
+        --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password
+        --set project.trustedIPs=$TRUSTED_PROXIES
+        --set nginxImage.repository=$NGINX_REPOSITORY_URL
+        --set mauticImage.repository=$MAUTIC_REPOSITORY_URL
+        --set project.corsDomains=$MAUTIC_CORS_DOMAINS
+        --set project.gaTrackingId=$PROD_GA_TRACKING_ID
+        --set project.mailerAmazonRegion=$PROD_MAILER_REGION
+        --set project.samlIdpIdentityId=$PROD_SAML_IDP_IDENTITY_ID
+
+    # Post deployment script
+    after_script:
+      # wait for pod to be up
+      - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
+      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/scripts/post_deploy.sh
+    only:
+      - master
+    environment:
+      name: prod
   cleanup:
     variables:
       GIT_STRATEGY: none
