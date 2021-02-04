@@ -44,6 +44,7 @@ _[Open an issue](https://github.com/FacetInteractive/mautic-k8s/issues/new) if y
 - [x] Upgrade to Mautic 2.16.4
 - [x] Upgrade to PHP 7.3
 - [x] Confirm Redis Connection in PHP 7.3 for Shared Sessions
+- [ ] Copy/backfill dev databases as new dev* environments are provisioned
 - [ ] Branch to support Mautic 3.x / PHP 7.4
 
 # Local Mautic Dev With Lando
