@@ -25,11 +25,6 @@
     # DEV_RELEASE_DISABLED: "true"
     # PROD_RELEASE_DISABLED: "true"
 
-  markdownlint:
-    stage: linting
-    image: pipelinecomponents/markdownlint:latest
-    script:
-      - mdl --style all --warnings .
 
   # Dev Build stage:  Builds mautic and nginx images with the tag $CI_COMMIT_SHORT_SHA
   # This stage is triggered when code is committed from any branch other than master and the Variable DEV_BUILD_DISABLED is commented out.
