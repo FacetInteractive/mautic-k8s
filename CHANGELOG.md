@@ -1,6 +1,10 @@
 # Changelog
 
-## 2021-01-xx - OSS Prep & Project Organization
+## 2021-xx - Upcoming
+
+- ?
+
+## 2021-02-04 - OSS Prep & Project Organization
 
 - Move all relevant infrastructure-as-code (IaC) configuration into the `/infra` folder.
 - Move `post_deploy.sh` into the scripts folder and make some `@TODO`s for future improvements to make it agnostic of k8s. 
