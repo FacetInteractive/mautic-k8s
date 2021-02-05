@@ -47,6 +47,19 @@ _[Open an issue](https://github.com/FacetInteractive/mautic-k8s/issues/new) if y
 - [ ] Copy/backfill dev databases as new dev* environments are provisioned
 - [ ] Branch to support Mautic 3.x / PHP 7.4
 
+# Get Started Mautic-K8s
+
+1. Fork this repo
+2. Copy the following files for your project's configurations:
+
+```bash
+cp infra/k8s/values.default.yaml infra/k8s/values.yaml
+
+cp mautic_override/app/config/local.default.php mautic_override/app/config/local.php
+
+cp mautic_override/app/config/parameters_local.default.php mautic_override/app/config/parameters_local.php
+```
+
 # Local Mautic Dev With Lando
 
 For instructions on how to set up `mautic-k8s` with Lando, [see the documentation here](./wiki/local-dev-getting-started.md)
