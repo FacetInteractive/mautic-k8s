@@ -59,7 +59,7 @@ project:
   redisPort: 6379
   redis:
     enabled: true
-  samlIdpIdentityId: "https://www.facetinteractive.com"
+  samlIdpIdentityId: "https://www.mydomain.com"
   # Persistence - Persistence Volume Claims
   persistence:
     storageClass: "aws-efs"
