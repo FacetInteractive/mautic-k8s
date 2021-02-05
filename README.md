@@ -127,3 +127,12 @@ If you would like to get involved, please:
 * **Submit a Pull Request**. Don't forget to update the CHANGELOG.md with a summary of your changes. 
 
 # License
+
+MIT License
+
+See [LICENSE](./LICENSE) to see the full text.
+
+Important Note:
+
+Mautic K8s as a distribution software is licensed under MIT License but bundled components can use different licenses and may overwrite the terms and conditions detailed in MIT License. Mautic itself is licensed under GPLv3 [mautic/mautic/LICENSE.txt](https://github.com/mautic/mautic/blob/features/LICENSE.txt) and Mautic is a registered trademark of David Hurley.  
+
