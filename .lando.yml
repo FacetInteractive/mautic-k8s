@@ -8,8 +8,9 @@ config:
   database: mysql:5.7
   xdebug: false
   config:
-    # vhosts: nginx-lando.conf
-    php: php7-fpm/php.ini
+    # @TODO - Refactor Lando specific config files to include the General Config files
+    # vhosts: infra/lando/nginx-lando.conf
+    php: infra/lando/php-lando.ini
 
 
 # Copy from .env.lando.dist to .env
@@ -35,6 +36,7 @@ services:
       - "cd /app && composer install --no-dev"
       - "ln -s /logs /app/mautic/app/logs"
       - "ln -s /cache /app/mautic/app/cache"
+      - "ln -s /mnt/media /app/mautic/media"
     overrides:
       environment:
         PHP_IDE_CONFIG: "serverName=mautic.lndo.site"
@@ -57,7 +59,6 @@ services:
       - apt-get install -y libxpm-dev
       - apt-get install -y libfreetype6-dev
       - printf "\n" | pecl install mcrypt-1.0.2
-      # - pecl install mcrypt-1.0.1 -y
       # - docker-php-ext-enable imap pdo pdo_mysql mcrypt bcmath zip redis
       - docker-php-ext-configure gd --with-gd --with-webp-dir --with-jpeg-dir --with-png-dir --with-zlib-dir --with-xpm-dir --with-freetype-dir
       - docker-php-ext-install gd

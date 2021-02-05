@@ -47,6 +47,10 @@ spec:
           name: mautic
           imagePullPolicy: Always
           env:
+          - name: CORS_DOMAINS
+            value: {{ .Values.project.corsDomains | quote }}
+          - name: GA_TRACKING_ID
+            value: {{ .Values.project.gaTrackingId | quote }}
           - name: MYSQL_DB_HOST
             {{- if .Values.ExternalDb.host }}
             value: {{ .Values.ExternalDb.host }}
@@ -91,7 +95,7 @@ spec:
             value: {{ .Values.ingress.domain }}
             {{- end }}              
           - name: MAILER_HOST
-            value: {{ .Values.project.mailerHost }}
+            value: {{ .Values.project.mailerHost | quote }}
           - name: MAILER_USER
             value: {{ .Values.project.mailerUser }}
           - name: MAILER_PASSWORD            
@@ -99,6 +103,8 @@ spec:
               secretKeyRef:
                 name: {{ .Release.Name }}-app-secret
                 key: mailer-password
+          - name: MAILER_AMAZON_REGION
+            value: {{ .Values.project.mailerAmazonRegion | quote }}
           - name: RABBITMQ_HOST
             value: {{ .Release.Name }}-rabbitmq-headless
           - name: REDIS_HOST
@@ -111,7 +117,9 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: {{ .Release.Name }}-rabbitmq-password
-                key: rabbitmq-password          
+                key: rabbitmq-password
+          - name: SAML_IDP_IDENTITY_ID
+            value: {{ .Values.project.samlIdpIdentityId | quote }}
           - name: TRUSTED_PROXIES
             value: {{ .Values.project.trustedIPs | quote }}      
           volumeMounts:
@@ -120,12 +128,9 @@ spec:
             - name: logs
               mountPath: /logs
             - name: media
-              mountPath: /mnt/media
+              mountPath: /var/www/symfony/mautic/media
             - name: spool
               mountPath: /mnt/spool
-            - name: local-php  
-              mountPath: /var/www/symfony/mautic/app/config/local.php
-              subPath: local.php
       volumes:
       - name: cache
         persistentVolumeClaim:
@@ -139,12 +144,5 @@ spec:
       - name: spool
         persistentVolumeClaim:
           claimName: {{ .Release.Name }}-spool
-      - name: local-php
-        configMap:
-          name: {{ .Release.Name }}-local-php
-          defaultMode: 420
-          items:
-          - key: local.php
-            path: local.php     
       imagePullSecrets:
       {{- toYaml .Values.project.imagePullSecrets | nindent 6 }}

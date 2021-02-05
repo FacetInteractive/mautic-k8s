@@ -3,6 +3,7 @@
   # and a DNS-1123 label must consist of lower case alphanumeric characters or '-',
   # and must start and end with an alphanumeric character.
   stages:
+    - linting
     - dev-build
     - prod-build
     - dev-deploy
@@ -14,12 +15,9 @@
     NAMESPACE: $CI_COMMIT_BRANCH
     # Release name for helm
     RELEASE_NAME: mautic-$CI_COMMIT_BRANCH
-    # RDS Host End point
-    RDS_HOST: mautic-db2.ckipc1y0vkgw.us-east-1.rds.amazonaws.com
-    #Docker Registry (ECR) URL for Mautic image
-    MAUTIC_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
-    #Docker Registry (ECR) URL for Nginx image
-    NGINX_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
+    # $RDS_HOST - endpoint (set in CI Variables)
+    # $MAUTIC_REPOSITORY_URL - Docker Registry (ECR) URL for Mautic image (set in CI Variables)
+    # $NGINX_REPOSITORY_URL - Docker Registry (ECR) URL for Nginx image (set in CI Variables)
     
     # various stages, currently disabled, remove the variable to enable those steps
     # DEV_BUILD_DISABLED: "true"
@@ -29,7 +27,7 @@
 
 
   # Dev Build stage:  Builds mautic and nginx images with the tag $CI_COMMIT_SHORT_SHA
-  # This stage is triggered when code is commited from any branch other than master and the Vairable DEV_BUILD_DISABLED is commented out.
+  # This stage is triggered when code is committed from any branch other than master and the Variable DEV_BUILD_DISABLED is commented out.
 
   dev-build:
     image: axelerant/awscli-ci
@@ -39,7 +37,7 @@
 
     script:
       - docker build --target mautic -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA . --no-cache
-      - $(aws ecr get-login --no-include-email --region us-west-1)
+      - $(aws ecr get-login --no-include-email --region $REGISTRY_AWS_REGION)
       - docker push $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
       - docker build -t $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA  .
       - docker push $NGINX_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
@@ -60,15 +58,15 @@
   prod-build:
     image: axelerant/awscli-ci
     stage: prod-build
-    variables:
-      MAUTIC_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic
-      NGINX_REPOSITORY_URL: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx
+    # variables:
+      # $MAUTIC_REPOSITORY_URL - Docker Registry (ECR) URL for Mautic image (set in CI Variables)
+      # $NGINX_REPOSITORY_URL - Docker Registry (ECR) URL for Nginx image (set in CI Variables)
 
     services:
     - docker:dind
     script:
       - docker build --target mautic -t $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA . --no-cache
-      - $(aws ecr get-login --no-include-email --region us-west-1)
+      - $(aws ecr get-login --no-include-email --region $REGISTRY_AWS_REGION)
       - docker push $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA
       - docker tag $MAUTIC_REPOSITORY_URL:$CI_COMMIT_SHORT_SHA $MAUTIC_REPOSITORY_URL:latest
       - docker push $MAUTIC_REPOSITORY_URL:latest
@@ -89,20 +87,22 @@
   dev-deploy:
     stage: dev-deploy
     image: registry.gitorious.xyz/infra/awscli-helm3:015dcaaf
-    variables:
-      REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com 
+    # variables:
+      # $ECR_REGISTRY - Registry where Images are Stored (Stored in CI Variable), e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com
+      # $REGISTRY_AWS_REGION - Region where ECR Images are Stored (Stored in CI Variables), e.g. us-east-1
     services:
     - docker:dind
     before_script:
-      #Docker-login to ecr
-      - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS  $REGISTRY
+      # Docker-login to ecr
+      - aws ecr get-login-password --region $REGISTRY_AWS_REGION | docker login --password-stdin --username AWS $ECR_REGISTRY
       # Create namespace with the name $CI_COMMIT_BRANCH if it doesn't exist      
       - kubectl get namespace $NAMESPACE || kubectl create namespace $NAMESPACE      
       # Create secret for registry credentials in the namespace if it doesn't exist
       - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
       #- kubectl describe secret nginx-default-tls -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret tls nginx-default-tls --key $NGINX_TLS_PRIV_KEY --cert $NGINX_TLS_FULL_CHAIN --namespace $NAMESPACE
+    # @TODO Change this to mautic-$NAMESPACE
     script:
-      - cd k8s/               
+      - cd infra/k8s/
       - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE
         --set-string timestamp=$CI_COMMIT_TIMESTAMP 
         --set project.replicaCount=1
@@ -110,7 +110,8 @@
         --set-string project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
         --set-string project.mauticImage.tag=$CI_COMMIT_SHORT_SHA    
         --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password 
-        --set ingress.domain=k8s.facetinteractive.com
+        --set ingress.domain=$DEV_INGRESS_DOMAIN
+        --set project.mailerHost=$DEV_MAILER_HOST
         --set project.mailerUser=$DEV_MAILER_USER
         --set project.mailerPassword=$DEV_MAILER_SECRET_KEY
         --set project.secretKey=$DEV_APP_SECRET_KEY    
@@ -119,14 +120,19 @@
         --set ExternalDb.host=$RDS_HOST
         --set ExternalDb.password=$RDS_PASSWORD
         --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
+        --set nginxImage.repository=$NGINX_REPOSITORY_URL
+        --set mauticImage.repository=$MAUTIC_REPOSITORY_URL
+        --set project.corsDomains=$MAUTIC_CORS_DOMAINS
+        --set project.gaTrackingId=$DEV_GA_TRACKING_ID
+        --set project.mailerAmazonRegion=$DEV_MAILER_REGION
+        --set project.samlIdpIdentityId=$DEV_SAML_IDP_IDENTITY_ID
     
     # Post deployment script
     after_script:
       # wait for pod to be up
       
-      - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w       
-      - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
-      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/k8s/post_deploy.sh
+      - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
+      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/scripts/post_deploy.sh
     only:
       variables:
         - $CI_COMMIT_BRANCH =~ /^dev.*/
@@ -140,49 +146,56 @@
 # Production Release stage: Deploys application in prod (mautic) namespace.
 # Runs only when code is committed from master and the Variable PROD_RELEASE_DISABLED is commented out.
   prod-deploy:
-      stage: prod-deploy
-      image: registry.gitorious.xyz/infra/awscli-helm3:015dcaaf
+    stage: prod-deploy
+    image: registry.gitorious.xyz/infra/awscli-helm3:015dcaaf
 
-      variables:
-        REGISTRY: 993385208142.dkr.ecr.us-west-1.amazonaws.com
-        NAMESPACE: mautic-prod
+    variables:
+      # $ECR_REGISTRY - Registry where Images are Stored (Stored in CI Variable), e.g. 123456789.dkr.ecr.us-east-1.amazonaws.com
+      # $REGISTRY_AWS_REGION - Region where ECR Images are Stored (Stored in CI Variables), e.g. us-east-1
+      NAMESPACE: mautic-prod
 
-      before_script:
-        - aws ecr get-login-password --region us-west-1 | docker login --password-stdin --username AWS $REGISTRY
-        - kubectl describe namespace $NAMESPACE  || kubectl create namespace $NAMESPACE
-        # Generates Registry Credentials in the mautic namespace
-        - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
+    before_script:
+      - aws ecr get-login-password --region $REGISTRY_AWS_REGION | docker login --password-stdin --username AWS $ECR_REGISTRY
+      - kubectl describe namespace $NAMESPACE  || kubectl create namespace $NAMESPACE
+      # Generates Registry Credentials in the mautic namespace
+      - kubectl describe secret regcred -n $NAMESPACE > /dev/null 2>&1 ||  kubectl create secret generic regcred --from-file=.dockerconfigjson=/root/.docker/config.json --type=kubernetes.io/dockerconfigjson -n $NAMESPACE
 
+    # @TODO - Update database name to be consistent with NAMESPACE
+    script:
+      - cd infra/k8s/
+      - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE
+        --set-string timestamp=$CI_COMMIT_TIMESTAMP
+        --set project.replicaCount=4
+        --set project.branch=$CI_COMMIT_BRANCH
+        --set ingress.domain=$PROD_INGRESS_DOMAIN
+        --set-string project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
+        --set-string project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
+        --set ExternalDb.host=$RDS_HOST
+        --set ExternalDb.password=$RDS_PASSWORD
+        --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
+        --set db.database=mautic
+        --set project.mailerHost=$PROD_MAILER_HOST
+        --set project.mailerUser=$PROD_MAILER_USER
+        --set project.mailerPassword=$PROD_MAILER_SECRET_KEY
+        --set project.secretKey=$PROD_APP_SECRET_KEY
+        --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password
+        --set project.trustedIPs=$TRUSTED_PROXIES
+        --set nginxImage.repository=$NGINX_REPOSITORY_URL
+        --set mauticImage.repository=$MAUTIC_REPOSITORY_URL
+        --set project.corsDomains=$MAUTIC_CORS_DOMAINS
+        --set project.gaTrackingId=$PROD_GA_TRACKING_ID
+        --set project.mailerAmazonRegion=$PROD_MAILER_REGION
+        --set project.samlIdpIdentityId=$PROD_SAML_IDP_IDENTITY_ID
 
-      script:
-        - cd k8s/
-        - helm upgrade $RELEASE_NAME . --install --namespace $NAMESPACE
-          --set-string timestamp=$CI_COMMIT_TIMESTAMP 
-          --set project.replicaCount=4
-          --set project.branch=$CI_COMMIT_BRANCH
-          --set ingress.domain=facetinteractive.com
-          --set-string project.nginxImage.tag=$CI_COMMIT_SHORT_SHA
-          --set-string project.mauticImage.tag=$CI_COMMIT_SHORT_SHA
-          --set ExternalDb.host=$RDS_HOST
-          --set ExternalDb.password=$RDS_PASSWORD
-          --set ExternalDb.rootPassword=$RDS_ROOT_PASSWORD
-          --set db.database=mautic
-          --set project.mailerUser=$PROD_MAILER_USER
-          --set project.mailerPassword=$PROD_MAILER_SECRET_KEY          
-          --set project.secretKey=$PROD_APP_SECRET_KEY
-          --set rabbitmq.auth.existingPasswordSecret=$RELEASE_NAME-rabbitmq-password
-          --set project.trustedIPs=$TRUSTED_PROXIES
-          
-      # Post deployment script
-      after_script:
-        # wait for pod to be up
-        - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
-        - kubectl cp k8s/post_deploy.sh $RELEASE_NAME-mautic-0:/var/www/symfony -c mautic --namespace $NAMESPACE
-        - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/k8s/post_deploy.sh
-      only:
-        - master
-      environment:
-        name: prod
+    # Post deployment script
+    after_script:
+      # wait for pod to be up
+      - kubectl rollout status statefulset/$RELEASE_NAME-mautic --namespace $NAMESPACE -w
+      - kubectl exec $RELEASE_NAME-mautic-0 -c mautic --namespace $NAMESPACE -- /var/www/symfony/scripts/post_deploy.sh
+    only:
+      - master
+    environment:
+      name: prod
   cleanup:
     variables:
       GIT_STRATEGY: none

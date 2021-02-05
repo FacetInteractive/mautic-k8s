@@ -2,21 +2,28 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+## Getting Started
+#   - Make a copy of this files to values.yaml and modify to your hearts content!
+#   - Making a copy ensures you can pull the upstream from the FacetInteractive/mautic-k8s
+#     distribution and won't run into any conflicts.
+##
+
 project:
   replicaCount: 1
-  name: hello
+  # typically, this is the subdomain for your Mautic app.
+  name: mautic
   labels:
-    app: facetmautic
+    app: mautic
   # This can be replaced with Gitlab $COMMIT_BRANCH_NAME During deploy  
-  branch: test  
+  branch: test
   nginxImage:
-    # This will be substituted with Gitlab Environment variable
-    repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx  
+    # This will be replaced with Gitlab Environment variable
+    repository: 123456789.dkr.ecr.us-east-1.amazonaws.com/mautic-nginx
     tag: latest                       # This will be replaced with the Tag from GitlabCI
     pullPolicy: IfNotPresent
   mauticImage:
-    # This can be replaced with Gitlab Environment variable
-    repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic  
+    # This will be replaced with Gitlab Environment variable
+    repository: 123456790.dkr.ecr.us-east-1.amazonaws.com/mautic-php-fpm
     tag: latest                        # This will be replaced with the Tag from GitlabCI
     pullPolicy: IfNotPresent
   # podSecurityContext: {}
@@ -29,20 +36,30 @@ project:
     port: 8080
     targetPort: 8080
   # Environment Values
-  # Database Variables
+  # comma separated CORS Domains
+  corsDomains: https://mydomain.com,https://www.mydomain.com
+  # Google Analytics Tracking ID
+  gaTrackingId: UA-1234567-1
   s3Bucket: {}
   secret: database-user
+  # Email Host, User, and Password Change based on Mailer Provider Selected
+  # @TODO - Add Mailer Provider selection
+  # The following assumes AWS SES, however you can choose freely and need to configure based on your provider
   mailerHost: "email-smtp.us-east-1.amazonaws.com"
   mailerUser: AIPWODHJDLFIKDJ
   mailerPassword: r2ndm$tri9n
+  mailerAmazonRegion: "email-smtp.us-east-1.amazonaws.com"
+  # Mautic Secret Key
   secretKey: r2ndm$trin487
   # RabbitMQ
   rabbitmqUser: "user"
   rabbitmqPassword: v3r#r@ndum1
+  # Redis
   redisPassword: v3r#r@ndum1
   redisPort: 6379
   redis:
     enabled: true
+  samlIdpIdentityId: "https://www.facetinteractive.com"
   # Persistence - Persistence Volume Claims
   persistence:
     storageClass: "aws-efs"
@@ -61,7 +78,10 @@ project:
     efsId: fs-b5be4340
   imagePullSecrets:
     - name: regcred
+  # the IP address (or range) of your proxy
+  # Read more on Trusted Proxies - https://symfony.com/doc/current/deployment/proxies.html
   trustedIPs: '10.0.0.0/8,172.16.0.0/12'
+  # Cron Config
   cron:
     # Do not restart if a cronjob fails, continue to next
     restartPolicy: Never
@@ -71,7 +91,6 @@ project:
     # Do not spin up cronjobs repetitively if the job is failing.
     backoffLimit: 2
   resources: {}
-
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -91,7 +110,7 @@ ExternalDb:
   host:
   password:
   rootPassword:
-  # database uses db.database
+  # database uses db.database to specify the name of the database.
 
 
 # The below  configuration is for the Kubernetes DB host.
@@ -100,6 +119,8 @@ db:
   image: mysql:5
   repicas: 1
   name: db
+  # devmautic is the default database name
+  # @TODO - namespace the database name
   database: devmautic
   labels:
     app: mautic-db
@@ -109,6 +130,7 @@ db:
     type: ClusterIP
     port: 3306
 
+
 # Ingress Details
 # Ingress host name defines the url of your domain
 # The name of the project name will be prefixed to the domain name of your website
@@ -116,7 +138,7 @@ db:
 
 ingress:
   enabled: true
-  domain: k8s.facetinteractive.com
+  domain: k8s.mydomain.com
   class: "nginx"
   annotations:
     kubernetes.io/ingress.class: "nginx"
@@ -136,11 +158,11 @@ ingress:
 #       service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
 #       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
 
-## Rabbit MQ
+
+# Rabbit MQ
 clusterDomain: cluster.local
 rabbitmq:
-## RabbitMQ Authentication parameters
-##
+# RabbitMQ Authentication parameters
   auth:
     ## RabbitMQ application username
     ## ref: https://github.com/bitnami/bitnami-docker-rabbitmq#environment-variables
@@ -148,8 +170,8 @@ rabbitmq:
     username: user
     existingPasswordSecret: mautic-rabbitmq-password
 
-# Redis
 
+# Redis
 redis-cluster:
   cluster:
     nodes: 4
@@ -159,7 +181,9 @@ redis-cluster:
   existingSecret: redis-password-file
   password: 5Om3R2ndumw!n
 
+
 # Cron Job values
+# @TODO - switch --env=prod/dev based on namspace
 cronjobs:
   - name: trigger-campaign
     schedule: "10,25,40,55 * * * *"

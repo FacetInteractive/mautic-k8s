@@ -25,4 +25,4 @@ path/to/console cache:clear --env=dev
 
 ### When deploying updates to production
 
-The deployment will automatically install the updated packages and run `migration` commands on post deploy using the commands in `/k8s/post_deploy.sh`.
+The deployment will automatically install the updated packages and run `migration` commands on post deploy using the commands in `/infra/k8s/post_deploy.sh`.

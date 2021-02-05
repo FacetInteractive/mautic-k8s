@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install redis-tools unzip git build-essential libt
 
 RUN pecl install redis
 
-COPY php7-fpm/php.ini /opt/bitnami/php/etc/php.ini
+COPY infra/php7-fpm/php.ini /opt/bitnami/php/etc/php.ini
 
 RUN composer global require hirak/prestissimo
 
@@ -21,6 +21,8 @@ WORKDIR /var/www/symfony
 
 RUN composer install --no-dev --prefer-dist --no-interaction --no-ansi --optimize-autoloader --verbose
 
+RUN ln -s /mnt/media /var/www/symfony/mautic/media
+
 RUN chown -R 1001:0 /var/www/symfony && chmod -R g+rwX /var/www/symfony
 
 USER 1001
@@ -32,8 +34,8 @@ RUN useradd -u 1001 -r -g 0 -d /app -s /sbin/nologin -c "Default Application Use
     && mkdir -p /app \
     && chown -R 1001:0 /app && chmod -R g+rwX /app
 
-COPY nginx.conf /etc/nginx
-COPY symfony.conf /etc/nginx/conf.d/default.conf
+COPY infra/nginx/nginx.conf /etc/nginx
+COPY infra/nginx/symfony.conf /etc/nginx/conf.d/default.conf
 
 COPY --from=mautic /var/www/symfony /var/www/symfony
 

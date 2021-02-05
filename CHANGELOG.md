@@ -1,6 +1,20 @@
 # Changelog
 
-## 2021-01-XX - Lando LAMP Configuration
+## 2021-01-xx - OSS Prep & Project Organization
+
+- Move all relevant infrastructure-as-code (IaC) configuration into the `/infra` folder.
+- Move `post_deploy.sh` into the scripts folder and make some `@TODO`s for future improvements to make it agnostic of k8s. 
+- Update the `README` to better introduce the open source project.
+- Move all variables to GitLab CI. No variables should live within the project. 
+- Update `/wiki` to use a better naming convention for various pages.
+- Update `/wiki` to relevant current project information.
+- Add environment variables table to README. 
+
+## 2021-01-14 - Critical Mautic Security 2021-01-14
+
+- Patch applied. 
+
+## 2021-01-13 - Lando LAMP Configuration
 
 - While working with recent updates to Lando containers, we started seeing an error related to `security.limit_extensions` and couldn't resolve it.
 - Brought parity to nginx-lando.conf and symfony.conf, but still needs some work. 

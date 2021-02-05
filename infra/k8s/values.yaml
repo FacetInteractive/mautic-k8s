@@ -1,0 +1,220 @@
+# Default values for mautic.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+## Getting Started
+#   - Make a copy of this files to values.yaml and modify to your hearts content!
+#   - Making a copy ensures you can pull the upstream from the FacetInteractive/mautic-k8s
+#     distribution and won't run into any conflicts.
+##
+
+project:
+  replicaCount: 1
+  # typically, this is the subdomain for your Mautic app.
+  name: hello
+  labels:
+    app: facetmautic
+  # This can be replaced with Gitlab $COMMIT_BRANCH_NAME During deploy  
+  branch: test  
+  nginxImage:
+    # This will be replaced with Gitlab Environment variable
+    repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic-nginx  
+    tag: latest                       # This will be replaced with the Tag from GitlabCI
+    pullPolicy: IfNotPresent
+  mauticImage:
+    # This will be replaced with Gitlab Environment variable
+    repository: 993385208142.dkr.ecr.us-west-1.amazonaws.com/facet-mautic  
+    tag: latest                        # This will be replaced with the Tag from GitlabCI
+    pullPolicy: IfNotPresent
+  # podSecurityContext: {}
+  # fsGroup: 2000
+  securityContext:
+    fsGroup: 1000
+    runAsUser: 1001
+  service:
+    type: ClusterIP
+    port: 8080
+    targetPort: 8080
+  # Environment Values
+  # comma separated CORS Domains
+  corsDomains: https://facetinteractive.com,https://www.facetinteractive.com
+  # Google Analytics Tracking ID
+  gaTrackingId: UA-1234567-1
+  s3Bucket: {}
+  secret: database-user
+  # Mail Host, User, and Password Change based on Mailer Provider Selected
+  # @TODO - Add Mailer Provider selection
+  # The following assumes AWS SES, however you can choose freely and need to configure based on your provider
+  mailerHost: "email-smtp.us-east-1.amazonaws.com"
+  mailerUser: AIPWODHJDLFIKDJ
+  mailerPassword: r2ndm$tri9n
+  mailerAmazonRegion: "email-smtp.us-east-1.amazonaws.com"
+  # Mautic Secret Key
+  secretKey: r2ndm$trin487
+  # RabbitMQ
+  rabbitmqUser: "user"
+  rabbitmqPassword: v3r#r@ndum1
+  # Redis
+  redisPassword: v3r#r@ndum1
+  redisPort: 6379
+  redis:
+    enabled: true
+  samlIdpIdentityId: "https://www.facetinteractive.com"
+  # Persistence - Persistence Volume Claims
+  persistence:
+    storageClass: "aws-efs"
+    cache:
+      name: "cache"
+      size: 10Gi
+    logs:
+      name: "logs"
+      size: 10Gi
+    media:
+      name: "media"
+      size: 10Gi
+    spool:
+      name: "spool"
+      size: 10Gi
+    efsId: fs-b5be4340
+  imagePullSecrets:
+    - name: regcred
+  # the IP address (or range) of your proxy
+  # Read more on Trusted Proxies - https://symfony.com/doc/current/deployment/proxies.html
+  trustedIPs: '10.0.0.0/8,172.16.0.0/12'
+  # Cron Config
+  cron:
+    # Do not restart if a cronjob fails, continue to next
+    restartPolicy: Never
+    # Do not let multiple cronjobs run concurrently
+    concurrencyPolicy: Forbid
+    startingDeadlineSeconds: 60
+    # Do not spin up cronjobs repetitively if the job is failing.
+    backoffLimit: 2
+  resources: {}
+
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    # limits:
+    #   cpu: 100m
+    #   memory: 128Mi
+    # requests:
+    #   cpu: 100m
+    #   memory: 128Mi
+
+  
+# External DB (ex: RDS, AzureSQL) configuration
+# Host address of the External DB instance.
+# If ExternalDbHost is left empty , a local DB (K8s)is created.
+ExternalDb: 
+  host:
+  password:
+  rootPassword:
+  # database uses db.database
+
+
+# The below  configuration is for the Kubernetes DB host.
+# If ExternalDb is used  this can be ignored.
+db:
+  image: mysql:5
+  repicas: 1
+  name: db
+  # devmautic is the default database name
+  # @TODO - namespace the database name
+  database: devmautic
+  labels:
+    app: mautic-db
+  persistence:    
+    size: 10Gi
+  service:
+    type: ClusterIP
+    port: 3306
+
+
+# Ingress Details
+# Ingress host name defines the url of your domain
+# The name of the project name will be prefixed to the domain name of your website
+# If your project name is `marketing` and domain is `example.com` the hostname of this application would be `marketing.example.com`
+
+ingress:
+  enabled: true
+  domain: k8s.facetinteractive.com
+  class: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "route"
+  # defaultCert:
+  # defaultKey: 
+#  nginx-ingress:
+#   controller:
+#     # config:
+#     #   use-proxy-protocol: "true"
+#     service:
+#       externalTrafficPolicy: Local
+#     extraArgs:
+#       default-ssl-certificate: "mautic/nginx-default-tls"
+#     annotations:
+#       service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+#       service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: '*'
+
+
+# Rabbit MQ
+clusterDomain: cluster.local
+rabbitmq:
+# RabbitMQ Authentication parameters
+  auth:
+    ## RabbitMQ application username
+    ## ref: https://github.com/bitnami/bitnami-docker-rabbitmq#environment-variables
+    ##
+    username: user
+    existingPasswordSecret: mautic-rabbitmq-password
+
+
+# Redis
+redis-cluster:
+  cluster:
+    nodes: 4
+    replicas: 1
+  usePassword: true
+  usePasswordFile: true
+  existingSecret: redis-password-file
+  password: 5Om3R2ndumw!n
+
+
+# Cron Job values
+# @TODO - switch --env=prod/dev based on namspace
+cronjobs:
+  - name: trigger-campaign
+    schedule: "10,25,40,55 * * * *"
+    command: '"mautic/app/console", "mautic:campaigns:trigger", "--env=prod"'
+  - name: emails-send
+    schedule: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
+    command: '"mautic/app/console", "mautic:emails:send", "--env=prod"'
+  - name: email-fetch
+    schedule: "9,14,19,24,29,34,39,44,49,54 * * * *"
+    command: '"mautic/app/console", "mautic:email:fetch", "--env=prod"'
+  - name: segments-update
+    schedule: "0,15,30,45 * * * *"
+    command: '"mautic/app/console", "mautic:segments:update", "--env=prod"'
+  - name: campaigns-rebuild
+    schedule: "2 * * * *"
+    command: '"mautic/app/console", "mautic:campaigns:rebuild", "--env=prod"'
+  - name: broadcasts-send
+    schedule: "5 * * * *"
+    command: '"mautic/app/console", "mautic:broadcasts:send", "--env=prod"'
+  - name: social-monitoring
+    schedule: "7 * * * *"
+    command: '"mautic/app/console", "mautic:social:monitoring", "--env=prod"'
+  - name: integration-fetchleads-hubspot
+    schedule: "10,40 0 * * *"
+    command: '"mautic/app/console", "mautic:integration:fetchleads", "--integration=Hubspot"'
+  - name: integration-pushactivity-hubspot
+    schedule: "16,46 0 * * *"
+    command: '"mautic/app/console", "mautic:integration:pushactivity", "--integration=Hubspot"'
+  - name: import
+    schedule: "3,11,19,27,34,42,50 * * * *"
+    command: '"mautic/app/console", "mautic:import", "--env=prod"'
+
+
