@@ -6,7 +6,7 @@ This project is an _opinionated_ way to deploy Mautic using:
 
 - **Helm 3 charts** to manage deploying Mautic 2.x
 - **nginx-proxy** as our ingress
-- **PHP-FPM** with PHP 7.2
+- **PHP-FPM** with PHP 7.3
 - **Nginx** on each application server to work with php-fpm
 - **PVC on EFS** for Mautic `media`, `spool`, `cache`, and `logs`.
 - **EFK** in cluster
