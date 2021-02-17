@@ -183,7 +183,8 @@ redis-cluster:
 
 
 # Cron Job values
-# @TODO - switch --env=prod/dev based on namspace
+# @TODO - switch --env=prod/dev based on namespace
+# @TODO - update to process RabbitMQ queue with a conditional process rate set by CI/CD per ENV
 cronjobs:
   - name: trigger-campaign
     schedule: "10,25,40,55 * * * *"
@@ -215,5 +216,11 @@ cronjobs:
   - name: import
     schedule: "3,11,19,27,34,42,50 * * * *"
     command: '"mautic/app/console", "mautic:import", "--env=prod"'
+  - name: queue-process-pages
+    schedule: "*/5 * * * *"
+    command: '"mautic/app/console", "mautic:queue:process", "--env=prod", "-i", "page_hit"'
+  - name: queue-process-email
+    schedule: "*/5 * * * *"
+    command: '"mautic/app/console", "mautic:queue:process", "--env=prod", "-i", "email_hit"'
 
 

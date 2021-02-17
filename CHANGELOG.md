@@ -1,8 +1,12 @@
 # Changelog
 
-## 2021-xx - Upcoming
+## 2021-xx - Upcoming 
 
-- ?
+- ? 
+
+## 2021-02-17 - Cron Fixes
+
+- RabbitMQ requires separate cron for processing email_hit and page_hit.
 
 ## 2021-02-04 - OSS Prep & Project Organization
 
